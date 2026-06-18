@@ -88,11 +88,16 @@ Each dataset's doc lists concrete starter queries.
 
 ## Prerequisites
 
-1. **TuringDB server** - the `turingdb` CLI on your `PATH`.
-2. **Python SDK** (for querying):
-   ```bash
-   pip install turingdb
-   ```
+The only thing you need is a Python package manager - we recommend [`uv`](https://docs.astral.sh/uv/).
+Installing the `turingdb` package gives you **both** the `turingdb` CLI (on your `PATH`) and the
+Python SDK (as a library) - there's nothing else to install separately.
+
+```bash
+uv init my-project
+uv add turingdb
+```
+
+(Or with pip: `pip install turingdb`.)
 
 ---
 
@@ -100,14 +105,17 @@ Each dataset's doc lists concrete starter queries.
 
 ### 1. Start the server pointed at this repo
 
-The repo root **is** a TuringDB "turing-dir" (it contains a `graphs/` store). Start the
-server against it, with the visualizer enabled:
+The repo root **is** a TuringDB "turing-dir" (it contains a `graphs/` store). Clone it, make it
+your own project with `uv`, and start the server with the visualizer enabled:
 
 ```bash
 git clone https://github.com/turing-db/turingdb-hackathon-defense.git
 cd turingdb-hackathon-defense
+rm -rf .git                 # so you can start your own git repo in the cloned directory
 
-turingdb start -turing-dir "$(pwd)" -ui -ui-port 8080
+uv init .
+uv add turingdb
+uv run turingdb start -turing-dir "$(pwd)" -ui   # look for graphs in the current dir, start the visualizer UI
 ```
 
 - **`:6666`** - database (HTTP API used by the SDK)
@@ -165,7 +173,7 @@ cp -r skills/turingdb ~/.claude/skills/
 
 Then start a Claude Code session and type `/turingdb` followed by what you want to do, e.g.:
 
-- `/turingdb start the server at $(pwd) and load power_plants`
+- `/turingdb start the server at the current directory and load power_plants`
 - `/turingdb query the highest-capacity plants in the USA with their fuel`
 - `/turingdb find which suppliers have the most quality incidents in supply_chain`
 
@@ -184,9 +192,9 @@ Then start a Claude Code session and type `/turingdb` followed by what you want 
 ## Repo layout
 
 ```
-turingdb-hackathon-defense/
-├── README.md            ← you are here
-├── graphs/              ← prebuilt, versioned TuringDB graph store (point -turing-dir here)
+turingdb-hackathon-defense/  ← repo root (point -turing-dir here)
+├── README.md               ← you are here
+├── graphs/                 ← prebuilt, versioned TuringDB graph store
 │   ├── default/         ← empty default graph (needed for a clean server start)
 │   ├── supply_chain/
 │   ├── logistics_risk/
