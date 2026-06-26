@@ -180,12 +180,12 @@ Then start a Claude Code session and type `/turingdb` followed by what you want 
 | File | Covers |
 |------|--------|
 | `SKILL.md` | Entry point - routes to the right reference for your task |
-| `startup.md` | Install the package, start the server, connect, load a graph |
+| `startup.md` | Install the package, connect to a server (or run embedded), load/create a graph |
 | `querying.md` | `MATCH`, `WHERE`, joins, ordering, functions |
 | `writing.md` | `CREATE`, `SET`, and the change/commit workflow |
+| `importing.md` | Import external data - JSONL, GML, Parquet, Neo4j migration |
 | `algorithms.md` | Shortest path (Dijkstra), vector/embedding search |
 | `introspection.md` | Explore schema, versioning, time travel, SDK reference |
-| `parquet.md` | Import Parquet files via the `turing-parquet` CLI |
 
 ---
 
