@@ -56,7 +56,7 @@ which is exactly what this repo ships.
 | `supply_chain` | Aerospace / defense supply chain (parts, suppliers, POs, quality incidents) | 30,380 | 90,402 | [docs/supply_chain.md](docs/supply_chain.md) |
 | `logistics_risk` | Supply-chain **risk** & performance indicators (shipments, suppliers, countries, risk class) | 117,718 | 233,242 | [docs/logistics_risk.md](docs/logistics_risk.md) |
 | `drone_swarm` | Drone-swarm coordination telemetry (positions, battery, formation, mission, trajectories) | 21,028 | 99,980 | [docs/drone_swarm.md](docs/drone_swarm.md) |
-| `power_plants` | Global power infrastructure (plants, fuels, owners, countries) | 45,262 | 93,052 | [docs/power_plants.md](docs/power_plants.md) |
+| `power_plants` | Global power infrastructure (plants, fuels, owners, countries, plants within 10 km) | 45,262 | 149,218 | [docs/power_plants.md](docs/power_plants.md) |
 | `poledb` | POLE crime investigation (people, associates, crimes, officers, vehicles, phone calls, locations) | 61,521 | 105,840 | [docs/poledb.md](docs/poledb.md) |
 | `attack_scenarios` | Cyber attack knowledge base (scenarios → MITRE ATT&CK techniques, tools, categories) | 18,354 | 60,014 | [docs/attack_scenarios.md](docs/attack_scenarios.md) |
 
@@ -71,7 +71,9 @@ These graphs are picked for **defense, resilience, and intelligence** scenarios:
   shipments concentrate by supplier, product, and country; quantify supplier reliability
   (on-time-in-full) and single-source risk.
 - **Critical-infrastructure mapping** (`power_plants`) - map generation capacity by country
-  and fuel; identify ownership concentration and fuel-dependency for energy-security analysis.
+  and fuel; identify ownership concentration and fuel-dependency for energy-security analysis;
+  use `NEAR` edges (plants within 10 km) to find co-located clusters and cross-border neighbours
+  exposed to a single strike or natural hazard.
 - **Autonomous-systems / ISR** (`drone_swarm`) - reconstruct each drone's trajectory over
   time, correlate collision warnings with formation and mission, and snapshot the full swarm
   state at any instant.
