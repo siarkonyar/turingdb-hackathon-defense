@@ -59,6 +59,7 @@ which is exactly what this repo ships.
 | `power_plants` | Global power infrastructure (plants, fuels, owners, countries, plants within 10 km) | 45,262 | 149,218 | [docs/power_plants.md](docs/power_plants.md) |
 | `poledb` | POLE crime investigation (people, associates, crimes, officers, vehicles, phone calls, locations) | 61,521 | 105,840 | [docs/poledb.md](docs/poledb.md) |
 | `attack_scenarios` | Cyber attack knowledge base (scenarios → MITRE ATT&CK techniques, tools, categories) | 18,354 | 60,014 | [docs/attack_scenarios.md](docs/attack_scenarios.md) |
+| `theatre` | All six fused into one operating picture, with synthetic sites, bridges and intel `Report` nodes | 294,200 | 845,561 | [docs/theatre.md](docs/theatre.md) |
 
 ---
 
@@ -189,6 +190,23 @@ Then start a Claude Code session and type `/turingdb` followed by what you want 
 | `algorithms.md` | Shortest path (Dijkstra), vector/embedding search |
 | `introspection.md` | Explore schema, versioning, time travel, SDK reference |
 
+### 4. OpsMap - the operating picture
+
+`ui/` + `api/` put the `theatre` graph on a map: strike simulation with cascade arcs, branch
+diff, competing intel hypotheses and time replay, with TuringDB query latency on screen.
+
+```bash
+uv run turingdb start -turing-dir "$(pwd)" -demon -in-memory -load theatre -start-timeout 20000
+OPSMAP_BACKEND=turingdb uv run python -m api.seed_hypotheses
+OPSMAP_BACKEND=turingdb uv run uvicorn api.main:app --port 8000
+npm --prefix ui install && npm --prefix ui run dev     # http://localhost:5173
+```
+
+Drop `OPSMAP_BACKEND=turingdb` to run on the bundled mock fixtures without a server. See
+[ui/README.md](ui/README.md) and the API contract in [docs/api.md](docs/api.md).
+
+![OpsMap strike simulation](docs/opsmap-strike.png)
+
 ---
 
 ## Repo layout
@@ -203,14 +221,19 @@ turingdb-hackathon-defense/  ← repo root (point -turing-dir here)
 │   ├── drone_swarm/
 │   ├── power_plants/
 │   ├── poledb/
-│   └── attack_scenarios/
-├── docs/                ← per-dataset schema, queries, and licensing
+│   ├── attack_scenarios/
+│   └── theatre/         ← all six fused (built by fusion/)
+├── fusion/              ← builds `theatre`, its queries and versioning demo
+├── api/                 ← OpsMap FastAPI backend (TuringDB or mock fixtures)
+├── ui/                  ← OpsMap map UI (Vite + React + MapLibre + deck.gl)
+├── docs/                ← per-dataset schema, queries, licensing; api.md (OpsMap API)
 │   ├── supply_chain.md
 │   ├── logistics_risk.md
 │   ├── drone_swarm.md
 │   ├── power_plants.md
 │   ├── poledb.md
-│   └── attack_scenarios.md
+│   ├── attack_scenarios.md
+│   └── theatre.md
 └── skills/              ← TuringDB Claude Code skills (/turingdb)
     └── turingdb/
 ```
