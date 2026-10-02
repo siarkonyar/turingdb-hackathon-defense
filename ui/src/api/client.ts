@@ -1,10 +1,12 @@
 import type {
+  AgentStatus,
   BranchesResponse,
   DiffResponse,
   MetaResponse,
   NeighboursResponse,
   NodesResponse,
   ReportsResponse,
+  ScenarioResponse,
   SimulateResponse,
   TracksResponse,
 } from "./types";
@@ -67,4 +69,10 @@ export const api = {
   reports: (until?: string, branch = "main") =>
     request<ReportsResponse>(`/reports${queryString({ until, branch })}`),
   tracks: (branch = "main") => request<TracksResponse>(`/tracks${queryString({ branch })}`),
+  agentStatus: () => request<AgentStatus>("/agent/status"),
+  agentScenario: (question: string, maxSteps = 16) =>
+    request<ScenarioResponse>("/agent/scenario", {
+      method: "POST",
+      body: JSON.stringify({ question, max_steps: maxSteps }),
+    }),
 };

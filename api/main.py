@@ -119,6 +119,14 @@ def create_app(backend: Backend | None = None) -> FastAPI:
     def tracks(branch: str = "main", b: Backend = Depends(get_backend)):
         return b.tracks(parse_ref(branch))
 
+    if settings.backend == "turingdb":  # LLM agents need the live graph + Featherless key
+        try:
+            from api.agent_routes import register_agent_routes
+
+            register_agent_routes(app, settings)
+        except Exception as exc:  # never let agent wiring break the core API
+            log.warning("agent routes not mounted: %s", exc)
+
     return app
 
 

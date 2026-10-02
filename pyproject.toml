@@ -5,6 +5,7 @@ description = "EDTH x TuringDB defence graph datasets and the fused 'theatre' op
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.142.2",
+    "httpx>=0.28.1",
     "tabulate>=0.10.0",
     "turingdb==1.37",
     "uvicorn[standard]>=0.54.0",

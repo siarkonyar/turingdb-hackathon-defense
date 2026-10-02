@@ -10,6 +10,9 @@ const KIND_LABEL: Record<Branch["kind"], string> = {
   hypothesis: "Hypothesis",
   strike: "Strike",
   change: "Change",
+  threat: "Threat",
+  defence: "Defence",
+  scenario: "Scenario",
 };
 
 function Confidence({ value }: { value: number | null | undefined }) {
@@ -32,12 +35,12 @@ function Row({ branch, active }: { branch: Branch; active: boolean }) {
         {branch.kind === "hypothesis" ? <Confidence value={branch.confidence} /> : null}
         {branch.kind !== "main" ? <span className="brow__id mono">#{branch.id}</span> : null}
       </button>
-      {branch.kind === "strike" ? (
+      {["strike", "threat", "defence", "scenario"].includes(branch.kind) ? (
         <button
           type="button"
           className="iconbtn brow__discard"
           aria-label={`Discard ${branch.label}`}
-          title="Discard this strike branch (TuringDB CHANGE DELETE)"
+          title="Discard this branch (TuringDB CHANGE DELETE)"
           onClick={() => void discardBranch(branch.id)}
         >
           ×
@@ -66,6 +69,9 @@ export function BranchSwitcher() {
   const groups: { title: string; items: Branch[] }[] = [
     { title: "Baseline", items: branches.filter((b) => b.kind === "main") },
     { title: "Hypotheses", items: branches.filter((b) => b.kind === "hypothesis") },
+    { title: "Threat strategies", items: branches.filter((b) => b.kind === "threat") },
+    { title: "Defence strategies", items: branches.filter((b) => b.kind === "defence") },
+    { title: "Scenario simulations", items: branches.filter((b) => b.kind === "scenario") },
     { title: "Strike simulations", items: branches.filter((b) => b.kind === "strike") },
     { title: "Other changes", items: branches.filter((b) => b.kind === "change") },
   ].filter((g) => g.items.length);

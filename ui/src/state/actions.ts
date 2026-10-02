@@ -206,6 +206,50 @@ export function clearDiff(): void {
   setOps({ diff: null });
 }
 
+function patchScenario(patch: Partial<import("./store").ScenarioState>): void {
+  setOps((s) => ({ scenario: { ...s.scenario, ...patch } }));
+}
+
+export function setScenarioOpen(open: boolean): void {
+  patchScenario({ open });
+  if (open && useOps.getState().scenario.status === null) {
+    void api
+      .agentStatus()
+      .then((status) => patchScenario({ status }))
+      .catch(() => patchScenario({ status: { available: false, reason: "agent status unavailable" } }));
+  }
+}
+
+export function setScenarioQuestion(question: string): void {
+  patchScenario({ question });
+}
+
+export async function askScenario(): Promise<void> {
+  const question = useOps.getState().scenario.question.trim();
+  if (!question) return;
+  patchScenario({ loading: true, error: null, explanation: null, branch: null, steps: [], impact: null });
+  try {
+    const resp = await api.agentScenario(question);
+    patchScenario({
+      loading: false,
+      branch: resp.branch,
+      explanation: resp.explanation ?? null,
+      steps: resp.steps ?? [],
+      impact: resp.impact_diff ?? null,
+    });
+    if (resp.branch) {
+      await refreshBranches();
+      await switchBranch(resp.branch);
+      toast(`Scenario simulated on branch #${resp.branch}. Map shows the affected graph.`);
+    } else {
+      toast("The scenario agent produced no branch.", "warn");
+    }
+  } catch (err) {
+    patchScenario({ loading: false, error: message(err) });
+    toast(`Scenario failed: ${message(err)}`, "error");
+  }
+}
+
 export function setTime(next: number): void {
   const { time, reports, domain } = useOps.getState();
   const clamped = domain ? Math.min(domain[1], Math.max(domain[0], next)) : next;

@@ -212,6 +212,15 @@ class TuringBackend:
         if "Strike" in s.labels:
             names = [str(n) for n in s.q("MATCH (k:Strike) RETURN k.name AS name")["name"]]
             return Branch(id=change_id, kind="strike", label=strike_label(names))
+        if "AgentBranch" in s.labels:  # branches built by the LLM agents (threat / defence / scenario)
+            frame = s.q(f"MATCH (m:AgentBranch) RETURN m{s.project('m', ('role', 'label', 'parent'))}")
+            row = frame.to_dict("records")[0] if len(frame) else {}
+            role = clean(row.get("m_role")) or "change"
+            kind = role if role in ("threat", "defence", "scenario") else "change"
+            label = clean(row.get("m_label")) or f"{role.title()} {change_id}"
+            parent = clean(row.get("m_parent"))
+            return Branch(id=change_id, kind=kind, label=label,
+                          description=f"parent: {parent}" if parent and parent != "main" else None)
         return Branch(id=change_id, kind="change", label=f"Change {change_id}")
 
     def branches(self) -> BranchesResponse:
@@ -364,10 +373,12 @@ class TuringBackend:
                 raise
         return change
 
+    DISCARDABLE = ("strike", "threat", "defence", "scenario")
+
     def discard(self, branch_id: str) -> None:
         sw = Stopwatch(ENGINE)
         with self._write_lock:
             s = self._session(Ref(branch_id), sw)
-            if self._describe_change(branch_id, sw).kind != "strike":
-                raise Conflict("only strike branches can be discarded")
+            if self._describe_change(branch_id, sw).kind not in self.DISCARDABLE:
+                raise Conflict("only strike and agent branches can be discarded; hypotheses are read-only")
             s.q("CHANGE DELETE")

@@ -207,6 +207,28 @@ Drop `OPSMAP_BACKEND=turingdb` to run on the bundled mock fixtures without a ser
 
 ![OpsMap strike simulation](docs/opsmap-strike.png)
 
+### 5. Agents - TuringDB branches as the search space
+
+Three LLM agents (powered by [Featherless AI](https://featherless.ai)) use TuringDB **branches as their
+search space**: every strategy or scenario is explored in its own change, evaluated from graph state, and
+kept for comparison by diff - `main` is never touched. They run unattended; a supervisor starts and heals
+the server, so nothing has to be shut down by hand.
+
+- **Threat** - finds the disruptions that cause the most supply-chain loss for the fewest attacks.
+- **Defence** - tests countermeasures (backup supplier, alternative route, power feed, air-defence) against
+  the worst threat branch and proves the loss reduction with a diff.
+- **Scenario** - answers a natural-language disaster question ("a catastrophic event has destroyed everything
+  across Manchester...") by generating Cypher, simulating it in a branch, and driving the map.
+
+```bash
+export FEATHERLESS_API_KEY=...        # already set as an environment secret here
+uv run python -m agents.orchestrator                       # threat -> defence, with the comparison
+uv run python -m agents.orchestrator --scenario "A catastrophic event has destroyed everything across Manchester..."
+```
+
+In the OpsMap UI (live backend) the agent branches appear in the branch switcher and the **Scenario** button
+runs the scenario agent and visualises the result on the map. Full write-up: [docs/agents.md](docs/agents.md).
+
 ---
 
 ## Repo layout
@@ -224,7 +246,8 @@ turingdb-hackathon-defense/  ← repo root (point -turing-dir here)
 │   ├── attack_scenarios/
 │   └── theatre/         ← all six fused (built by fusion/)
 ├── fusion/              ← builds `theatre`, its queries and versioning demo
-├── api/                 ← OpsMap FastAPI backend (TuringDB or mock fixtures)
+├── agents/              ← threat / defence / scenario LLM agents (Featherless + TuringDB branches)
+├── api/                 ← OpsMap FastAPI backend (TuringDB or mock fixtures; mounts /agent/*)
 ├── ui/                  ← OpsMap map UI (Vite + React + MapLibre + deck.gl)
 ├── docs/                ← per-dataset schema, queries, licensing; api.md (OpsMap API)
 │   ├── supply_chain.md

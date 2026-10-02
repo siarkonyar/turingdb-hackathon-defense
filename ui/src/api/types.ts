@@ -2,7 +2,7 @@
 
 export type Kind = "plant" | "site" | "supplier" | "drone" | "crime" | "report" | "part" | "other";
 export type Status = "at_risk" | "lost" | "no_power";
-export type BranchKind = "main" | "hypothesis" | "strike" | "change";
+export type BranchKind = "main" | "hypothesis" | "strike" | "change" | "threat" | "defence" | "scenario";
 export type Engine = "turingdb" | "fixtures";
 
 export interface GraphNode {
@@ -153,4 +153,33 @@ export interface MetaResponse {
   engine: Engine;
   graph: string;
   layers: string[];
+}
+
+export interface ImpactDiff {
+  a: string;
+  b: string;
+  loss_a_pct: number;
+  loss_b_pct: number;
+  loss_delta_pct: number;
+  per_site: Record<string, { a: number; b: number }>;
+  sites_down_a: string[];
+  sites_down_b: string[];
+  critical_parts_a: number;
+  critical_parts_b: number;
+}
+
+export interface AgentStatus {
+  available: boolean;
+  model?: string;
+  graph?: string;
+  reason?: string;
+}
+
+export interface ScenarioResponse {
+  branch: string | null;
+  explanation?: string | null;
+  headline?: Record<string, unknown> | null;
+  impact_diff?: ImpactDiff | null;
+  steps: string[];
+  model?: string | null;
 }

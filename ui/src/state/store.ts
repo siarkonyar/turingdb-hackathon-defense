@@ -3,10 +3,12 @@
 import { create } from "zustand";
 
 import type {
+  AgentStatus,
   Branch,
   DiffResponse,
   Engine,
   GraphNode,
+  ImpactDiff,
   MetaResponse,
   NeighboursResponse,
   Report,
@@ -68,6 +70,18 @@ export interface DiffState {
   loading: boolean;
 }
 
+export interface ScenarioState {
+  open: boolean;
+  question: string;
+  loading: boolean;
+  error: string | null;
+  branch: string | null;
+  explanation: string | null;
+  steps: string[];
+  impact: ImpactDiff | null;
+  status: AgentStatus | null;
+}
+
 export interface OpsState {
   phase: "loading" | "ready" | "error";
   error: string | null;
@@ -84,6 +98,7 @@ export interface OpsState {
   overlays: Readonly<Record<string, Overlay>>;
   diff: DiffState | null;
   diffOpen: boolean;
+  scenario: ScenarioState;
   branchMenuOpen: boolean;
   drawer: Drawer | null;
   contextMenu: { x: number; y: number; node: GraphNode } | null;
@@ -117,6 +132,17 @@ export const initialState: OpsState = {
   overlays: { main: EMPTY_OVERLAY },
   diff: null,
   diffOpen: false,
+  scenario: {
+    open: false,
+    question: "A catastrophic event has destroyed everything across Manchester. How would this affect the rest of the city and its connected infrastructure?",
+    loading: false,
+    error: null,
+    branch: null,
+    explanation: null,
+    steps: [],
+    impact: null,
+    status: null,
+  },
   branchMenuOpen: false,
   drawer: null,
   contextMenu: null,
