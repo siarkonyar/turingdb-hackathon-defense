@@ -4,7 +4,7 @@
 
 A ready-to-run pack of **graph datasets for the EDTH hackathon**, built on
 [**TuringDB**](https://turing.bio). Clone this repo, point a TuringDB server at it, and you
-have six domain graphs - supply chain, logistics risk, drone-swarm telemetry, global power
+have seven domain graphs - supply chain, a deep multi-tier defense supply chain, logistics risk, drone-swarm telemetry, global power
 infrastructure, POLE crime investigation, and a cyber attack-scenario knowledge base -
 loadable and queryable in seconds, plus a browser visualizer.
 
@@ -54,6 +54,7 @@ which is exactly what this repo ships.
 | Graph | Domain | Nodes | Edges | Docs |
 |---|---|--:|--:|---|
 | `supply_chain` | Aerospace / defense supply chain (parts, suppliers, POs, quality incidents) | 30,380 | 90,402 | [docs/supply_chain.md](docs/supply_chain.md) |
+| `supply_chain_deep` | **Deep** multi-tier defense supply chain (platform → BOM → minerals, supplier network, ownership chains, sea lanes & chokepoints, shipments, real disruptions) - 5-12 hop queries | 132,834 | 763,831 | [docs/supply_chain_deep.md](docs/supply_chain_deep.md) |
 | `logistics_risk` | Supply-chain **risk** & performance indicators (shipments, suppliers, countries, risk class) | 117,718 | 233,242 | [docs/logistics_risk.md](docs/logistics_risk.md) |
 | `drone_swarm` | Drone-swarm coordination telemetry (positions, battery, formation, mission, trajectories) | 21,028 | 99,980 | [docs/drone_swarm.md](docs/drone_swarm.md) |
 | `power_plants` | Global power infrastructure (plants, fuels, owners, countries, plants within 10 km) | 45,262 | 149,218 | [docs/power_plants.md](docs/power_plants.md) |
@@ -70,6 +71,10 @@ These graphs are picked for **defense, resilience, and intelligence** scenarios:
   order or a quality defect back through the part to every affected site; find where high-risk
   shipments concentrate by supplier, product, and country; quantify supplier reliability
   (on-time-in-full) and single-source risk.
+- **Deep, multi-tier dependency analysis** (`supply_chain_deep`) - follow a platform through 8
+  levels of bill of materials to the mines and countries behind it; trace mine-to-prime supplier
+  chains; unmask foreign or sanctioned ultimate owners behind holding companies; measure the
+  impact of Red Sea reroutes, chokepoint closures and export controls on shipments.
 - **Critical-infrastructure mapping** (`power_plants`) - map generation capacity by country
   and fuel; identify ownership concentration and fuel-dependency for energy-security analysis;
   use `NEAR` edges (plants within 10 km) to find co-located clusters and cross-border neighbours
@@ -227,6 +232,7 @@ doc. Summary:
 | Graph | Source license |
 |---|---|
 | `supply_chain` | MIT (synthetic data) |
+| `supply_chain_deep` | MIT (synthetic data; generator in [`scripts/`](scripts/)) |
 | `logistics_risk` | Apache-2.0 |
 | `drone_swarm` | CC BY 4.0 |
 | `power_plants` | CC BY 4.0 (WRI Global Power Plant Database) |
