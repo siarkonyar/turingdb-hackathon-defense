@@ -78,7 +78,7 @@ export function LayerRail() {
             : "Offline basemap: put a .pmtiles file at ui/public/basemap/theatre.pmtiles"
         }
       >
-        <span className="rail__label">{basemap === "carto" ? "Online" : "Offline"}</span>
+        <span className="rail__label">{fallback ? "Fallback" : basemap === "carto" ? "Online" : "Offline"}</span>
         <span className="rail__sub mono">{fallback ? "Outlines" : basemap === "carto" ? "CARTO" : "PMTiles"}</span>
       </button>
     </nav>
