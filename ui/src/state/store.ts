@@ -74,6 +74,7 @@ export interface OpsState {
   meta: MetaResponse | null;
   layers: Record<LayerKey, boolean>;
   basemap: BasemapKind;
+  basemapFallback: boolean; // the chosen basemap failed; built-in outlines are showing
   base: Record<BaseKind, GraphNode[]>;
   nodeIndex: ReadonlyMap<string, GraphNode>;
   reports: Report[];
@@ -106,6 +107,7 @@ export const initialState: OpsState = {
   meta: null,
   layers: { plant: true, site: true, supplier: true, drone: true, crime: false, cyber: false, report: true },
   basemap: DEFAULT_BASEMAP,
+  basemapFallback: false,
   base: EMPTY_BASE,
   nodeIndex: new Map(),
   reports: [],

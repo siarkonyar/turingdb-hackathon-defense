@@ -15,7 +15,7 @@ import { diffClasses, type Overlay } from "../lib/overlay";
 import { isoToEpoch } from "../lib/time";
 import { PULSE_DURATION_MS, selectNode, toast } from "../state/actions";
 import { activeOverlay, setOps, useOps } from "../state/store";
-import { FALLBACK_STYLE, loadBasemap } from "./basemap";
+import { FALLBACK_STYLE, loadBasemap, outlineStyle } from "./basemap";
 import { buildIconAtlas } from "./iconAtlas";
 import { buildDroneLayers, buildPulseLayer, buildStaticLayers, buildStrikeLayers, pickedNode } from "./layers";
 
@@ -211,6 +211,15 @@ export function MapView() {
     if (!map) return;
     let cancelled = false;
     loadBasemap(basemap)
+      .then((style) => {
+        setOps({ basemapFallback: false });
+        return style;
+      })
+      .catch((err: unknown) => {
+        toast(`Basemap unavailable (${err instanceof Error ? err.message : String(err)}); showing built-in outlines`, "warn");
+        setOps({ basemapFallback: true });
+        return outlineStyle();
+      })
       .then((style) => !cancelled && map.setStyle(style, { diff: false }))
       .catch((err: unknown) => toast(`Basemap unavailable: ${err instanceof Error ? err.message : String(err)}`, "warn"));
     return () => {

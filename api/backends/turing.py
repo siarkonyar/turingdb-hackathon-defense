@@ -302,12 +302,14 @@ class TuringBackend:
         except Exception as exc:
             log.error("could not delete change %s after a failed strike: %s", s.ref.branch, exc)
 
-    def _run_strike(self, s: Session, node_id: str, base: Ref, sw: Stopwatch, fresh: bool) -> SimulateResponse:
+    def _run_strike(self, s: Session, node_id: str, base: Ref, sw: Stopwatch, fresh: bool,
+                    marker: bool = True) -> SimulateResponse:
         struck = self._node(s, node_id)
         affected = cascade.walk(struck, TuringDependencies(s))
         previous = {a.node.id: a.node.status for a in affected}
-        s.q(f"CREATE (:Strike {{struck_id: '{int(struck.id)}', name: {string_literal(struck.name)}, "
-            f"created: '{_now()}'}})")
+        if marker:
+            s.q(f"CREATE (:Strike {{struck_id: '{int(struck.id)}', name: {string_literal(struck.name)}, "
+                f"created: '{_now()}'}})")
         s.q(f"MATCH (n) WHERE n = {int(struck.id)} DELETE n")
         s.q("COMMIT")
         powered = cascade.powered_ids(affected)
@@ -339,6 +341,28 @@ class TuringBackend:
                         f"{s.project('n', STATUS_PROPS)}")
             nodes += s.nodes_from(frame, "n", label_col="lbl")
         return nodes
+
+    def create_hypothesis(self, name: str, confidence: float, description: str,
+                          lost: Sequence[str] = (), at_risk: Sequence[str] = ()) -> str:
+        """Open a hypothesis branch: a (:Hypothesis) marker, then each `lost` node struck with its
+        cascade and each `at_risk` node flagged. Returns the change id. Used by api/seed_hypotheses.py."""
+        sw = Stopwatch(ENGINE)
+        with self._write_lock:
+            change = str(self._session(Ref("main"), sw).client.new_change())
+            s = self._open(Ref(change), sw)
+            try:
+                s.q(f"CREATE (:Hypothesis {{name: {string_literal(name)}, confidence: {float(confidence)}, "
+                    f"description: {string_literal(description)}}})")
+                s.q("COMMIT")
+                for i, node_id in enumerate(lost):
+                    self._run_strike(s, node_id, Ref("main"), sw, fresh=i == 0, marker=False)
+                for clause in id_clauses("n", list(at_risk)):
+                    s.q(f"MATCH (n) WHERE {clause} SET n.ops_status = 'at_risk'")
+                s.q("COMMIT")
+            except Exception:
+                self._drop_change(s)
+                raise
+        return change
 
     def discard(self, branch_id: str) -> None:
         sw = Stopwatch(ENGINE)

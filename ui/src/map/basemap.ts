@@ -1,9 +1,11 @@
 // Swappable basemaps, no API keys:
 //   carto   - CARTO dark-matter vector style (online, default)
 //   pmtiles - a local .pmtiles file rendered with the Protomaps dark flavour (offline / air-gapped)
+//   outlines - bundled country outlines, the automatic fallback when either of the above fails
 // Both are post-processed by muteStyle() into the same calm navy look with low-opacity labels.
 
 import { addProtocol, type LayerSpecification, type StyleSpecification } from "maplibre-gl";
+import type { GeometryCollection, Topology } from "topojson-specification";
 
 export type BasemapKind = "carto" | "pmtiles";
 
@@ -110,6 +112,30 @@ async function pmtilesStyle(): Promise<StyleSpecification> {
     },
     layers: layers as LayerSpecification[],
   });
+}
+
+/** Built-in offline fallback: Natural Earth 1:50m country outlines (public domain, via world-atlas),
+ *  served from ui/public so it needs no network and no tiles. Used when the chosen basemap fails. */
+export const OUTLINES_URL: string = (env.VITE_OUTLINES_URL as string | undefined) ?? "/basemap/countries-50m.json";
+
+export async function outlineStyle(): Promise<StyleSpecification> {
+  const [{ feature, mesh }, resp] = await Promise.all([import("topojson-client"), fetch(OUTLINES_URL)]);
+  if (!resp.ok) throw new Error(`country outlines unavailable (${resp.status})`);
+  const topo = (await resp.json()) as Topology;
+  const countries = topo.objects.countries as GeometryCollection;
+  return {
+    version: 8,
+    sources: {
+      land: { type: "geojson", data: feature(topo, countries), attribution: "Natural Earth" },
+      borders: { type: "geojson", data: mesh(topo, countries, (a, b) => a !== b) },
+    },
+    layers: [
+      { id: "background", type: "background", paint: { "background-color": PALETTE.water } },
+      { id: "land", type: "fill", source: "land", paint: { "fill-color": PALETTE.land } },
+      { id: "coast", type: "line", source: "land", paint: { "line-color": PALETTE.boundary, "line-width": 0.6, "line-opacity": 0.7 } },
+      { id: "borders", type: "line", source: "borders", paint: { "line-color": PALETTE.boundary, "line-width": 0.5, "line-opacity": 0.5, "line-dasharray": [2, 2] } },
+    ],
+  };
 }
 
 export function loadBasemap(kind: BasemapKind): Promise<StyleSpecification> {

@@ -108,16 +108,23 @@ code {
   background: radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(4, 7, 12, 0.55) 100%);
 }
 
-.maplibregl-ctrl-bottom-right {
+/* .map prefix: maplibre-gl.css loads after this file (lazy chunk), so plain selectors lose */
+.map .maplibregl-ctrl-bottom-right {
   bottom: calc(var(--bar-h) + var(--gap) * 1.5);
   right: var(--gap);
 }
 
-.maplibregl-ctrl.maplibregl-ctrl-attrib,
-.maplibregl-ctrl-attrib.maplibregl-compact {
+.map .maplibregl-ctrl.maplibregl-ctrl-attrib,
+.map .maplibregl-ctrl-attrib.maplibregl-compact,
+.map .maplibregl-ctrl-attrib.maplibregl-compact-show {
   background: rgba(7, 11, 18, 0.6);
   color: var(--text-3);
   font-size: 11px;
+}
+
+.map .maplibregl-ctrl-attrib-button {
+  background-color: transparent;
+  filter: invert(0.7);
 }
 
 .maplibregl-ctrl-attrib a {

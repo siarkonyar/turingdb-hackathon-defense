@@ -31,6 +31,7 @@ function Brand() {
 export function LayerRail() {
   const layers = useOps((s) => s.layers);
   const basemap = useOps((s) => s.basemap);
+  const fallback = useOps((s) => s.basemapFallback);
   const counts = useOps(
     useShallow((s) => ({
       plant: s.base.plant.length,
@@ -78,7 +79,7 @@ export function LayerRail() {
         }
       >
         <span className="rail__label">{basemap === "carto" ? "Online" : "Offline"}</span>
-        <span className="rail__sub mono">{basemap === "carto" ? "CARTO" : "PMTiles"}</span>
+        <span className="rail__sub mono">{fallback ? "Outlines" : basemap === "carto" ? "CARTO" : "PMTiles"}</span>
       </button>
     </nav>
   );
