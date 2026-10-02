@@ -6,3 +6,6 @@ vector/
 *.lock
 *.sock
 .DS_Store
+__pycache__/
+.pytest_cache/
+.coverage
