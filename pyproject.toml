@@ -1,0 +1,10 @@
+[project]
+name = "turingdb-hackathon-defense"
+version = "0.1.0"
+description = "TuringDB graph datasets and generators for the EDTH defense hackathon"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas>=2.3.3",
+    "pyarrow>=25.0.1",
+    "turingdb==3.0",
+]

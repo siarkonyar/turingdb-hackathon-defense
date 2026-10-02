@@ -6,3 +6,8 @@ vector/
 *.lock
 *.sock
 .DS_Store
+
+# Python / uv
+.venv/
+__pycache__/
+!uv.lock

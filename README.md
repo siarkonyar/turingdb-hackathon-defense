@@ -94,12 +94,15 @@ The only thing you need is a Python package manager - we recommend [`uv`](https:
 Installing the `turingdb` package gives you **both** the `turingdb` CLI (on your `PATH`) and the
 Python SDK (as a library) - there's nothing else to install separately.
 
+This repo is already a `uv` project pinned to `turingdb==3.0` (see [`pyproject.toml`](pyproject.toml)),
+so `uv sync` (or any `uv run ...`) installs everything. For a project of your own:
+
 ```bash
 uv init my-project
-uv add turingdb
+uv add "turingdb==3.0"
 ```
 
-(Or with pip: `pip install turingdb`.)
+(Or with pip: `pip install "turingdb==3.0"`.)
 
 ---
 
@@ -107,16 +110,15 @@ uv add turingdb
 
 ### 1. Start the server pointed at this repo
 
-The repo root **is** a TuringDB "turing-dir" (it contains a `graphs/` store). Clone it, make it
-your own project with `uv`, and start the server with the visualizer enabled:
+The repo root **is** a TuringDB "turing-dir" (it contains a `graphs/` store) and a `uv` project.
+Clone it, install the pinned dependencies, and start the server with the visualizer enabled:
 
 ```bash
 git clone https://github.com/turing-db/turingdb-hackathon-defense.git
 cd turingdb-hackathon-defense
 rm -rf .git                 # so you can start your own git repo in the cloned directory
 
-uv init .
-uv add turingdb
+uv sync                     # installs turingdb==3.0 (CLI + SDK) into .venv
 uv run turingdb start -turing-dir "$(pwd)" -ui   # look for graphs in the current dir, start the visualizer UI
 ```
 
