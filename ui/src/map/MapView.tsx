@@ -18,6 +18,7 @@ import { activeOverlay, setOps, useOps } from "../state/store";
 import { FALLBACK_STYLE, loadBasemap, outlineStyle } from "./basemap";
 import { buildIconAtlas } from "./iconAtlas";
 import { buildDroneLayers, buildPulseLayer, buildStaticLayers, buildStrikeLayers, pickedNode } from "./layers";
+import { buildCascadeLayers, cascadeAnimating } from "./cascadeLayers";
 import { buildMatchFxLayers, matchFxActive } from "./matchLayers";
 
 setWorkerUrl(import.meta.env.PROD ? maplibreWorkerUrl : "/vendor/maplibre/maplibre-gl-worker.mjs");
@@ -93,6 +94,7 @@ export function MapView() {
         facilities,
         sites: base.site,
         crimes: base.crime,
+        chokepoints: base.chokepoint,
         reports: visibleReports,
         overlay: shownOverlay,
         overlayKey: settledKey,
@@ -128,8 +130,11 @@ export function MapView() {
       const strikeMoving = Boolean(strikePlan) && elapsed < (strikePlan?.durationMs ?? 0) + SHOCKWAVE_TAIL_MS;
       const pulsing = s.pulses.some((p) => now - p.at < PULSE_DURATION_MS);
       const fxMoving = matchFxActive(s.matchFx, now);
+      const cas = s.cascade;
+      const casActive = Boolean(cas.result);
+      const casMoving = casActive && (!reduced || cascadeAnimating(cas, now));
       const key = [staticRef.current.version, s.time, strikeMoving ? now : "still", pulsing ? now : "", fxMoving ? now : "",
-        s.layers.drone].join("|");
+        s.layers.drone, casActive ? `${cas.step}|${casMoving ? now : "still"}` : ""].join("|");
       if (key === lastKey) return;
       lastKey = key;
 
@@ -154,6 +159,9 @@ export function MapView() {
       const pulse = buildPulseLayer(s.pulses, now, PULSE_DURATION_MS);
       if (pulse) out.push(pulse);
       if (fxMoving && s.matchFx) out.push(...buildMatchFxLayers(s.matchFx, now, reduced));
+      if (casActive && cas.result) {
+        out.push(...buildCascadeLayers({ result: cas.result, step: cas.step, elapsedMs: now - cas.stepStartedAt, now, reducedMotion: reduced }));
+      }
       deck.setProps({ layers: out });
     };
     raf = requestAnimationFrame(loop);

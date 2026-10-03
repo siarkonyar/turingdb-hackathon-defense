@@ -11,7 +11,7 @@ import { setOps, useOps, type BaseKind, type LayerKey, type Toast } from "./stor
 const TOAST_MS = 4200;
 const PULSE_MS = 1600;
 const FLY_ZOOM = 9;
-const BASE_KINDS: BaseKind[] = ["site", "supplier", "facility", "port", "drone", "crime", "plant"];
+const BASE_KINDS: BaseKind[] = ["site", "supplier", "facility", "port", "chokepoint", "drone", "crime", "plant"];
 const STRIKABLE = new Set(["plant", "site", "supplier", "facility", "port", "drone"]);
 
 let toastSeq = 0;

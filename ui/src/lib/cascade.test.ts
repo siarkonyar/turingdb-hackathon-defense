@@ -15,6 +15,7 @@ import {
   topHits,
   visibleStages,
 } from "./cascade";
+import { ARC_DRAW_MS, cascadeAnimating, stagePaths } from "../map/cascadeLayers";
 
 const node = (id: string, lon: number, lat: number, kind: GraphNode["kind"] = "facility"): GraphNode => ({
   id, kind, label: kind === "facility" ? "Facility" : "Chokepoint", name: `N${id}`, lon, lat, importance: 0.5,
@@ -101,5 +102,24 @@ describe("cascadeFocus", () => {
     expect(f.lat).toBeCloseTo(45);
     expect(f.zoom).toBeGreaterThanOrEqual(1.8);
     expect(f.zoom).toBeLessThanOrEqual(6);
+  });
+});
+
+describe("cascade layer helpers", () => {
+  it("builds one curved path per arc and caches by stage object", () => {
+    const st: CascadeStage = {
+      ...stage(1, [hit("a", 1, 1)]),
+      arcs: [{ source: [0, 0], target: [10, 10], source_id: "0", target_id: "a", hop: 1, rel: "TRANSITED" }],
+    };
+    const p1 = stagePaths(st);
+    expect(p1.length).toBe(1);
+    expect(p1[0]?.[0]).toEqual([0, 0]);
+    expect(stagePaths(st)).toBe(p1);
+  });
+  it("animates only for a short while after a step change", () => {
+    const c = { result: hormuz, step: 1, stepStartedAt: 1000 };
+    expect(cascadeAnimating(c, 1000 + ARC_DRAW_MS / 2)).toBe(true);
+    expect(cascadeAnimating(c, 1000 + ARC_DRAW_MS * 3)).toBe(false);
+    expect(cascadeAnimating({ ...c, result: null }, 1001)).toBe(false);
   });
 });

@@ -28,9 +28,9 @@ import { EMPTY_MATCH, type MatchView } from "../lib/match";
 import { DEFAULT_BASEMAP, type BasemapKind } from "../map/basemap";
 import { EMPTY_OVERLAY, type Overlay } from "../lib/overlay";
 
-export type LayerKey = "plant" | "site" | "supplier" | "facility" | "port" | "drone" | "crime" | "cyber" | "report";
-export const LAYER_KEYS: LayerKey[] = ["plant", "site", "supplier", "facility", "port", "drone", "crime", "cyber", "report"];
-export type BaseKind = "plant" | "site" | "supplier" | "facility" | "port" | "drone" | "crime";
+export type LayerKey = "plant" | "site" | "supplier" | "facility" | "port" | "chokepoint" | "drone" | "crime" | "cyber" | "report";
+export const LAYER_KEYS: LayerKey[] = ["plant", "site", "supplier", "facility", "port", "chokepoint", "drone", "crime", "cyber", "report"];
+export type BaseKind = "plant" | "site" | "supplier" | "facility" | "port" | "chokepoint" | "drone" | "crime";
 
 export interface LatencyStat {
   op: string;
@@ -184,6 +184,7 @@ const EMPTY_BASE: Record<BaseKind, GraphNode[]> = {
   supplier: [],
   facility: [],
   port: [],
+  chokepoint: [],
   drone: [],
   crime: [],
 };
@@ -198,6 +199,7 @@ export const initialState: OpsState = {
     supplier: true,
     facility: true,
     port: true,
+    chokepoint: true,
     drone: true,
     crime: false,
     cyber: false,
