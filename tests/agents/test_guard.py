@@ -67,3 +67,17 @@ def test_string_literal_with_keyword_is_not_a_write():
     # 'DELETE' inside a string must not trip the write check
     out = check_read_query("MATCH (n:Report) WHERE n.text = 'we will DELETE nothing' RETURN n")
     assert out.endswith(f"LIMIT {DEFAULT_LIMIT}")
+
+
+def test_marker_spec_survives_the_string_literal_round_trip():
+    """Specs are written with string_literal (quotes swapped) and read back from TuringDB on restart."""
+    import json
+
+    from agents.branches import parse_marker_spec
+    from api.backends.turing_session import string_literal
+
+    spec = {"actions": [{"action": "wipe_bbox", "args": {"west": -2.39, "labels": None}}], "parent": "main",
+            "note": "Manchester's port"}
+    stored = string_literal(json.dumps(spec, sort_keys=True))[1:-1]  # what the marker property holds
+    assert '"' not in stored
+    assert parse_marker_spec(stored) == spec
