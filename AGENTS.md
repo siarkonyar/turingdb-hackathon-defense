@@ -196,8 +196,9 @@ fresh change. The scenario agent's `simulate_scenario` takes a `parent` (main or
   policy again, not the key.
 - Featherless: first call to a model can take ~60 s (cold start), warm calls ~2-6 s.
 - The Featherless plan allows 4 concurrency units = ONE 72B request at a time. A second concurrent caller
-  (another session, a local run, a parallel test) gets HTTP 429 "Concurrency limit exceeded"; `llm.py` retries
-  with backoff capped at 30 s for ~3.5 min. Do not run agent tests in parallel with a live agent run. `meta-llama/*` models are
+  (another session, a local run, a parallel test) gets HTTP 429 "Concurrency limit exceeded"; `llm.py` waits it
+  out on a separate path (honours Retry-After, up to `RATE_LIMIT_PATIENCE_S` = 150 s); other errors get
+  `MAX_RETRIES` = 5. Do not run agent tests in parallel with a live agent run. `meta-llama/*` models are
   gated (403) for this account; `llm.py` falls through to the next model automatically.
 - Background processes: shell `&`/`nohup` do not survive between tool calls here; use the Bash tool's
   `run_in_background`. Background jobs are killed at their timeout (the uvicorn server was killed that way).

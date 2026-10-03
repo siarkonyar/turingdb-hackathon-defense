@@ -23,7 +23,7 @@ log = logging.getLogger("agents.llm")
 _THINK = re.compile(r"<think>.*?</think>", re.S)
 _FENCE = re.compile(r"```(?:json)?\s*(.*?)```", re.S)
 RETRY_STATUS = {429, 500, 502, 503, 504}
-MAX_RETRIES = 9  # with the 30 s cap below: ~3.5 min of patience for a busy plan slot
+MAX_RETRIES = 5  # transport errors and 5xx; 429 has its own patience budget below
 MAX_DELAY_S = 30.0
 # 429 = the plan's concurrency limit (a 72B request takes the whole plan): another caller of the same key
 # is mid-request, so wait it out instead of failing the match; Retry-After is honoured when sent.
