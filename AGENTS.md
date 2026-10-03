@@ -102,7 +102,8 @@ Fused by `fusion/assemble.py` + `fusion/links.py::add_deep_powered_by`:
 - Fusion runs without the deep source too (unit-test fixtures).
 - **Map**: `facility` and `port` are API node kinds (`api/models.py` Kind, `api/nodes.py`, `KIND_QUERIES`,
   `SNAPSHOT_KINDS`) and UI layers ("Facilities", "Ports" in the rail; drawn small because facilities cluster at
-  city centroids). Strikes cascade into the deep layer: plant -> Facility via `POWERED_BY`, and a lost
+  city centroids). Ports and facilities are strikable (UI `STRIKABLE`). Strikes cascade into the deep layer:
+  lost Port -> facilities that export through it (`SHIPS_VIA`), plant -> Facility via `POWERED_BY`, and a lost
   Facility puts its buyers at risk via `SUPPLIES` (`api/cascade.py` RULES; `TuringDependencies` special-cases
   `SUPPLIES` as an outgoing edge).
 - **Scenario agent** considers the deep layer: `places(name=...)` also lists deep-facility cities and ports,

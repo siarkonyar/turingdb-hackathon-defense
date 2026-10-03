@@ -114,3 +114,15 @@ def test_deep_facilities_and_ports_are_served_and_strikable(live: TuringBackend)
         assert [n.kind for n in diff.removed] == ["facility"]
     finally:
         live.discard(struck.branch)
+
+
+def test_port_strike_reaches_exporting_facilities(live: TuringBackend):
+    port = next(n for n in live.nodes(Ref("main"), ("port",), None).nodes if "Rotterdam" in n.name)
+    result = live.simulate(port.id, Ref("main"))
+    try:
+        assert result.struck.kind == "port" and result.struck.status == "lost"
+        first = [a for a in result.affected if a.hop == 1]
+        assert first and all(a.via == "SHIPS_VIA" and a.node.kind == "facility" for a in first)
+        assert any(a.via == "SUPPLIES" for a in result.affected)  # then on to their buyers
+    finally:
+        live.discard(result.branch)
