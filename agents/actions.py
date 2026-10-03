@@ -302,6 +302,13 @@ def _deep(name: str) -> ActionFn:
 
 
 def apply_action(lab: BranchLab, s: Session, name: str, args: dict) -> str:
+    if name.startswith("game_"):
+        from agents.game_rules import GAME_ACTIONS
+
+        fn = GAME_ACTIONS.get(name)
+        if fn is None:
+            raise ValueError(f"unknown game action {name!r}")
+        return fn(lab, s, **(args or {}))
     fn = ACTIONS.get(name)
     if fn is None:
         raise ValueError(f"unknown action {name!r}; known: {sorted(ACTIONS)}")

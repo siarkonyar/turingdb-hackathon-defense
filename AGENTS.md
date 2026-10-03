@@ -259,6 +259,83 @@ capability loss + 25% original parts loss (legacy-only fallback without the deep
   locally first). `upstream` = turing-db/turingdb-hackathon-defense (merged up to `a87d58b`). Do not commit
   runtime dirs or `graphs/theatre/` (all gitignored; `uv.lock` IS tracked).
 
+## Strategic wargame handoff (3 October 2026)
+
+Implemented after reviewing the repetitive red/blue match: finite resources, delayed recovery,
+capacity constraints, preparation, disruption variety, opponent previews, seeded events, programme
+objectives and cumulative scoring. Full rules and assumptions: `docs/agents.md`; API: `docs/api.md`.
+Changes are saved in this working tree, **not committed or pushed**. Preserve existing user changes,
+including match export/download work, when continuing. The one-shot threat/defence agents retain their
+original model; these rules apply to the strategic turn-based match.
+
+### Where the new behaviour lives
+
+- `agents/game_rules.py`: replayable `game_init`, `game_order`, `game_tick`, dispatched through
+  `agents/actions.py`. Blue has **14 credits total, including preparation**. Rerouting costs 2 and is
+  immediate; replacement production costs 5 and takes two rounds; second sourcing costs 3 and takes
+  two rounds; stock costs 2 and lasts two combat rounds; hardening costs 3 and takes one round.
+  Orders charge once; pending duplicates are rejected. Failed completion still consumes its cost.
+  **GameState payload is base64-encoded JSON**: raw JSON strings are corrupted by the Cypher string
+  literal helper. Preserve this encoding, including Unicode and embedded quotes.
+- `agents/deep_impact.py`: strategic port capacity is based on original exporter count (1.25x,
+  minimum two slots); overload reduces exporter output. New qualified production uses 20 percentage
+  points of maker spare utilization per item, and overcommit penalizes output. Replacement plans consume
+  capacity sequentially. Hardening gives partial resilience, not immunity; power/shipping constraints
+  still apply. Recordings without GameState keep classic scoring. Constants are gameplay assumptions,
+  not calibrated forecasts.
+- `agents/deep_actions.py`: proactive candidates and high-share programme assembly makers are included
+  even when a platform has multiple makers. Selecting only sole makers previously buried useful facility
+  disruptions beneath heavily buffered inputs. Already closed facilities are excluded.
+- `agents/strategic_board.py`: match-local wrapper around `LabBoard`. Up to three distinct candidate
+  kinds are tested in temporary real branches against one plausible opponent reply and up to two
+  rounds of clock advancement, capped at the match horizon. Production disruptions are included when
+  available. Preventive stock/source candidates require measured benefit against hypothetical disruptions.
+  Budget, pending orders and readiness are enforced. Preview branches are discarded. Blue forecasts
+  advance the clock before choosing the next red reply and respect the red action-kind cooldown.
+  This is bounded lookahead, not exhaustive minimax.
+- `agents/match.py` / `match_prompts.py`: Blue preparation at round 0; red action kinds cannot repeat
+  either of the previous **two red turns**. Before combat rounds, ticks resolve orders and events.
+  Seed 7 triggers a 20% export-capacity reduction in round 4 of a six-round match, lasting two rounds.
+  Three eligible priority programmes must remain at least 80% capable at each round end. Cumulative
+  relative loss adds half the loss after red plus half after blue per combat round; late recovery cannot
+  erase earlier exposure. Partial-round averages use observed half-round duration. Scores update before
+  SSE/save. When wait is the only legal blue move, it is automatic and uses no model call.
+- `agents/llm.py`: malformed HTTP-200 provider JSON is retried without logging provider payloads.
+  Exhausted response errors use a marked legal match fallback; missing credentials/provider unavailability
+  still report an error. Do not run real-model callers concurrently (Featherless concurrency limit).
+- `agents/match_board.py`: unwraps ordered actions and combines tick recovery/degradation map effects;
+  rule/tick branches have defence markers, avoiding fake scenario bases.
+- `agents/match_export.py`: readable Markdown transcript and strategy details. This file was already
+  untracked user work when this task began; preserve the download/export functionality.
+- UI: `WargamePanel.tsx`, `MoveFeed.tsx`, `state/wargame.ts`, store/types/lib/CSS show credits,
+  deadlines, objectives, events, compared alternatives and cumulative results. Saved replay has
+  **1x / 4x / 20x** speeds and rebuilds graph branches without LLM calls; DB rebuild time still applies.
+
+### Defaults, validation and demo
+
+- UI/API and CLI default to six-round strategic games. `Match(... strategic=False)` remains the Python
+  compatibility default; CLI `--classic` opts out and `--seed` controls the deterministic event.
+- Latest focused Python verification: **137 passed, 7 skipped** with
+  `.venv/bin/python -m pytest tests/agents/test_guard.py tests/agents/test_llm.py tests/agents/test_deep_impact.py tests/agents/test_match.py tests/agents/test_game_rules.py tests/api -q`.
+  UI: **28 tests passed**, typecheck and build passed; `git diff --check` clean. These are focused checks,
+  not a rerun of every repository test.
+- `tests/agents/test_game_rules.py` covers budgets, delays, expiry, events, encoding, capacity,
+  hardening, forecasts, cooldown and candidate selection. `test_match.py` covers forced waits,
+  partial-round scoring and legal provider-error fallbacks; `test_llm.py` covers malformed provider JSON.
+- `tests/agents/test_strategic_live.py` uses a deterministic model with real TuringDB, checking a
+  four-round match and replay, identical final state/loss, discarded previews and unchanged main.
+  Earlier live suites passed (22 checks); some later refinements were verified by focused offline checks
+  and the subsequent real-model demo/browser replay, rather than rerunning that entire live suite.
+- Real Qwen six-round demo: `matches/strategic-demo.json`, transcript `matches/strategic-demo.md`.
+  Match id `d7e8d138`, seed 7, **zero fallbacks**, final loss **39.0%**, average **31.4%**, cumulative
+  **188.1 percentage-point rounds**, 13/14 credits spent. Red used port closures, facility outages and
+  chokepoints. Blue prepared, rerouted, ordered replacement production ready two rounds later, hardened
+  another facility, then had to wait. Priority objectives were breached. Browser replay completed with
+  the same result and visible score/branch/move cards.
+- Match JSONs and generated graph stores are runtime artifacts; do not commit them. Some match files are
+  untracked rather than ignored in this checkout. Do not delete other users' matches or ephemeral branches
+  indiscriminately. Branch IDs and local server PIDs are transient; discover current state before reuse.
+
 ## Open items / ideas
 
 - Validated 3 October 2026: full Python suite 197 passed (real Featherless included); subsequent deep/match

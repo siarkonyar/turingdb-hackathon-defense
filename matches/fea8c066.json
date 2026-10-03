@@ -1,0 +1,392 @@
+{
+ "id": "fea8c066",
+ "created": "2026-10-03T09:53:41Z",
+ "base_branch": "main",
+ "base_actions": [],
+ "base_loss_pct": 0.0,
+ "rounds": 2,
+ "status": "done",
+ "model": "Qwen/Qwen2.5-72B-Instruct",
+ "moves": [
+  {
+   "round": 1,
+   "side": "red",
+   "action": "strike_supplier",
+   "args": {
+    "supplier_id": "SUP012"
+   },
+   "actions": [
+    {
+     "action": "strike_supplier",
+     "args": {
+      "supplier_id": "SUP012"
+     }
+    }
+   ],
+   "branch_id": "106",
+   "parent_id": "main",
+   "label": "Strike supplier SUP012",
+   "rationale": "Striking the supplier with the highest critical demand weight will cause the most immediate disruption.",
+   "loss_pct": 4.4,
+   "abs_loss_pct": 4.4,
+   "llm_ms": 12315.6,
+   "db_ms": 1767.2,
+   "latency_ms": 14082.8,
+   "targets": [
+    {
+     "id": "47951",
+     "name": "Supplier: SUP012",
+     "kind": "supplier",
+     "lat": 41.355053,
+     "lon": 2.141328,
+     "status": null
+    }
+   ],
+   "arcs": [],
+   "fallback": false
+  },
+  {
+   "round": 1,
+   "side": "blue",
+   "action": "backup_all_affected_parts",
+   "args": {},
+   "actions": [
+    {
+     "action": "backup_all_affected_parts",
+     "args": {}
+    }
+   ],
+   "branch_id": "107",
+   "parent_id": "106",
+   "label": "Qualify backup suppliers for every affected part",
+   "rationale": "Since multiple critical parts are affected, backing up all affected parts will mitigate the most immediate risk.",
+   "loss_pct": 0.0,
+   "abs_loss_pct": 0.0,
+   "llm_ms": 3724.6,
+   "db_ms": 999.8,
+   "latency_ms": 4724.4,
+   "targets": [],
+   "arcs": [],
+   "fallback": false
+  },
+  {
+   "round": 2,
+   "side": "red",
+   "action": "strike_supplier",
+   "args": {
+    "supplier_id": "SUP036"
+   },
+   "actions": [
+    {
+     "action": "strike_supplier",
+     "args": {
+      "supplier_id": "SUP036"
+     }
+    }
+   ],
+   "branch_id": "108",
+   "parent_id": "107",
+   "label": "Strike supplier SUP036",
+   "rationale": "Striking the supplier with the highest critical demand will maximize the projected loss.",
+   "loss_pct": 7.5,
+   "abs_loss_pct": 7.5,
+   "llm_ms": 4365.9,
+   "db_ms": 1083.8,
+   "latency_ms": 5449.7,
+   "targets": [
+    {
+     "id": "47914",
+     "name": "Supplier: SUP036",
+     "kind": "supplier",
+     "lat": 47.649979,
+     "lon": 9.505995,
+     "status": null
+    }
+   ],
+   "arcs": [],
+   "fallback": false
+  },
+  {
+   "round": 2,
+   "side": "blue",
+   "action": "backup_all_affected_parts",
+   "args": {},
+   "actions": [
+    {
+     "action": "backup_all_affected_parts",
+     "args": {}
+    }
+   ],
+   "branch_id": "109",
+   "parent_id": "108",
+   "label": "Qualify backup suppliers for every affected part",
+   "rationale": "Since multiple critical parts are unavailable, qualifying backup suppliers for all affected parts will mitigate the impact of the current and potential future strikes.",
+   "loss_pct": 0.0,
+   "abs_loss_pct": 0.0,
+   "llm_ms": 4019.7,
+   "db_ms": 1065.0,
+   "latency_ms": 5084.7,
+   "targets": [],
+   "arcs": [],
+   "fallback": false
+  }
+ ],
+ "events": [
+  {
+   "type": "match_started",
+   "t": 1.22,
+   "at": "2026-10-03T09:53:41Z",
+   "data": {
+    "match_id": "fea8c066",
+    "base_branch": "main",
+    "rounds": 2,
+    "base_loss_pct": 0.0,
+    "model": "Qwen/Qwen2.5-72B-Instruct"
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 1.222,
+   "at": "2026-10-03T09:53:41Z",
+   "data": {
+    "round": 1,
+    "side": "red",
+    "head": "main"
+   }
+  },
+  {
+   "type": "move",
+   "t": 15.305,
+   "at": "2026-10-03T09:53:55Z",
+   "data": {
+    "round": 1,
+    "side": "red",
+    "action": "strike_supplier",
+    "args": {
+     "supplier_id": "SUP012"
+    },
+    "actions": [
+     {
+      "action": "strike_supplier",
+      "args": {
+       "supplier_id": "SUP012"
+      }
+     }
+    ],
+    "branch_id": "106",
+    "parent_id": "main",
+    "label": "Strike supplier SUP012",
+    "rationale": "Striking the supplier with the highest critical demand weight will cause the most immediate disruption.",
+    "loss_pct": 4.4,
+    "abs_loss_pct": 4.4,
+    "llm_ms": 12315.6,
+    "db_ms": 1767.2,
+    "latency_ms": 14082.8,
+    "targets": [
+     {
+      "id": "47951",
+      "name": "Supplier: SUP012",
+      "kind": "supplier",
+      "lat": 41.355053,
+      "lon": 2.141328,
+      "status": null
+     }
+    ],
+    "arcs": [],
+    "fallback": false
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 15.306,
+   "at": "2026-10-03T09:53:55Z",
+   "data": {
+    "round": 1,
+    "side": "blue",
+    "head": "106"
+   }
+  },
+  {
+   "type": "move",
+   "t": 20.03,
+   "at": "2026-10-03T09:54:00Z",
+   "data": {
+    "round": 1,
+    "side": "blue",
+    "action": "backup_all_affected_parts",
+    "args": {},
+    "actions": [
+     {
+      "action": "backup_all_affected_parts",
+      "args": {}
+     }
+    ],
+    "branch_id": "107",
+    "parent_id": "106",
+    "label": "Qualify backup suppliers for every affected part",
+    "rationale": "Since multiple critical parts are affected, backing up all affected parts will mitigate the most immediate risk.",
+    "loss_pct": 0.0,
+    "abs_loss_pct": 0.0,
+    "llm_ms": 3724.6,
+    "db_ms": 999.8,
+    "latency_ms": 4724.4,
+    "targets": [],
+    "arcs": [],
+    "fallback": false
+   }
+  },
+  {
+   "type": "round_done",
+   "t": 20.031,
+   "at": "2026-10-03T09:54:00Z",
+   "data": {
+    "round": 1,
+    "head": "107",
+    "loss_pct": 0.0,
+    "abs_loss_pct": 0.0
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 20.032,
+   "at": "2026-10-03T09:54:00Z",
+   "data": {
+    "round": 2,
+    "side": "red",
+    "head": "107"
+   }
+  },
+  {
+   "type": "move",
+   "t": 25.482,
+   "at": "2026-10-03T09:54:05Z",
+   "data": {
+    "round": 2,
+    "side": "red",
+    "action": "strike_supplier",
+    "args": {
+     "supplier_id": "SUP036"
+    },
+    "actions": [
+     {
+      "action": "strike_supplier",
+      "args": {
+       "supplier_id": "SUP036"
+      }
+     }
+    ],
+    "branch_id": "108",
+    "parent_id": "107",
+    "label": "Strike supplier SUP036",
+    "rationale": "Striking the supplier with the highest critical demand will maximize the projected loss.",
+    "loss_pct": 7.5,
+    "abs_loss_pct": 7.5,
+    "llm_ms": 4365.9,
+    "db_ms": 1083.8,
+    "latency_ms": 5449.7,
+    "targets": [
+     {
+      "id": "47914",
+      "name": "Supplier: SUP036",
+      "kind": "supplier",
+      "lat": 47.649979,
+      "lon": 9.505995,
+      "status": null
+     }
+    ],
+    "arcs": [],
+    "fallback": false
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 25.483,
+   "at": "2026-10-03T09:54:05Z",
+   "data": {
+    "round": 2,
+    "side": "blue",
+    "head": "108"
+   }
+  },
+  {
+   "type": "move",
+   "t": 30.568,
+   "at": "2026-10-03T09:54:10Z",
+   "data": {
+    "round": 2,
+    "side": "blue",
+    "action": "backup_all_affected_parts",
+    "args": {},
+    "actions": [
+     {
+      "action": "backup_all_affected_parts",
+      "args": {}
+     }
+    ],
+    "branch_id": "109",
+    "parent_id": "108",
+    "label": "Qualify backup suppliers for every affected part",
+    "rationale": "Since multiple critical parts are unavailable, qualifying backup suppliers for all affected parts will mitigate the impact of the current and potential future strikes.",
+    "loss_pct": 0.0,
+    "abs_loss_pct": 0.0,
+    "llm_ms": 4019.7,
+    "db_ms": 1065.0,
+    "latency_ms": 5084.7,
+    "targets": [],
+    "arcs": [],
+    "fallback": false
+   }
+  },
+  {
+   "type": "round_done",
+   "t": 30.569,
+   "at": "2026-10-03T09:54:10Z",
+   "data": {
+    "round": 2,
+    "head": "109",
+    "loss_pct": 0.0,
+    "abs_loss_pct": 0.0
+   }
+  },
+  {
+   "type": "match_done",
+   "t": 30.57,
+   "at": "2026-10-03T09:54:10Z",
+   "data": {
+    "status": "done",
+    "summary": {
+     "match_id": "fea8c066",
+     "status": "done",
+     "base_branch": "main",
+     "head": "109",
+     "rounds_played": 2,
+     "base_loss_pct": 0.0,
+     "final_loss_pct": 0.0,
+     "red_moves": 2,
+     "blue_moves": 2,
+     "injects": 0,
+     "fallbacks": 0,
+     "llm_ms": 24425.8,
+     "db_ms": 4915.8,
+     "file": "fea8c066"
+    }
+   }
+  }
+ ],
+ "summary": {
+  "match_id": "fea8c066",
+  "status": "done",
+  "base_branch": "main",
+  "head": "109",
+  "rounds_played": 2,
+  "base_loss_pct": 0.0,
+  "final_loss_pct": 0.0,
+  "red_moves": 2,
+  "blue_moves": 2,
+  "injects": 0,
+  "fallbacks": 0,
+  "llm_ms": 24425.8,
+  "db_ms": 4915.8,
+  "file": "fea8c066"
+ }
+}

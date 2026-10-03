@@ -203,18 +203,19 @@ happens. A failure is an `error {message}` event, followed by `done {status: "er
 
 A match starts on a **base branch** (`main` or a scenario branch). Each round, red plays ONE disruption as a
 branch stacked on the current head, then blue plays ONE countermeasure stacked on red's branch. The head
-moves forward each time. TuringDB 1.37 cannot open a change on top of a change, so a stacked branch is cut
+moves forward each time. TuringDB 3.0 cannot open a change on top of a change, so a stacked branch is cut
 from `main` and replays its parent's recorded edits first (the lineage). Loss is measured **against the
 base**, so after a scenario the numbers mean "additional damage on top of the scenario".
 
 | Endpoint | Body | Returns |
 |---|---|---|
-| `POST /match` | `{base_branch="main", rounds=3}` (1-6) | `202 {match_id}`; the match runs in the background |
+| `POST /match` | `{base_branch="main", rounds=6, strategic=true, seed=7}` (1-6 rounds) | `202 {match_id}`; the match runs in the background |
 | `GET /match/{id}/events` | | SSE, see below |
 | `GET /match/{id}` | | `{id, kind, status, head, moves: Move[]}` |
 | `POST /match/{id}/inject` | `{text}` | `202 {queued}`; the event is applied before the next round |
 | `POST /match/{id}/pause` · `/resume` · `/stop` | | `200`; takes effect between moves (`409` once finished) |
 | `POST /match/replay` | `{file, speed=1.0}` | `202 {match_id}`; stream it with `/match/{id}/events` |
+| `GET /matches/{file}/download?format=md` | `format=md` (default) or `json` | Attachment: readable move script or full replay recording; no LLM calls |
 | `GET /matches` | | `{matches: [{file, id, created, base_branch, rounds, status, moves, final_loss_pct, model}]}` |
 
 Match events, in order:
@@ -271,3 +272,20 @@ sim = api.post("/simulate", json={"node_id": "47937", "base_branch": "main"}).js
 print(sim["kpis"], sim["latency_ms"])
 api.delete(f"/branches/{sim['branch']}")   # clean up
 ```
+
+### Strategic exercise rules
+
+`POST /match` now defaults to `{base_branch: "main", rounds: 6, strategic: true, seed: 7}`.
+`strategic: false` selects the original match rules. `seed` is an integer from 0 to 1,000,000.
+RED disruption kinds have a two-turn cooldown. Strategic matches stream a BLUE preparation move at round 0, an initialization `inject`, and a clock
+`inject` before each combat round. Clock moves contain replayable `game_tick` edits; BLUE move edits
+contain `game_order` with the selected measure nested in `args`. The public move `action`/`args`
+continue to describe the selected measure.
+
+Moves additionally contain `strategy`: credits remaining/total, cost, ready round, pending orders,
+completed recoveries/events, cumulative loss, priority programme capability/threshold, event status,
+chosen planning preview and compared alternatives. Summaries additionally contain `strategic`,
+`cumulative_loss` (percentage-point rounds), `average_loss_pct`, `round_scores`, `objective_met`,
+and the final budget, pending orders and programme capabilities. Programme objectives are checked
+at each combat round end. Replay reproduces orders, maturity, stock exhaustion and seeded events
+without model calls. Recordings made before strategic rules continue to replay unchanged.

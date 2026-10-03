@@ -98,3 +98,8 @@ export function eventsUrl(kind: "job" | "match", id: string): string {
   const path = kind === "job" ? `/agent/jobs/${encodeURIComponent(id)}` : `/match/${encodeURIComponent(id)}`;
   return `${BASE}${path}/events`;
 }
+
+/** Download a persisted match without making another model request. */
+export function matchDownloadUrl(file: string, format: "md" | "json"): string {
+  return `${BASE}/matches/${encodeURIComponent(file)}/download?format=${format}`;
+}

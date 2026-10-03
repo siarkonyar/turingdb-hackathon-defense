@@ -69,6 +69,8 @@ class State:
     controls: frozenset[str] = frozenset()  # export controls, "CC|item-node"
     stockpiled: frozenset[str] = frozenset()  # items
     protected: frozenset[str] = frozenset()  # facilities / ports
+    capacity_limited: bool = False  # strategic matches only; old recordings retain their original rules
+    port_capacity_factor: float = 1.0
 
 
 @dataclass
@@ -84,26 +86,62 @@ class Result:
 
 def port_factor(static: Static, state: State, port: str) -> float:
     if port not in state.ports or port in state.closed:
+        if state.capacity_limited and port in state.ports and port in state.protected:
+            return 0.7
         return OVERLAND_FLOOR
     blocked = sum(share for c, share in static.port_choke.get(port, {}).items() if c in state.blocked)
     return max(0.0, 1.0 - REROUTE_LOSS * min(1.0, blocked))
 
 
 def facility_ok(static: Static, state: State, fac: str) -> float:
-    if fac not in state.facilities or fac in state.closed:
+    if fac not in state.facilities:
         return 0.0
+    output = 1.0
+    if fac in state.closed:
+        if state.capacity_limited and fac in state.protected:
+            output = 0.5
+        else:
+            return 0.0
     if fac in static.powered_main and fac not in state.powered:
         return 0.0
     ports = state.ships_via.get(fac, ())
     home = static.ships_main.get(fac, frozenset())
     if not ports:
-        return OVERLAND_FLOOR if home else 1.0
-    return max(port_factor(static, state, p) * (1.0 if p in home or not home else ALT_PORT_EFFICIENCY)
+        return output * (OVERLAND_FLOOR if home else 1.0)
+    return output * max(port_factor(static, state, p) * (1.0 if p in home or not home else ALT_PORT_EFFICIENCY)
                for p in ports)
 
 
 def evaluate(static: Static, state: State) -> Result:
     ok = {f: facility_ok(static, state, f) for f in static.facilities}
+    if state.capacity_limited:
+        # Exporters choose one route. Extra traffic shares finite spare capacity with existing traffic.
+        homes: dict[str, int] = defaultdict(int)
+        users: dict[str, list[str]] = defaultdict(list)
+        for ps in static.ships_main.values():
+            for p in ps:
+                homes[p] += 1
+        for f, ps in state.ships_via.items():
+            live = [p for p in ps if p in state.ports and (p not in state.closed or p in state.protected)]
+            if live and ok.get(f, 0) > 0:
+                p = max(sorted(live), key=lambda p: port_factor(static, state, p) *
+                        (1 if p in static.ships_main.get(f, ()) else ALT_PORT_EFFICIENCY))
+                users[p].append(f)
+        for p, fs in users.items():
+            capacity = max(2.0, homes.get(p, 0) * 1.25) * state.port_capacity_factor
+            congestion = min(1.0, capacity / len(fs))
+            for f in fs:
+                ok[f] *= congestion
+        # A new maker consumes 20 percentage points of utilization per qualified item.
+        added: dict[str, int] = defaultdict(int)
+        for item, makers in state.produced_at.items():
+            original = {f for f, _ in static.original_makers.get(item, ())}
+            for f, _ in makers:
+                if f not in original:
+                    added[f] += 1
+        for f, count in added.items():
+            spare = max(0.0, 1.0 - utilization(static.facilities.get(f, {})))
+            ok[f] *= min(1.0, spare / (0.2 * count))
     avail: dict[str, float] = {}
     for item in static.order or _bottom_up(static):
         value = _production(item, static, state, ok)
@@ -202,6 +240,10 @@ def replacement_plan(static: Static, state: State, facility: str, ok: dict[str, 
             alt = second_source(static, state, item, ok)
             if alt is not None:
                 plan[item] = alt
+                if state.capacity_limited:
+                    state = replace(state, produced_at={**state.produced_at,
+                                    item: state.produced_at.get(item, ()) + ((alt, 50.0),)})
+                    ok = evaluate(static, state).facility_ok
     return plan
 
 
@@ -214,9 +256,16 @@ def second_source(static: Static, state: State, item: str, ok: dict[str, float])
     for f, info in static.facilities.items():
         if f in makers or info["type"] not in types or ok.get(f, 0.0) < 1.0:
             continue
+        if state.capacity_limited and utilization(info) > 0.8:
+            continue
         key = (info["cc"] not in static.allied, float(info.get("utilization") or 0.0), f)
         best = key if best is None or key < best else best
     return best[2] if best else None
+
+
+def utilization(info: dict) -> float:
+    value = float(info.get("utilization") or 0.0)
+    return min(1.0, max(0.0, value / 100 if value > 1 else value))
 
 
 # ---------------------------------------------------------------------- loading from TuringDB (linear reads)
@@ -340,6 +389,9 @@ def load_state(s) -> State:
     stock = set()
     for label in ("Component", "Material", "Mineral"):
         stock |= _flagged(s, label, "stockpile")
+    from agents.game_rules import read_game
+
+    game = read_game(s)
     return State(
         facilities=frozenset(str(x) for x in s.q("MATCH (f:Facility) RETURN f")["f"]),
         ports=frozenset(str(x) for x in s.q("MATCH (p:Port) RETURN p")["p"]),
@@ -351,4 +403,6 @@ def load_state(s) -> State:
         controls=frozenset(_controls(s)),
         stockpiled=frozenset(stock),
         protected=frozenset(_flagged(s, "Facility", "protected") | _flagged(s, "Port", "protected")),
+        capacity_limited=bool(game),
+        port_capacity_factor=0.8 if game and game.get("event_until", -1) > game["round"] else 1.0,
     )

@@ -62,6 +62,21 @@ def test_concurrency_limit_429_is_waited_out_not_fatal(monkeypatch):
     assert sleeps == [1.0] * 7  # more 429s than the 5 error retries, honouring Retry-After
 
 
+def test_malformed_provider_json_is_retried_without_logging_payload(monkeypatch):
+    import httpx
+    from agents import llm as llm_mod
+    from agents.config import AgentSettings
+
+    replies = iter([httpx.Response(200, content=b'{"choices": []}{"extra": true}'),
+                    httpx.Response(200, json={"choices": [{"message": {"content": '{"action":"wait"}'}}]})])
+    sleeps = []
+    monkeypatch.setattr(llm_mod.time, "sleep", sleeps.append)
+    client = llm_mod.FeatherlessLLM(AgentSettings("k", "http://x", "m", "", "", 1, False, None))
+    client._http = httpx.Client(transport=httpx.MockTransport(lambda req: next(replies)))
+    assert client.chat([{"role": "user", "content": "move"}]) == '{"action":"wait"}'
+    assert sleeps == [2.0] and client.usage.calls == 1
+
+
 def test_bounded_blue_chat_does_not_retry_or_switch_models(monkeypatch):
     import httpx
     from agents import llm as llm_mod

@@ -99,7 +99,9 @@ class LabBoard:
         return lineage_actions(self.lab, str(branch))
 
     def stack(self, side: str, label: str, parent: str, actions: list[dict]) -> str:
-        built = build_stacked(self.lab, ROLE[side], label, str(parent), actions)
+        # Clock/init branches are game administration, not reusable disaster scenarios.
+        role = "defence" if actions and actions[0]["action"] in ("game_tick", "game_init") else ROLE[side]
+        built = build_stacked(self.lab, role, label, str(parent), actions)
         if "error" in built:
             raise MoveRejected(built["error"])
         return str(built["change_id"])
@@ -201,7 +203,13 @@ class LabBoard:
     # ------------------------------------------------------------------ map payload
 
     def effects(self, side: str, parent: str, child: str, actions: list[dict]) -> dict:
+        actions = [a["args"] if a["action"] == "game_order" else a for a in actions]
         static = deep_static(self.lab)
+        if static is not None and any(a["action"] == "game_tick" for a in actions):
+            recovered = match_deep.effects(static, "blue", self.deep(str(parent)), self.deep(str(child)), [])
+            degraded = match_deep.effects(static, "red", self.deep(str(parent)), self.deep(str(child)), [])
+            return {"targets": recovered["targets"] + degraded["targets"],
+                    "arcs": recovered["arcs"] + degraded["arcs"]}
         if static is not None and match_deep.is_deep(actions):
             return match_deep.effects(static, side, self.deep(str(parent)), self.deep(str(child)), actions)
         return self._legacy_effects(side, parent, child, actions)

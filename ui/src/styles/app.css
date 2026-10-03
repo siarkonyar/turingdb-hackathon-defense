@@ -1387,9 +1387,11 @@ code {
 
 .wg__replay {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
 }
+
+.wg__replay > .btn { grid-column: 1 / -1; }
 
 .wg__replay.is-emphasised .btn {
   border-color: rgba(245, 166, 35, 0.55);
@@ -1779,3 +1781,27 @@ code {
   font-size: 10.5px;
   color: var(--text-3);
 }
+
+.wg__downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wg__downloads .btn {
+  text-decoration: none;
+}
+
+.wg__downloads p {
+  width: 100%;
+  margin: 0;
+}
+.wg__strategy, .mcard__strategy {
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid rgba(125, 160, 190, 0.25);
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.wg__strategy p, .mcard__strategy p { margin: 4px 0; }

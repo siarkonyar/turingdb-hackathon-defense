@@ -111,8 +111,15 @@ def kinds(stream) -> list[str]:
 # ---------------------------------------------------------------------- the wargame
 
 
+def test_match_defaults_to_six_round_strategic_exercise():
+    from api.agent_routes import MatchRequest
+
+    request = MatchRequest()
+    assert request.rounds == 6 and request.strategic and request.seed == 7
+
+
 def test_match_runs_in_the_background_and_streams_every_turn(client, hub):
-    resp = client.post("/match", json={"base_branch": "50", "rounds": 2})
+    resp = client.post("/match", json={"base_branch": "50", "rounds": 2, "strategic": False})
     assert resp.status_code == 202
     match_id = resp.json()["match_id"]
 
@@ -137,7 +144,7 @@ def test_match_runs_in_the_background_and_streams_every_turn(client, hub):
 def test_inject_mid_match_lands_before_the_next_round(tmp_path, backend):
     hub = FakeHub(tmp_path, llm=GatedLLM())
     with _client(hub, backend) as client:
-        match_id = client.post("/match", json={"base_branch": "50", "rounds": 2}).json()["match_id"]
+        match_id = client.post("/match", json={"base_branch": "50", "rounds": 2, "strategic": False}).json()["match_id"]
         assert hub.fake_llm.first_call.wait(5)  # red is thinking in round 1
         resp = client.post(f"/match/{match_id}/inject", json={"text": "the Liverpool port is closed"})
         assert resp.status_code == 202 and resp.json()["queued"] == 1
@@ -153,7 +160,7 @@ def test_inject_mid_match_lands_before_the_next_round(tmp_path, backend):
 def test_pause_resume_and_stop(tmp_path, backend):
     hub = FakeHub(tmp_path, llm=GatedLLM())
     with _client(hub, backend) as client:
-        match_id = client.post("/match", json={"base_branch": "main", "rounds": 3}).json()["match_id"]
+        match_id = client.post("/match", json={"base_branch": "main", "rounds": 3, "strategic": False}).json()["match_id"]
         assert hub.fake_llm.first_call.wait(5)
         assert client.post(f"/match/{match_id}/pause").status_code == 200
         assert client.post(f"/match/{match_id}/resume").status_code == 200
@@ -202,7 +209,7 @@ def test_replay_input_is_validated(client):
 
 
 def test_last_event_id_resumes_without_duplicates(client):
-    match_id = client.post("/match", json={"rounds": 1}).json()["match_id"]
+    match_id = client.post("/match", json={"rounds": 1, "strategic": False}).json()["match_id"]
     full = events(client, f"/match/{match_id}/events")
     assert events(client, f"/match/{match_id}/events", last_event_id="3") == full[4:]
 
@@ -244,3 +251,39 @@ def test_defence_validates_the_branch_id(client):
 def test_mock_backend_does_not_mount_agent_routes(backend):
     with TestClient(create_app(backend)) as c:
         assert c.post("/match", json={}).status_code in (404, 405)
+
+
+def test_download_match_script_and_full_replay(client, hub):
+    match = Match(hub.board(), "main", 1, llm=hub.llm(), directory=hub.matches_dir, save_as="share")
+    assert match.run()["status"] == "done"
+    script = client.get("/matches/share/download")
+    assert script.status_code == 200
+    assert 'filename="wargame-share.md"' in script.headers["content-disposition"]
+    assert "Round 1 · RED" in script.text and "Round 1 · BLUE" in script.text
+    assert "hit the top supplier" in script.text
+    assert '"strike_supplier"' in script.text and "Loss:" in script.text
+    recording = client.get("/matches/share/download?format=json")
+    assert recording.status_code == 200
+    assert recording.json() == match.to_file()
+    assert recording.headers["content-type"].startswith("application/json")
+    assert client.get("/matches/missing/download").status_code == 404
+    assert client.get("/matches/share/download?format=exe").status_code == 422
+    assert client.get("/matches/bad%22name/download").status_code == 422
+
+
+def test_download_stopped_match_includes_injects_base_and_breakdown(client, hub):
+    from agents.match import load_match
+
+    match = Match(hub.board(), "50", 1, llm=hub.llm(), directory=hub.matches_dir, save_as="partial")
+    match.run()
+    data = load_match("partial", hub.matches_dir)
+    data["status"] = "stopped"
+    move = data["moves"][0]
+    move["side"] = "inject"
+    move["breakdown"] = {"deep_pct": 12.5, "legacy_pct": 4.0}
+    data["events"].append({"type": "error", "data": {"message": "Test interruption"}})
+    (hub.matches_dir / "partial.json").write_text(json.dumps(data))
+    script = client.get("/matches/partial/download").text
+    assert "Status: stopped" in script and "## Base scenario" in script
+    assert "INJECT" in script and "Deep network: 12.5%; parts layer: 4.0%" in script
+    assert "Test interruption" in script

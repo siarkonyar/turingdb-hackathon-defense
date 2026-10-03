@@ -8,12 +8,13 @@ on the live TuringDB backend (the agents need a real graph). Contract: docs/api.
 
 from __future__ import annotations
 
+import json
 import logging
 import threading
-from typing import Any
+from typing import Any, Literal
 
-from fastapi import FastAPI, Header
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, Header, Path as PathParam
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 
 from api.agent_hub import AgentHub, step_event
@@ -45,7 +46,9 @@ class RedBlueRequest(BaseModel):
 
 class MatchRequest(BaseModel):
     base_branch: str = Field(default="main", min_length=1, max_length=16)
-    rounds: int = Field(default=3, ge=1, le=MAX_ROUNDS)
+    rounds: int = Field(default=6, ge=1, le=MAX_ROUNDS)
+    strategic: bool = True
+    seed: int = Field(default=7, ge=0, le=1000000)
 
     @field_validator("base_branch")
     @classmethod
@@ -144,7 +147,7 @@ def register_agent_routes(app: FastAPI, settings: Settings | None = None, hub: A
 
         match = Match(_Lazy(hub.board), req.base_branch, req.rounds, llm=_Lazy(hub.llm),
                       injector=lambda text, parent, llm: hub.injector()(text, parent, llm), emit=emit,
-                      directory=hub.matches_dir)
+                      directory=hub.matches_dir, strategic=req.strategic, seed=req.seed)
 
         def work(job: Job) -> dict:
             bound["job"] = job
@@ -177,6 +180,20 @@ def register_agent_routes(app: FastAPI, settings: Settings | None = None, hub: A
         from agents.match import list_matches
 
         return {"matches": list_matches(hub.matches_dir) if hub.matches_dir.exists() else []}
+
+    @app.get("/matches/{file}/download")
+    def download_match(file: str = PathParam(pattern=r"^[A-Za-z0-9_-]{1,64}$"),
+                       format: Literal["md", "json"] = "md") -> Response:
+        from agents.match import load_match
+        from agents.match_export import transcript
+
+        try:
+            data = load_match(file, hub.matches_dir)
+        except FileNotFoundError as exc:
+            raise NotFound(str(exc)) from exc
+        content = json.dumps(data, indent=2) if format == "json" else transcript(data)
+        return Response(content, media_type="application/json" if format == "json" else "text/markdown",
+                        headers={"Content-Disposition": f'attachment; filename="wargame-{file}.{format}"'})
 
     def match_job(match_id: str) -> Job:
         job = jobs.get(match_id)

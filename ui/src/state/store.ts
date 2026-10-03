@@ -108,6 +108,7 @@ export interface WargameState {
   follow: boolean; // the map follows the match head
   saved: SavedMatch[];
   replayFile: string;
+  replaySpeed: number;
   injectText: string;
   injectNote: string | null;
   treePick: string | null; // first node of a shift-click diff pair
@@ -209,11 +210,12 @@ export const initialState: OpsState = {
     open: false,
     status: null,
     base: "main",
-    rounds: 3,
+    rounds: 6,
     view: EMPTY_MATCH,
     follow: true,
     saved: [],
     replayFile: "",
+    replaySpeed: 1,
     injectText: "the Liverpool port is closed",
     injectNote: null,
     treePick: null,

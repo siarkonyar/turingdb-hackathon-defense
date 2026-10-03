@@ -69,7 +69,7 @@ def _is_protected(s: Session, nid: int) -> bool:
 
 def close_port(lab: BranchLab, s: Session, *, port_id: str) -> str:
     nid = _node(s, "Port", "port_id", port_id)
-    if _is_protected(s, nid):
+    if _is_protected(s, nid) and not D.load_state(s).capacity_limited:
         raise ValueError(f"port {port_id} is hardened on this branch; the closure fails")
     _set(s, nid, D.CLOSED_PROP, "true")
     return f"closed port {port_id}"
@@ -98,7 +98,7 @@ def export_controls(lab: BranchLab, s: Session, *, country_code: str, item_id: s
 
 def facility_outage(lab: BranchLab, s: Session, *, facility_id: str) -> str:
     nid = _node(s, "Facility", "facility_id", facility_id)
-    if _is_protected(s, nid):
+    if _is_protected(s, nid) and not D.load_state(s).capacity_limited:
         raise ValueError(f"facility {facility_id} is hardened on this branch; the outage fails")
     _set(s, nid, D.CLOSED_PROP, "true")
     return f"facility {facility_id} out of action"
@@ -202,17 +202,30 @@ def red_candidates(static: D.Static, state: D.State, n: int = CANDIDATES_PER_KIN
                      D.with_changes(state, blocked={c}))
               for c, i in static.chokes.items() if c not in state.blocked]
     users = _export_users(state, base.facility_ok)
-    busy = sorted((p for p in users if p not in state.closed and p not in state.protected), key=lambda p: -users[p])
+    busy = sorted((p for p in users if p not in state.closed and
+                   (state.capacity_limited or p not in state.protected)), key=lambda p: -users[p])
     ports = [option("close_port", {"port_id": static.ports[p]["port_id"]}, static.ports[p]["name"],
                     D.with_changes(state, closed={p}), exporters=users[p]) for p in busy[:3 * n]]
     sole: dict[str, float] = {}
     for item, makers in state.produced_at.items():
         live = [f for f, _ in makers if base.facility_ok.get(f, 0) > 0]
-        if len(live) == 1 and live[0] not in state.protected:
+        if len(live) == 1 and (state.capacity_limited or live[0] not in state.protected):
             sole[live[0]] = sole.get(live[0], 0.0) + static.item_weight.get(item, 0.0)
+    facilities = set(sorted(sole, key=lambda f: -sole[f])[:3 * n])
+    if state.capacity_limited:
+        # Programme assembly can have several makers. Losing a high-share maker still matters;
+        # ranking only sole makers buried these facilities behind buffered raw-material suppliers.
+        primes: dict[str, float] = {}
+        for platform, (_, _, weight) in static.platforms.items():
+            makers = state.produced_at.get(platform, ())
+            total = sum(sh if sh > 0 else 1 for _, sh in makers) or 1
+            for f, share in makers:
+                if base.facility_ok.get(f, 0) > 0 and f not in state.closed:
+                    primes[f] = primes.get(f, 0) + weight * (share if share > 0 else 1) / total
+        facilities.update(sorted(primes, key=lambda f: (-primes[f], f))[:12])
     facs = [option("facility_outage", {"facility_id": static.facilities[f]["facility_id"]},
-                   static.facilities[f]["name"], D.with_changes(state, closed={f}), single_point_of_failure=True)
-            for f in sorted(sole, key=lambda f: -sole[f])[:3 * n]]
+                   static.facilities[f]["name"], D.with_changes(state, closed={f}), single_point_of_failure=f in sole)
+            for f in sorted(facilities) if f not in state.closed]
     pairs = sorted(((share * static.item_weight.get(item, 0.0), cc, item)
                     for item, shares in static.country_share.items() for cc, share in shares.items()
                     if cc not in static.allied and f"{cc}|{item}" not in state.controls), reverse=True)[:3 * n]
@@ -253,7 +266,7 @@ def blue_candidates(static: D.Static, state: D.State, n: int = CANDIDATES_PER_KI
         replaces.append({"action": "replace_facility", "args": {"facility_id": static.facilities[f]["facility_id"]},
                          "target": f"{static.facilities[f]['name']} ({len(plan)} items)",
                          "est_reduction_pct": -_delta(static, base.loss, replace(state, produced_at=made))})
-    short = sorted((i for i, a in base.item_avail.items() if a < 0.999 and i in static.items),
+    short = sorted((i for i, a in base.item_avail.items() if (a < 0.999 or state.capacity_limited) and i in static.items),
                    key=lambda i: -(1 - base.item_avail[i]) * static.item_weight.get(i, 0.0))[:3 * n]
     for item in short:
         iid, name, label = static.items[item]
@@ -269,6 +282,10 @@ def blue_candidates(static: D.Static, state: D.State, n: int = CANDIDATES_PER_KI
     for c in red_candidates(static, state, 2):
         if c["action"] in ("close_port", "facility_outage"):
             key = "port_id" if c["action"] == "close_port" else "facility_id"
+            target_id = next((n for n, info in (static.ports if key == "port_id" else static.facilities).items()
+                              if info[key] == c["args"][key]), None)
+            if target_id in state.protected:
+                continue
             hardens.append({"action": "harden", "args": {key: c["args"][key]}, "target": c["target"],
                             "est_reduction_pct": 0.0, "prevents_pct": c["est_gain_pct"]})
     useful = [[c for c in group if c["est_reduction_pct"] >= MIN_USEFUL_PCT] for group in (reroutes, replaces, sources, stocks)]

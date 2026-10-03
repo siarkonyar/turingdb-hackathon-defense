@@ -118,7 +118,7 @@ export function branchTree(view: MatchView): TreeNode[] {
   ];
   let injects = 0;
   for (const m of view.moves) {
-    const tag = m.side === "red" ? `R${m.round}` : m.side === "blue" ? `B${m.round}` : `EV${++injects}`;
+    const tag = m.side === "red" ? `R${m.round}` : m.side === "blue" ? (m.round === 0 ? "PREP" : `B${m.round}`) : `EV${++injects}`;
     nodes.push({ id: m.branch_id, parent: m.parent_id, side: m.side, tag, label: m.label });
   }
   return nodes;

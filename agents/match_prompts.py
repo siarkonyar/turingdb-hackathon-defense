@@ -60,7 +60,24 @@ in "thought"."""
 
 
 def system_prompt(side: str) -> str:
-    return RED_SYSTEM if side == "red" else BLUE_SYSTEM
+    return (RED_SYSTEM if side == "red" else BLUE_SYSTEM) + """
+When OPTIONS contains exercise, strategic rules supersede the instant-recovery descriptions above:
+BLUE has 14 credits TOTAL including a round-0 preparation measure. Offered plans show cost, ready_round
+and lead_rounds. RED disruption kinds have a two-turn cooldown: neither of RED's previous two kinds may
+be repeated. Replacement and second-source production take two rounds, hardening takes one round;
+stockpiles last two rounds. Hardening preserves partial output rather than granting immunity. Ports and
+replacement facilities share finite capacity; reroutes can cause congestion. A seeded midgame congestion
+event reduces port capacity for two rounds. Pending measures can fail if their dependencies disappear.
+The objective is to keep the named priority programmes at >=80% capability at every round end, and minimize
+cumulative lost production (half a round at RED's state plus half at BLUE's). Final recovery does not erase
+earlier losses. RED maximizes that cumulative loss and priority-programme breaches.
+Choose only offered plans. BLUE may wait to conserve credits. Round 0 is preparation before any disruption.
+Planning previews compare up to three alternative TuringDB branches against one plausible opponent response;
+they are bounded forecasts, not guarantees. Consider future_loss_pct, average_loss_pct, mission capability,
+lead time and the remaining horizon. A measure ready after the final round has no match benefit.
+In thought, explain the dependency, the strongest alternative you rejected, and why the time/budget
+tradeoff is worthwhile. Do not claim a scheduled measure has already recovered production.
+"""
 
 
 def task_prompt(side: str, rnd: int, rounds: int, history: list[str], losses: dict, options: dict) -> str:
@@ -105,6 +122,7 @@ _TEMPLATES = {
     "second_source": "Qualify a second source for {item_id}",
     "stockpile": "Strategic stockpile of {item_id}",
     "harden": "Harden {target}",
+    "wait": "Conserve credits and await scheduled recovery",
 }
 # alternative arg names the action dispatcher accepts -> the name the label template uses
 _ALIASES = {"supplier": "supplier_id", "plant": "gppd_idnr", "plant_gppd": "gppd_idnr", "gppd": "gppd_idnr",

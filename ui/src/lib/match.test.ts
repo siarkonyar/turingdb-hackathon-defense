@@ -28,6 +28,22 @@ const play = (events: MatchEvent[]) => events.reduce(reduceMatch, startMatchView
 const started: MatchEvent = { type: "match_started", base_branch: "25", rounds: 2, base_loss_pct: 20, model: "qwen" };
 
 describe("reduceMatch", () => {
+  it("preserves preparation, recovery clocks and strategic comparisons on replay", () => {
+    const strategy = { budget_remaining: 9, budget_total: 14, round: 1, cumulative_loss: 12,
+      pending: [{ step: { action: "replace_facility", args: { facility_id: "F1" } }, due: 2, cost: 5 }],
+      completed: [], missions: [{ item_id: "P1", name: "Programme", capability_pct: 75, threshold_pct: 80 }],
+      planning: { response: "Facility outage", future_loss_pct: 20, horizon_round: 2 } };
+    const prep = { ...move("blue", 0, "26", "25", 20), strategy };
+    const tick = { ...move("inject", 0, "27", "26", 20), action: "game_tick", strategy };
+    const view = play([started, { type: "move", replay: true, ...prep },
+      { type: "inject", text: "Clock advanced", branch: "27", move: tick },
+      { type: "match_done", status: "done", summary: { status: "done", strategic: true,
+        cumulative_loss: 12, average_loss_pct: 12, objective_met: false } }]);
+    expect(headOf(view)).toBe("27");
+    expect(view.moves[0]?.strategy?.planning?.future_loss_pct).toBe(20);
+    expect(branchTree(view)[1]?.tag).toBe("PREP");
+    expect(view.summary?.objective_met).toBe(false);
+  });
   it("follows a match from start to finish", () => {
     const v = play([
       { type: "job_started", job_id: "m1" },

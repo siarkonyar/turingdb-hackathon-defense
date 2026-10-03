@@ -1,3 +1,4 @@
+import { matchDownloadUrl } from "../api/client";
 import { isLive, type MatchView } from "../lib/match";
 import { useOps } from "../state/store";
 import {
@@ -34,7 +35,8 @@ function LlmChip() {
 function Setup({ disabled }: { disabled: boolean }) {
   const w = useOps((s) => s.wargame);
   const branches = useOps((s) => s.branches);
-  const bases = branches.filter((b) => b.kind === "main" || b.kind === "scenario");
+  // Early strategic recordings labelled clock branches as scenarios. Keep those out of new-match bases.
+  const bases = branches.filter((b) => b.kind === "main" || (b.kind === "scenario" && !/^Round \d+ operations$/.test(b.label)));
   const llmDown = w.status !== null && !w.status.available;
   return (
     <div className="wg__setup">
@@ -68,6 +70,7 @@ function Setup({ disabled }: { disabled: boolean }) {
 function Replay({ disabled, emphasise }: { disabled: boolean; emphasise: boolean }) {
   const saved = useOps((s) => s.wargame.saved);
   const file = useOps((s) => s.wargame.replayFile);
+  const speed = useOps((s) => s.wargame.replaySpeed);
   return (
     <div className={`wg__replay${emphasise ? " is-emphasised" : ""}`}>
       <select value={file} disabled={disabled || !saved.length} onChange={(e) => setWargame({ replayFile: e.target.value })} aria-label="Saved match">
@@ -77,6 +80,9 @@ function Replay({ disabled, emphasise }: { disabled: boolean; emphasise: boolean
             {m.file} · {m.moves} moves{m.final_loss_pct != null ? ` · +${m.final_loss_pct}%` : ""}
           </option>
         ))}
+      </select>
+      <select value={speed} disabled={disabled} onChange={(e) => setWargame({ replaySpeed: Number(e.target.value) })} aria-label="Replay speed">
+        {[1, 4, 20].map((s) => <option key={s} value={s}>{s}×</option>)}
       </select>
       <button type="button" className="btn" disabled={disabled || !file} onClick={() => void startReplay()} title="Plays a recorded match back with its original timing and no LLM calls">
         Replay saved match
@@ -106,7 +112,7 @@ function Controls({ view }: { view: MatchView }) {
 }
 
 function StatusLine({ view }: { view: MatchView }) {
-  const played = view.moves.filter((m) => m.side === "blue").length;
+  const played = view.moves.filter((m) => m.side === "blue" && m.round > 0).length;
   const last = view.moves[view.moves.length - 1];
   const label =
     view.phase === "starting" ? "Starting…" : view.phase === "paused" ? "Paused" : view.phase === "running" ? "Live" : view.phase;
@@ -204,12 +210,35 @@ export function WargamePanel() {
         </p>
       ) : null}
       <Setup disabled={live} />
+      <p className="scenario__hint">Strategic exercise: 14 credits including preparation. Recoveries take time;
+        stock lasts two rounds. Red disruption types have a two-turn cooldown. Protect three priority programmes above 80% each round.</p>
       <Replay disabled={live} emphasise={llmDown || (view.phase === "error" && view.replayAvailable)} />
       {view.phase !== "idle" ? (
         <>
           <StatusLine view={view} />
           {live ? <Controls view={view} /> : null}
+          {!live && view.summary?.file ? (
+            <div className="wg__downloads" aria-label="Download match">
+              <a className="btn" href={matchDownloadUrl(view.summary.file, "md")} download>
+                Download script
+              </a>
+              <a className="btn" href={matchDownloadUrl(view.summary.file, "json")} download>
+                Replay JSON
+              </a>
+              <p className="scenario__hint">Share the script here to review the moves, reasoning and scores.</p>
+            </div>
+          ) : null}
           {view.error ? <p className="scenario__err mono">{view.error}</p> : null}
+          {view.moves.at(-1)?.strategy?.budget_total ? <div className="wg__strategy" aria-label="Exercise objectives">
+            <p className="mono">Budget {view.moves.at(-1)!.strategy!.budget_remaining}/14 credits
+              {view.moves.at(-1)!.strategy!.event_active ? " · export congestion active" : ""}</p>
+            <p>Cumulative loss: {view.moves.at(-1)!.strategy!.cumulative_loss?.toFixed(1) ?? "0.0"} percentage-point rounds</p>
+            {view.moves.at(-1)!.strategy!.missions.map((m) => <p key={m.item_id} className={m.capability_pct < m.threshold_pct ? "is-worse" : "is-better"}>
+              {m.name}: {m.capability_pct.toFixed(1)}% / target {m.threshold_pct}%</p>)}
+            {view.moves.at(-1)!.strategy!.pending.map((p, i) => <p key={i}>Pending: {p.step.action.replaceAll("_", " ")} · ready R{p.due}</p>)}
+            {view.summary?.strategic ? <p>Cumulative loss: {view.summary.cumulative_loss?.toFixed(1)} percentage-point rounds
+              {" "}· average {view.summary.average_loss_pct?.toFixed(1)}% · {view.summary.objective_met ? "objectives held" : "objective breached"}</p> : null}
+          </div> : null}
           {view.baseBranch ? <LossChart moves={view.moves} rounds={view.rounds} baseLossPct={view.baseLossPct} /> : null}
           <BranchTree view={view} />
           {live && !view.replay ? <Inject view={view} /> : null}

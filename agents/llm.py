@@ -155,7 +155,15 @@ class FeatherlessLLM:
                 continue
             if resp.status_code >= 400:
                 raise LLMError(f"Featherless HTTP {resp.status_code}: {resp.text[:300]}")
-            body = resp.json()
+            try:
+                body = resp.json()
+            except ValueError as exc:
+                if attempt == max_attempts:
+                    raise LLMError("Featherless returned malformed JSON after retries") from exc
+                log.warning("Featherless returned malformed JSON; retrying in %.0fs", delay)
+                time.sleep(delay)
+                delay = min(delay * 2, MAX_DELAY_S)
+                continue
             usage = body.get("usage") or {}
             self.usage.calls += 1
             self.usage.prompt_tokens += int(usage.get("prompt_tokens") or 0)

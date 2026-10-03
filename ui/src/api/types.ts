@@ -246,6 +246,7 @@ export interface Move {
   targets: MoveTarget[];
   arcs: Arc[];
   fallback: boolean;
+  breakdown?: { deep_pct?: number | null; legacy_pct?: number | null }; // absolute loss per layer
   selection?: {
     selector: "jev" | "existing_blue";
     fallback: boolean;
@@ -254,7 +255,31 @@ export interface Move {
     candidates: { id: string; action: string; args: Record<string, unknown> }[];
   };
   llm_calls?: number;
-  breakdown?: { deep_pct?: number | null; legacy_pct?: number | null }; // absolute loss per layer
+  strategy?: Strategy;
+}
+
+export interface PlanPreview {
+  response?: string;
+  immediate_loss_pct?: number;
+  future_loss_pct?: number;
+  average_loss_pct?: number;
+  horizon_round?: number;
+  error?: string;
+}
+
+export interface Strategy {
+  budget_remaining: number;
+  budget_total: number;
+  round: number;
+  cost?: number;
+  cumulative_loss?: number;
+  ready_round?: number;
+  event_active?: boolean;
+  pending: { step: { action: string; args: Record<string, unknown> }; due: number; cost: number }[];
+  completed: string[];
+  missions: { item_id: string; name: string; capability_pct: number; threshold_pct: number }[];
+  planning?: PlanPreview | null;
+  alternatives?: { label: string; cost: number; ready_round: number; planning?: PlanPreview }[];
 }
 
 export interface MatchSummary {
@@ -268,6 +293,10 @@ export interface MatchSummary {
   llm_ms?: number;
   db_ms?: number;
   file?: string;
+  strategic?: boolean;
+  cumulative_loss?: number;
+  average_loss_pct?: number;
+  objective_met?: boolean;
 }
 
 export interface SavedMatch {

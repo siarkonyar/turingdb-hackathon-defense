@@ -4,7 +4,7 @@ import { latencyText, signedPct, type MatchView } from "../lib/match";
 const SIDE_NAME = { red: "Red", blue: "Blue", inject: "Event" } as const;
 
 function MoveCard({ move }: { move: Move }) {
-  const tag = move.side === "inject" ? "EVENT" : `R${move.round} · ${move.side.toUpperCase()}`;
+  const tag = move.side === "inject" ? "EVENT" : move.round === 0 ? "PREPARATION" : `R${move.round} · ${move.side.toUpperCase()}`;
   return (
     <li className={`mcard mcard--${move.side}`}>
       <div className="mcard__top">
@@ -33,6 +33,16 @@ function MoveCard({ move }: { move: Move }) {
       {move.breakdown?.deep_pct != null ? (
         <div className="mcard__split mono" title="Absolute loss on each layer: the deep supply network (platform production) and the original parts layer">
           deep network {move.breakdown.deep_pct.toFixed(1)}% · parts layer {(move.breakdown.legacy_pct ?? 0).toFixed(1)}%
+        </div>
+      ) : null}
+      {move.strategy?.budget_total ? (
+        <div className="mcard__strategy">
+          <p className="mono">Credits {move.strategy.budget_remaining}/{move.strategy.budget_total}
+            {move.side === "blue" ? ` · spent ${move.strategy.cost ?? 0} · ready R${move.strategy.ready_round}` : ""}</p>
+          {move.strategy.planning?.future_loss_pct != null ? <p>Forecast after {move.strategy.planning.response}:
+            {" "}{move.strategy.planning.future_loss_pct.toFixed(1)}% loss by R{move.strategy.planning.horizon_round}.</p> : null}
+          {move.strategy.alternatives?.map((a) => <p key={a.label}>Alternative: {a.label} · {a.cost} credits · ready R{a.ready_round}
+            {a.planning?.future_loss_pct != null ? ` · forecast ${a.planning.future_loss_pct.toFixed(1)}% loss` : ""}</p>)}
         </div>
       ) : null}
     </li>

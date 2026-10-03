@@ -378,3 +378,81 @@ def test_cli_module_retries_board_rejections(board, tmp_path):
     assert match.run()["status"] == "done"
     assert len(match.moves) == 2
     assert match.moves[0].args["supplier_id"] != "BAD"
+
+
+def test_cooldown_filters_both_recent_kinds_and_fallbacks():
+    from agents.match import _without
+
+    moves = [{"action": name, "args": {}} for name in ("close_port", "block_chokepoint", "facility_outage")]
+    options = _without({"deep_candidates": moves, "fallback": moves[0], "alternates": moves[1:]},
+                       ["close_port", "block_chokepoint"])
+    assert options["deep_candidates"] == [moves[2]]
+    assert options["fallback"] == moves[2] and not options["alternates"]
+
+
+def test_strategic_wait_does_not_call_model_when_it_is_the_only_legal_move(board, tmp_path, monkeypatch):
+    class BudgetBoard:
+        def __init__(self, raw, rounds, seed):
+            self.raw = raw
+            self.last_options = {}
+
+        def __getattr__(self, name):
+            return getattr(self.raw, name)
+
+        def initialize(self, base):
+            return self.raw.stack("blue", "init", base, [{"action": "game_init", "args": {}}])
+
+        def details(self, head):
+            return {"budget_remaining": 1, "budget_total": 14, "pending": [], "completed": [], "missions": []}
+
+        def missions(self, head):
+            return []
+
+        def tick(self, head, rnd):
+            actions = [{"action": "game_tick", "args": {"round": rnd}}]
+            return self.raw.stack("inject", "clock", head, actions), actions, "clock"
+
+        def options(self, side, head):
+            options = self.raw.options(side, head)
+            if side == "blue":
+                options = {"deep_candidates": [{"action": "wait", "args": {}}]}
+            self.last_options = options
+            return options
+
+        def play(self, side, label, head, step):
+            return self.raw.stack(side, label, head, [step]), [step]
+
+    monkeypatch.setattr("agents.strategic_board.StrategicBoard", BudgetBoard)
+    model = FakeLLM()
+    match = Match(board, rounds=1, strategic=True, llm=model, directory=tmp_path)
+    assert match.run()["status"] == "done"
+    assert [side for side, _ in model.calls] == ["red"]
+    blue = [m for m in match.moves if m.side == "blue"]
+    assert len(blue) == 2 and all(m.action == "wait" and not m.fallback for m in blue)
+
+
+def test_stopped_half_round_has_correct_average_loss(board, tmp_path):
+    match = None
+
+    def emit(kind, data):
+        if kind == "move" and data["side"] == "red":
+            match.stop()
+
+    match = _match(board, tmp_path, rounds=2, emit=emit)
+    result = match.run()
+    assert result["status"] == "stopped"
+    assert result["cumulative_loss"] == 5
+    assert result["average_loss_pct"] == 10
+    assert not result["objective_met"]
+
+
+def test_provider_response_failure_uses_marked_legal_fallback(board, tmp_path):
+    from agents.llm import LLMError
+
+    class BrokenResponse(FakeLLM):
+        def chat(self, *args, **kwargs):
+            raise LLMError("malformed provider response")
+
+    match = _match(board, tmp_path, rounds=1, llm=BrokenResponse())
+    assert match.run()["status"] == "done"
+    assert all(m.fallback for m in match.moves)

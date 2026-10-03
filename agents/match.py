@@ -26,7 +26,7 @@ from typing import Any, Callable, Protocol
 
 from agents.config import ROOT
 from agents.engine import PROTOCOL
-from agents.llm import parse_action
+from agents.llm import LLMError, LLMUnavailable, parse_action
 from agents.match_errors import MoveRejected
 from agents.match_prompts import BLUE_ACTIONS, RED_ACTIONS, describe_action, system_prompt, task_prompt
 
@@ -91,10 +91,11 @@ class Move:
     targets: list[dict] = field(default_factory=list)  # {id, name, kind, lat, lon} for the map
     arcs: list[dict] = field(default_factory=list)  # {source, target, source_id, target_id, hop, rel}
     fallback: bool = False  # the model gave no valid move; a deterministic default was played
+    breakdown: dict = field(default_factory=dict)  # {deep_pct, legacy_pct}: absolute loss per layer
     selection: dict = field(default_factory=dict)
     llm_calls: int = 0
     llm_requests: int = 0
-    breakdown: dict = field(default_factory=dict)  # {deep_pct, legacy_pct}: absolute loss per layer
+    strategy: dict = field(default_factory=dict)  # budget, recovery deadlines, missions, planning alternatives
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -143,7 +144,8 @@ def match_path(name: str, directory: Path = MATCHES_DIR) -> Path:
 class Match:
     def __init__(self, board: Board, base_branch: str = "main", rounds: int = 3, *, llm: ChatModel | None,
                  injector: Injector | None = None, emit: Emit | None = None, match_id: str | None = None,
-                 directory: Path = MATCHES_DIR, save_as: str | None = None) -> None:
+                 directory: Path = MATCHES_DIR, save_as: str | None = None,
+                 strategic: bool = False, seed: int = 7) -> None:
         if rounds < 1:
             raise ValueError("rounds must be >= 1")
         self.id = match_id or uuid.uuid4().hex[:8]
@@ -165,6 +167,9 @@ class Match:
         self._ended: float | None = None
         self.base_loss = 0.0
         self.base_actions: list[dict] = []
+        self.strategic, self.seed = strategic, seed
+        self.cumulative_loss = 0.0
+        self.round_scores: list[dict] = []
 
     # ------------------------------------------------------------------ operator controls (any thread)
 
@@ -195,12 +200,28 @@ class Match:
     def run(self) -> dict:
         try:
             self._start()
+            if self.strategic:
+                self._checkpoint()
+                self._emit("move_started", {"round": 0, "side": "blue", "head": self.head})
+                self._record(self._play("blue", 0))
             for rnd in range(1, self.rounds + 1):
+                if self.strategic:
+                    self._checkpoint()
+                    started = time.perf_counter()
+                    branch, actions, label = self.board.tick(self.head, rnd)
+                    clock = self._finalise("inject", rnd - 1, "game_tick", {"round": rnd}, actions,
+                                           branch, label, label, 0, started, False)
+                    self._record(clock)
+                    self._emit("inject", {"text": label, "branch": branch, "move": clock.as_dict()})
                 self._drain_injects(rnd)
                 for side in ("red", "blue"):
                     self._checkpoint()
                     self._emit("move_started", {"round": rnd, "side": side, "head": self.head})
                     self._record(self._play(side, rnd))
+                missions = self.board.missions(self.head) if self.strategic else []
+                self.round_scores.append({"round": rnd, "cumulative_loss": round(self.cumulative_loss, 1),
+                                          "missions": missions,
+                                          "objective_met": bool(missions) and all(m["capability_pct"] >= 80 for m in missions)})
                 self._emit("round_done", {"round": rnd, "head": self.head, **self._losses(self.head)})
             self._drain_injects(self.rounds + 1)  # an event queued during the last round still lands
             return self._finish("done")
@@ -215,9 +236,24 @@ class Match:
         self._set_state("running", emit=False)
         self.base_loss = self.board.loss(self.base)
         self.base_actions = self.board.lineage(self.base)
+        if self.strategic:
+            from agents.strategic_board import StrategicBoard
+
+            self.board = StrategicBoard(self.board, self.rounds, self.seed)
+            initialized = self.board.initialize(self.base)
+            # Record initialization as a concrete move so replay reconstructs the same game clock.
+            started = time.perf_counter()
+            init = self._finalise("inject", 0, "game_init", {},
+                                  [{"action": "game_init", "args": {"rounds": self.rounds, "seed": self.seed}}],
+                                  initialized, "Exercise rules: 14 credits; protect priority programmes above 80%",
+                                  "Finite capacity, delayed recovery, two-round stocks and partial hardening.", 0, started, False)
+            self.moves.append(init)
+            self.head = initialized
         self._emit("match_started", {"match_id": self.id, "base_branch": self.base, "rounds": self.rounds,
                                      "base_loss_pct": _pct(self.base_loss),
-                                     "model": getattr(self.llm, "model", None)})
+                                     "model": getattr(self.llm, "model", None), "strategic": self.strategic})
+        if self.strategic:
+            self._emit("inject", {"text": init.label, "branch": init.branch_id, "move": init.as_dict()})
 
     def _checkpoint(self) -> None:
         if self._stop.is_set():
@@ -323,13 +359,32 @@ class Match:
     def _play_existing(self, side: str, rnd: int, *, opts=None, timed=None, started=None) -> Move:
         started = started or time.perf_counter()
         banned = self._last_action(side) if side == "red" else None  # red must vary its disruption kind
-        allowed = tuple(a for a in (RED_ACTIONS if side == "red" else BLUE_ACTIONS) if a != banned)
-        opts = _without(opts if opts is not None else self.board.options(side, self.head), banned)
+        cooldown = [m.action for m in reversed(self.moves) if m.side == "red"][:2]
+        bans = cooldown if self.strategic and side == "red" else ([banned] if banned else [])
+        if self.strategic:
+            self.board.banned = cooldown
+        allowed = tuple(a for a in (RED_ACTIONS if side == "red" else BLUE_ACTIONS + ("wait",)) if a not in bans)
+        opts = _without(opts if opts is not None else self.board.options(side, self.head),
+                        bans if self.strategic else banned)
+        candidates = opts.get("deep_candidates", [])
+        if self.strategic and side == "blue" and len(candidates) == 1 and candidates[0]["action"] == "wait":
+            step = {"action": "wait", "args": {}}
+            label = describe_action("wait", {})
+            branch, edits = self.board.play(side, label, self.head, step)
+            return self._finalise(side, rnd, "wait", {}, edits, branch, label,
+                                  "Automatic wait: no affordable measure can complete within the match horizon.",
+                                  0, started, fallback=False)
         messages = [{"role": "system", "content": f"{system_prompt(side)}\n\n{PROTOCOL}"},
                     {"role": "user", "content": task_prompt(side, rnd, self.rounds, self._history(),
                                                             self._losses(self.head), opts)}]
         for _ in range(MOVE_STEPS if timed else 0):
-            reply = timed.chat(messages, agent=side, temperature=0.3, max_tokens=MOVE_MAX_TOKENS)
+            try:
+                reply = timed.chat(messages, agent=side, temperature=0.3, max_tokens=MOVE_MAX_TOKENS)
+            except LLMUnavailable:
+                raise
+            except LLMError as exc:
+                log.warning("%s model response failed; using a legal fallback: %s", side, exc)
+                return self._fallback(side, rnd, opts, timed.ms, started)
             messages.append({"role": "assistant", "content": reply})
             try:
                 act = parse_action(reply)
@@ -345,11 +400,14 @@ class Match:
                 step = {"action": name, "args": args}
                 label = describe_action(name, args, opts)
                 try:
-                    branch = self.board.stack(side, label, self.head, [step])
+                    if self.strategic:
+                        branch, edits = self.board.play(side, label, self.head, step)
+                    else:
+                        branch, edits = self.board.stack(side, label, self.head, [step]), [step]
                 except MoveRejected as exc:
                     obs = {"error": str(exc)}
                 else:
-                    return self._finalise(side, rnd, name, args, [step], branch, label, why, timed.ms, started,
+                    return self._finalise(side, rnd, name, args, edits, branch, label, why, timed.ms, started,
                                           fallback=False)
             messages.append({"role": "user", "content": "OBSERVATION:\n" + json.dumps(obs, default=str)[:2500]})
         return self._fallback(side, rnd, opts, timed.ms if timed else 0.0, started)
@@ -366,11 +424,14 @@ class Match:
         for step in steps:
             label = describe_action(step["action"], step.get("args", {}), opts)
             try:
-                branch = self.board.stack(side, label, self.head, [step])
+                if self.strategic:
+                    branch, edits = self.board.play(side, label, self.head, step)
+                else:
+                    branch, edits = self.board.stack(side, label, self.head, [step]), [step]
             except MoveRejected as exc:
                 errors.append(str(exc))
                 continue
-            return self._finalise(side, rnd, step["action"], step.get("args", {}), [step], branch, label,
+            return self._finalise(side, rnd, step["action"], step.get("args", {}), edits, branch, label,
                                   "Model gave no valid move; played the top-ranked default.", llm_ms, started,
                                   fallback=True)
         raise RuntimeError(f"{side} had no playable move: {'; '.join(errors)[:400]}")
@@ -381,16 +442,31 @@ class Match:
         effects = self.board.effects(side, parent, branch, actions)
         losses = self._losses(branch)
         total_ms = (time.perf_counter() - started) * 1000
+        strategy = {}
+        if self.strategic:
+            strategy = self.board.details(branch)
+            candidates = self.board.last_options.get("deep_candidates", [])
+            chosen = next((c for c in candidates if c["action"] == action and c["args"] == args), {})
+            strategy.update({"cost": chosen.get("cost", 0), "ready_round": chosen.get("ready_round", rnd),
+                             "cumulative_loss": round(self.cumulative_loss +
+                                                      (max(0, losses["loss_pct"]) * 0.5 if side in ("red", "blue") and rnd > 0 else 0), 1),
+                             "planning": chosen.get("planning"),
+                             "alternatives": [{"label": describe_action(c["action"], c["args"]),
+                                               "cost": c.get("cost", 0), "ready_round": c.get("ready_round", rnd),
+                                               "planning": c.get("planning")}
+                                              for c in candidates if c is not chosen and c.get("planning")][:2]})
         return Move(round=rnd, side=side, action=action, args=args, actions=actions, branch_id=branch,
                     parent_id=parent, label=label, rationale=rationale or label, loss_pct=losses["loss_pct"],
                     abs_loss_pct=losses["abs_loss_pct"], llm_ms=round(llm_ms, 1),
                     db_ms=round(max(0.0, total_ms - llm_ms), 1), latency_ms=round(total_ms, 1),
                     targets=effects.get("targets", []), arcs=effects.get("arcs", []), fallback=fallback,
-                    breakdown=losses.get("breakdown", {}))
+                    breakdown=losses.get("breakdown", {}), strategy=strategy)
 
     def _record(self, move: Move) -> None:
         self.moves.append(move)
         self.head = move.branch_id
+        if move.side in ("red", "blue") and move.round > 0:
+            self.cumulative_loss += max(0, move.loss_pct) * 0.5
         if move.side != "inject":
             self._emit("move", move.as_dict())
         log.info("[%s] r%d %s %s -> #%s (%+.1f%%, llm %.0f ms, db %.0f ms)", self.id, move.round, move.side,
@@ -416,6 +492,7 @@ class Match:
 
     def summary(self) -> dict:
         played = [m for m in self.moves if m.side != "inject"]
+        duration = 0.5 * sum(m.round > 0 for m in played)
         return {"match_id": self.id, "status": self.state, "base_branch": self.base, "head": self.head,
                 "rounds_played": max((m.round for m in played), default=0),
                 "base_loss_pct": _pct(self.base_loss),
@@ -430,7 +507,13 @@ class Match:
                 "jev_ms": round(sum(m.selection.get("request_ms", 0) for m in self.moves), 1),
                 "total_ms": round(((self._ended or time.perf_counter()) - self._started) * 1000, 1),
                 "llm_ms": round(sum(m.llm_ms for m in self.moves), 1),
-                "db_ms": round(sum(m.db_ms for m in self.moves), 1), "file": self.path.stem}
+                "db_ms": round(sum(m.db_ms for m in self.moves), 1), "file": self.path.stem,
+                "strategic": self.strategic, "cumulative_loss": round(self.cumulative_loss, 1),
+                "average_loss_pct": round(self.cumulative_loss / duration, 1) if duration else 0,
+                "round_scores": self.round_scores,
+                "objective_met": self.state == "done" and len(self.round_scores) == self.rounds
+                                 and all(r["objective_met"] for r in self.round_scores),
+                **(self.board.details(self.head) if self.strategic and self.moves else {})}
 
     def to_file(self) -> dict:
         return {"id": self.id, "created": self.events[0]["at"] if self.events else _now_iso(),
@@ -463,14 +546,15 @@ class Match:
             log.error("could not save match %s: %s", self.id, exc)
 
 
-def _without(opts: dict, banned: str | None) -> dict:
+def _without(opts: dict, banned: str | list[str] | None) -> dict:
     """Options minus one action kind (the candidates, the default and its alternates)."""
     if not banned:
         return opts
-    keep = [s for s in [opts.get("fallback"), *opts.get("alternates", [])] if s and s.get("action") != banned]
+    bans = {banned} if isinstance(banned, str) else set(banned)
+    keep = [s for s in [opts.get("fallback"), *opts.get("alternates", [])] if s and s.get("action") not in bans]
     out = {**opts, "fallback": keep[0] if keep else None, "alternates": keep[1:], "not_allowed_this_turn": banned}
     if "deep_candidates" in opts:
-        out["deep_candidates"] = [c for c in opts["deep_candidates"] if c.get("action") != banned]
+        out["deep_candidates"] = [c for c in opts["deep_candidates"] if c.get("action") not in bans]
     return out
 
 
@@ -565,7 +649,9 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="Turn-based red-vs-blue wargame on TuringDB branches")
     parser.add_argument("--base", default="main", help="base branch: main or a scenario change id")
-    parser.add_argument("--rounds", type=int, default=3)
+    parser.add_argument("--rounds", type=int, default=6)
+    parser.add_argument("--classic", action="store_true", help="play the original instant-recovery rules")
+    parser.add_argument("--seed", type=int, default=7, help="reproducible midpoint congestion event")
     parser.add_argument("--inject", action="append", default=[],
                         help='ROUND:TEXT - queue an event before ROUND, e.g. 2:"the Liverpool port is closed"')
     parser.add_argument("--save-as", help="file name under matches/ (default: the match id)")
@@ -592,7 +678,7 @@ def main() -> None:
                 pending.remove(item)
 
     match = Match(board, args.base, args.rounds, llm=lab.llm, injector=scenario_injector(lab), emit=emit,
-                  save_as=args.save_as)
+                  save_as=args.save_as, strategic=not args.classic, seed=args.seed)
     print(json.dumps(match.run(), indent=2))
 
 

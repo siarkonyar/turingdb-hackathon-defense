@@ -175,6 +175,15 @@ OPSMAP_BACKEND=turingdb uv run python -m agents.match --base main --rounds 4 --s
 uv run python -m agents.match --replay demo --speed 4
 ```
 
+### Downloading a match for review
+
+When a match or replay finishes, the Wargame panel offers **Download script** (`.md`) and **Replay JSON**
+(`.json`). The script includes the model, base scenario, each move's action arguments, rationale, scores
+(including the deep/parts split), timings, fallback flags, map targets and any recorded errors. Attach it in
+chat to review the game's decisions. JSON contains the complete recording, including event timing and map
+arcs, for replay or deeper inspection. Stopped and failed matches with recordings can also be downloaded.
+These exports use saved data and make no new model calls.
+
 ### Demo runbook (all in the browser)
 
 1. `.env` with `OPSMAP_BACKEND=turingdb` and `FEATHERLESS_API_KEY` (see `.env.example`), TuringDB 3.0 running
@@ -214,6 +223,75 @@ uv run pytest tests/agents -q
   and split scores. Map stacking and feed sizing were fixed so effects stay behind controls and long names fit.
 - Invalid model choices retry in the CLI as well as the API: `MoveRejected` lives in `match_errors.py` to
   avoid separate exception identities when `agents.match` runs as `__main__`.
+
+## Strategic matches (default in OpsMap and the CLI)
+
+A six-round match now includes a BLUE preparation turn (round 0), finite recovery resources,
+programme objectives and opponent-response previews. Use `--classic` on the CLI or
+`{"strategic": false}` in `POST /match` for the original instant-recovery game. Direct Python
+`Match(...)` callers opt in with `strategic=True` to preserve existing callers.
+
+Each RED disruption type has a two-turn cooldown: neither of its previous two action kinds may
+be repeated, including by deterministic fallbacks or in opponent previews. This prevents a permanent
+port/chokepoint cycle while leaving several production options available.
+
+The match grants **14 BLUE credits total**, shared with preparation. Rules are enforced by typed
+`game_order` actions, not just prompts. Rerouting costs 2 and takes effect immediately;
+replacement production costs 5 and takes 2 rounds; second sourcing costs 3 and takes 2;
+stockpiling costs 2 and covers 2 combat rounds; hardening costs 3 and takes 1. BLUE can wait
+without spending. Orders already pending cannot be ordered again. Plans whose lead time extends
+past the final round are not offered. A pending order can fail if the changed network no longer
+supports it; credits remain spent. Legacy-layer recovery is budgeted and delayed too.
+
+`GameState` holds the round, credits, pending orders, stock expiry and event state as encoded JSON
+inside the branch. `game_init`, `game_order`, and `game_tick` replay this state exactly. Each round
+starts with a clock-event branch: due orders resolve and exhausted stocks lose their availability
+floor. Preparation stocks cover rounds 1 and 2. A match of at least four rounds receives a deterministic
+20% reduction in port capacity for two rounds at `max(2, rounds // 2 + seed % 2)`; the default seed is 7.
+The seed and rules are stored in the concrete initialization action. Old recordings have no game state
+and retain their original scoring rules. One-shot agents keep their existing rules.
+
+Finite port throughput uses the original exporter count plus 25% spare room (minimum 2 slots).
+Each exporter chooses its best live route; congestion reduces throughput for everyone using that
+port, including existing exporters. Each newly qualified item consumes 20 percentage points of its
+maker's spare utilization; overcommitment reduces that maker's output, including existing production.
+Replacement plans allocate capacity incrementally. Strategic hardening preserves 50% of a disrupted
+facility's output or a 70% closed-port route factor rather than making it immune. These quantities are
+exercise assumptions, not calibrated industrial forecasts.
+
+The three highest-weight programmes with base capability at least 80% are the priority objectives
+(up to three if the base scenario leaves fewer eligible). BLUE must keep each at **80% or better at every
+combat round end**. No deep layer means no programme objective is available. The match also reports
+cumulative loss in percentage-point rounds: half the relative loss after RED plus half after BLUE,
+clamped at zero, accumulated across rounds. Average loss divides this by the observed combat duration (including a half-round if stopped after RED). Final
+recovery cannot erase earlier loss. Scores and objective breaches are stored in `round_scores`.
+
+Before each decision, up to three distinct candidate kinds are evaluated in temporary real TuringDB branches.
+Each is tested against one strongest plausible opponent response and clock advancement up to two
+rounds ahead, capped at the match horizon. Forecasts show immediate, future and average absolute loss,
+response and priority-programme capabilities. These are bounded comparisons, not exhaustive minimax
+search. Preventive stock and source options must measurably reduce a previewed disruption, rather than using
+a generic item-importance bonus. A production disruption is included in RED previews when available.
+Preview branches are discarded; chosen move cards and transcripts retain their comparison
+results, recovery deadline, credits and alternatives. Deterministic fallbacks prioritize objective breaches
+and forecast exposure when previews exist. Prompts ask the model to explain the rejected alternative
+and the time/resource tradeoff. The live map reflects actual production changes, while pending orders
+are shown separately in the panel.
+
+Validation: `pytest tests/agents/test_game_rules.py tests/agents/test_strategic_live.py -q`.
+The latter uses a deterministic model against the live theatre, tests a four-round match and replay,
+and checks that previews are discarded and main remains untouched.
+
+Production previews include high-share programme assembly makers even when they are not sole makers.
+Malformed provider JSON is retried; exhausted response errors use a marked legal fallback while missing
+credentials or an unavailable provider still report an error. Forced waits use no model call. The UI supports
+1×, 4× and 20× saved-match replay for presentations.
+
+Final six-round real-model demo (Qwen/Qwen2.5-72B-Instruct, seed 7): no model fallbacks,
+RED used port closure / facility outage / chokepoint disruption; BLUE prepared, rerouted,
+qualified replacement production ready two rounds later, hardened an exposed facility and then
+waited after spending 13 of 14 credits. Final loss 39.0%, average loss 31.4%, cumulative loss
+188.1 percentage-point rounds. Recording: `matches/strategic-demo.json` (runtime artifact).
 
 
 ### Optional Featherless Simple Jev Blue

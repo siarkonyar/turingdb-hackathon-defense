@@ -70,7 +70,7 @@ export async function startReplay(file?: string): Promise<void> {
     return;
   }
   try {
-    const { match_id } = await api.replayMatch(name);
+    const { match_id } = await api.replayMatch(name, useOps.getState().wargame.replaySpeed);
     subscribe(match_id, true);
   } catch (err) {
     toast(`Could not replay ${name}: ${message(err)}`, "error");
