@@ -124,6 +124,18 @@ one decision: the options are in the prompt, so it is usually a single LLM call,
 Injects run the scenario agent on the head. Matches are saved to `matches/<id>.json` and replayable
 without the LLM (`uv run python -m agents.match --replay demo`).
 
+### Demo runbook (all in the browser)
+
+1. `.env` with `OPSMAP_BACKEND=turingdb` and `FEATHERLESS_API_KEY` (see `.env.example`), TuringDB 3.0 running
+   in-memory with `theatre`, then `uv run uvicorn api.main:app` and `npm --prefix ui run dev`.
+2. **Scenario** → "everything in Manchester is destroyed" → Simulate (branch, 13.8% loss).
+3. **Wargame** → base = that branch, 3 rounds → Start. Type "the Liverpool port is closed" → Inject during
+   round 1; it lands before round 2 as an amber card and a new head.
+4. LLM down? The chip says so and **Replay saved match** plays `matches/demo.json` (a real recorded match)
+   with its original timing and no model calls, rebuilding every branch on TuringDB.
+
+Measured (Qwen2.5-72B, TuringDB 3.0): a move is 4-9 s of LLM time and 1-2 s of TuringDB time.
+
 ## Tests
 
 ```bash

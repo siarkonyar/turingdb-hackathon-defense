@@ -1,0 +1,700 @@
+{
+ "id": "ac0c5862",
+ "created": "2026-10-03T09:41:38Z",
+ "base_branch": "20",
+ "base_actions": [
+  {
+   "action": "wipe_bbox",
+   "args": {
+    "east": -2.1629,
+    "labels": null,
+    "north": 53.572,
+    "south": 53.372,
+    "west": -2.4629
+   }
+  }
+ ],
+ "base_loss_pct": 13.8,
+ "rounds": 3,
+ "status": "done",
+ "model": "Qwen/Qwen2.5-72B-Instruct",
+ "moves": [
+  {
+   "round": 1,
+   "side": "red",
+   "action": "strike_supplier",
+   "args": {
+    "supplier_id": "SUP012"
+   },
+   "actions": [
+    {
+     "action": "strike_supplier",
+     "args": {
+      "supplier_id": "SUP012"
+     }
+    }
+   ],
+   "branch_id": "59",
+   "parent_id": "20",
+   "label": "Strike supplier SUP012",
+   "rationale": "Striking the supplier with the highest critical demand weight will cause the most significant disruption.",
+   "loss_pct": 3.7,
+   "abs_loss_pct": 17.5,
+   "llm_ms": 9326.1,
+   "db_ms": 2149.8,
+   "latency_ms": 11476.0,
+   "targets": [
+    {
+     "id": "47951",
+     "name": "Supplier: SUP012",
+     "kind": "supplier",
+     "lat": 41.355053,
+     "lon": 2.141328,
+     "status": null
+    }
+   ],
+   "arcs": [],
+   "fallback": false
+  },
+  {
+   "round": 1,
+   "side": "blue",
+   "action": "add_backup_supplier",
+   "args": {
+    "part_id": "P00009"
+   },
+   "actions": [
+    {
+     "action": "add_backup_supplier",
+     "args": {
+      "part_id": "P00009"
+     }
+    }
+   ],
+   "branch_id": "60",
+   "parent_id": "59",
+   "label": "Add a backup supplier for part P00009",
+   "rationale": "Since the supplier SUP012 has been struck, the best immediate action is to add a backup supplier for the critical parts affected.",
+   "loss_pct": 3.3,
+   "abs_loss_pct": 17.1,
+   "llm_ms": 5353.2,
+   "db_ms": 945.6,
+   "latency_ms": 6298.8,
+   "targets": [],
+   "arcs": [],
+   "fallback": false
+  },
+  {
+   "round": 1,
+   "side": "inject",
+   "action": "wipe_bbox",
+   "args": {
+    "west": -2.5,
+    "south": 53.3,
+    "east": -2.2,
+    "north": 53.5,
+    "labels": null
+   },
+   "actions": [
+    {
+     "action": "wipe_bbox",
+     "args": {
+      "west": -2.5,
+      "south": 53.3,
+      "east": -2.2,
+      "north": 53.5,
+      "labels": null
+     }
+    }
+   ],
+   "branch_id": "61",
+   "parent_id": "60",
+   "label": "Event: the Liverpool port is closed",
+   "rationale": "The closure of the Liverpool port has resulted in the destruction of the Butchersfield Landfill Site, a critical facility located near Trafford Park, Manchester. This has caused a significant disruption to the supply chain, leading to a 17.1% supply loss at the Trafford Park, Manchester site (SITE01). The impact is primarily localized to this area, with no other major facilities or infrastructure ",
+   "loss_pct": 3.3,
+   "abs_loss_pct": 17.1,
+   "llm_ms": 29289.6,
+   "db_ms": 1384.3,
+   "latency_ms": 30673.8,
+   "targets": [
+    {
+     "id": "212",
+     "name": "Butchersfield Landfill Site",
+     "kind": "plant",
+     "lat": 53.3977,
+     "lon": -2.4842,
+     "status": null
+    }
+   ],
+   "arcs": [],
+   "fallback": false
+  },
+  {
+   "round": 2,
+   "side": "red",
+   "action": "strike_supplier",
+   "args": {
+    "supplier_id": "SUP015"
+   },
+   "actions": [
+    {
+     "action": "strike_supplier",
+     "args": {
+      "supplier_id": "SUP015"
+     }
+    }
+   ],
+   "branch_id": "62",
+   "parent_id": "61",
+   "label": "Strike supplier SUP015",
+   "rationale": "Striking the supplier with the highest critical demand weight will maximize the projected loss.",
+   "loss_pct": 5.6,
+   "abs_loss_pct": 19.4,
+   "llm_ms": 3603.8,
+   "db_ms": 1195.1,
+   "latency_ms": 4798.9,
+   "targets": [
+    {
+     "id": "47941",
+     "name": "Supplier: SUP015",
+     "kind": "supplier",
+     "lat": 40.617271,
+     "lon": 17.947194,
+     "status": null
+    }
+   ],
+   "arcs": [],
+   "fallback": false
+  },
+  {
+   "round": 2,
+   "side": "blue",
+   "action": "add_backup_supplier",
+   "args": {
+    "part_id": "P00013"
+   },
+   "actions": [
+    {
+     "action": "add_backup_supplier",
+     "args": {
+      "part_id": "P00013"
+     }
+    }
+   ],
+   "branch_id": "63",
+   "parent_id": "62",
+   "label": "Add a backup supplier for part P00013",
+   "rationale": "SUP015 has been struck, which likely affects multiple critical parts. Adding a backup supplier for one of these critical parts will mitigate the impact.",
+   "loss_pct": 5.4,
+   "abs_loss_pct": 19.1,
+   "llm_ms": 7057.1,
+   "db_ms": 1080.0,
+   "latency_ms": 8137.1,
+   "targets": [],
+   "arcs": [],
+   "fallback": false
+  },
+  {
+   "round": 3,
+   "side": "red",
+   "action": "strike_supplier",
+   "args": {
+    "supplier_id": "SUP013"
+   },
+   "actions": [
+    {
+     "action": "strike_supplier",
+     "args": {
+      "supplier_id": "SUP013"
+     }
+    }
+   ],
+   "branch_id": "64",
+   "parent_id": "63",
+   "label": "Strike supplier SUP013",
+   "rationale": "Striking the supplier with the highest critical demand will maximize the projected loss.",
+   "loss_pct": 8.7,
+   "abs_loss_pct": 22.4,
+   "llm_ms": 3737.1,
+   "db_ms": 1193.0,
+   "latency_ms": 4930.2,
+   "targets": [
+    {
+     "id": "47931",
+     "name": "Supplier: SUP013",
+     "kind": "supplier",
+     "lat": 61.524118,
+     "lon": 23.746324,
+     "status": null
+    }
+   ],
+   "arcs": [],
+   "fallback": false
+  },
+  {
+   "round": 3,
+   "side": "blue",
+   "action": "add_backup_supplier",
+   "args": {
+    "part_id": "P00024"
+   },
+   "actions": [
+    {
+     "action": "add_backup_supplier",
+     "args": {
+      "part_id": "P00024"
+     }
+    }
+   ],
+   "branch_id": "65",
+   "parent_id": "64",
+   "label": "Add a backup supplier for part P00024",
+   "rationale": "SUP013 has been struck, causing a significant increase in projected loss; adding a backup supplier for a critical part it supplies will mitigate this impact.",
+   "loss_pct": 8.3,
+   "abs_loss_pct": 22.0,
+   "llm_ms": 4466.8,
+   "db_ms": 1266.5,
+   "latency_ms": 5733.3,
+   "targets": [],
+   "arcs": [],
+   "fallback": false
+  }
+ ],
+ "events": [
+  {
+   "type": "match_started",
+   "t": 1.97,
+   "at": "2026-10-03T09:41:38Z",
+   "data": {
+    "match_id": "ac0c5862",
+    "base_branch": "20",
+    "rounds": 3,
+    "base_loss_pct": 13.8,
+    "model": "Qwen/Qwen2.5-72B-Instruct"
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 1.971,
+   "at": "2026-10-03T09:41:38Z",
+   "data": {
+    "round": 1,
+    "side": "red",
+    "head": "20"
+   }
+  },
+  {
+   "type": "move",
+   "t": 13.447,
+   "at": "2026-10-03T09:41:49Z",
+   "data": {
+    "round": 1,
+    "side": "red",
+    "action": "strike_supplier",
+    "args": {
+     "supplier_id": "SUP012"
+    },
+    "actions": [
+     {
+      "action": "strike_supplier",
+      "args": {
+       "supplier_id": "SUP012"
+      }
+     }
+    ],
+    "branch_id": "59",
+    "parent_id": "20",
+    "label": "Strike supplier SUP012",
+    "rationale": "Striking the supplier with the highest critical demand weight will cause the most significant disruption.",
+    "loss_pct": 3.7,
+    "abs_loss_pct": 17.5,
+    "llm_ms": 9326.1,
+    "db_ms": 2149.8,
+    "latency_ms": 11476.0,
+    "targets": [
+     {
+      "id": "47951",
+      "name": "Supplier: SUP012",
+      "kind": "supplier",
+      "lat": 41.355053,
+      "lon": 2.141328,
+      "status": null
+     }
+    ],
+    "arcs": [],
+    "fallback": false
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 13.448,
+   "at": "2026-10-03T09:41:49Z",
+   "data": {
+    "round": 1,
+    "side": "blue",
+    "head": "59"
+   }
+  },
+  {
+   "type": "move",
+   "t": 19.747,
+   "at": "2026-10-03T09:41:56Z",
+   "data": {
+    "round": 1,
+    "side": "blue",
+    "action": "add_backup_supplier",
+    "args": {
+     "part_id": "P00009"
+    },
+    "actions": [
+     {
+      "action": "add_backup_supplier",
+      "args": {
+       "part_id": "P00009"
+      }
+     }
+    ],
+    "branch_id": "60",
+    "parent_id": "59",
+    "label": "Add a backup supplier for part P00009",
+    "rationale": "Since the supplier SUP012 has been struck, the best immediate action is to add a backup supplier for the critical parts affected.",
+    "loss_pct": 3.3,
+    "abs_loss_pct": 17.1,
+    "llm_ms": 5353.2,
+    "db_ms": 945.6,
+    "latency_ms": 6298.8,
+    "targets": [],
+    "arcs": [],
+    "fallback": false
+   }
+  },
+  {
+   "type": "round_done",
+   "t": 19.748,
+   "at": "2026-10-03T09:41:56Z",
+   "data": {
+    "round": 1,
+    "head": "60",
+    "loss_pct": 3.3,
+    "abs_loss_pct": 17.1
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 19.749,
+   "at": "2026-10-03T09:41:56Z",
+   "data": {
+    "round": 1,
+    "side": "inject",
+    "head": "60",
+    "text": "the Liverpool port is closed"
+   }
+  },
+  {
+   "type": "inject",
+   "t": 50.423,
+   "at": "2026-10-03T09:42:26Z",
+   "data": {
+    "text": "the Liverpool port is closed",
+    "branch": "61",
+    "move": {
+     "round": 1,
+     "side": "inject",
+     "action": "wipe_bbox",
+     "args": {
+      "west": -2.5,
+      "south": 53.3,
+      "east": -2.2,
+      "north": 53.5,
+      "labels": null
+     },
+     "actions": [
+      {
+       "action": "wipe_bbox",
+       "args": {
+        "west": -2.5,
+        "south": 53.3,
+        "east": -2.2,
+        "north": 53.5,
+        "labels": null
+       }
+      }
+     ],
+     "branch_id": "61",
+     "parent_id": "60",
+     "label": "Event: the Liverpool port is closed",
+     "rationale": "The closure of the Liverpool port has resulted in the destruction of the Butchersfield Landfill Site, a critical facility located near Trafford Park, Manchester. This has caused a significant disruption to the supply chain, leading to a 17.1% supply loss at the Trafford Park, Manchester site (SITE01). The impact is primarily localized to this area, with no other major facilities or infrastructure ",
+     "loss_pct": 3.3,
+     "abs_loss_pct": 17.1,
+     "llm_ms": 29289.6,
+     "db_ms": 1384.3,
+     "latency_ms": 30673.8,
+     "targets": [
+      {
+       "id": "212",
+       "name": "Butchersfield Landfill Site",
+       "kind": "plant",
+       "lat": 53.3977,
+       "lon": -2.4842,
+       "status": null
+      }
+     ],
+     "arcs": [],
+     "fallback": false
+    }
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 50.424,
+   "at": "2026-10-03T09:42:26Z",
+   "data": {
+    "round": 2,
+    "side": "red",
+    "head": "61"
+   }
+  },
+  {
+   "type": "move",
+   "t": 55.224,
+   "at": "2026-10-03T09:42:31Z",
+   "data": {
+    "round": 2,
+    "side": "red",
+    "action": "strike_supplier",
+    "args": {
+     "supplier_id": "SUP015"
+    },
+    "actions": [
+     {
+      "action": "strike_supplier",
+      "args": {
+       "supplier_id": "SUP015"
+      }
+     }
+    ],
+    "branch_id": "62",
+    "parent_id": "61",
+    "label": "Strike supplier SUP015",
+    "rationale": "Striking the supplier with the highest critical demand weight will maximize the projected loss.",
+    "loss_pct": 5.6,
+    "abs_loss_pct": 19.4,
+    "llm_ms": 3603.8,
+    "db_ms": 1195.1,
+    "latency_ms": 4798.9,
+    "targets": [
+     {
+      "id": "47941",
+      "name": "Supplier: SUP015",
+      "kind": "supplier",
+      "lat": 40.617271,
+      "lon": 17.947194,
+      "status": null
+     }
+    ],
+    "arcs": [],
+    "fallback": false
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 55.225,
+   "at": "2026-10-03T09:42:31Z",
+   "data": {
+    "round": 2,
+    "side": "blue",
+    "head": "62"
+   }
+  },
+  {
+   "type": "move",
+   "t": 63.362,
+   "at": "2026-10-03T09:42:39Z",
+   "data": {
+    "round": 2,
+    "side": "blue",
+    "action": "add_backup_supplier",
+    "args": {
+     "part_id": "P00013"
+    },
+    "actions": [
+     {
+      "action": "add_backup_supplier",
+      "args": {
+       "part_id": "P00013"
+      }
+     }
+    ],
+    "branch_id": "63",
+    "parent_id": "62",
+    "label": "Add a backup supplier for part P00013",
+    "rationale": "SUP015 has been struck, which likely affects multiple critical parts. Adding a backup supplier for one of these critical parts will mitigate the impact.",
+    "loss_pct": 5.4,
+    "abs_loss_pct": 19.1,
+    "llm_ms": 7057.1,
+    "db_ms": 1080.0,
+    "latency_ms": 8137.1,
+    "targets": [],
+    "arcs": [],
+    "fallback": false
+   }
+  },
+  {
+   "type": "round_done",
+   "t": 63.364,
+   "at": "2026-10-03T09:42:39Z",
+   "data": {
+    "round": 2,
+    "head": "63",
+    "loss_pct": 5.4,
+    "abs_loss_pct": 19.1
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 63.364,
+   "at": "2026-10-03T09:42:39Z",
+   "data": {
+    "round": 3,
+    "side": "red",
+    "head": "63"
+   }
+  },
+  {
+   "type": "move",
+   "t": 68.295,
+   "at": "2026-10-03T09:42:44Z",
+   "data": {
+    "round": 3,
+    "side": "red",
+    "action": "strike_supplier",
+    "args": {
+     "supplier_id": "SUP013"
+    },
+    "actions": [
+     {
+      "action": "strike_supplier",
+      "args": {
+       "supplier_id": "SUP013"
+      }
+     }
+    ],
+    "branch_id": "64",
+    "parent_id": "63",
+    "label": "Strike supplier SUP013",
+    "rationale": "Striking the supplier with the highest critical demand will maximize the projected loss.",
+    "loss_pct": 8.7,
+    "abs_loss_pct": 22.4,
+    "llm_ms": 3737.1,
+    "db_ms": 1193.0,
+    "latency_ms": 4930.2,
+    "targets": [
+     {
+      "id": "47931",
+      "name": "Supplier: SUP013",
+      "kind": "supplier",
+      "lat": 61.524118,
+      "lon": 23.746324,
+      "status": null
+     }
+    ],
+    "arcs": [],
+    "fallback": false
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 68.299,
+   "at": "2026-10-03T09:42:44Z",
+   "data": {
+    "round": 3,
+    "side": "blue",
+    "head": "64"
+   }
+  },
+  {
+   "type": "move",
+   "t": 74.034,
+   "at": "2026-10-03T09:42:50Z",
+   "data": {
+    "round": 3,
+    "side": "blue",
+    "action": "add_backup_supplier",
+    "args": {
+     "part_id": "P00024"
+    },
+    "actions": [
+     {
+      "action": "add_backup_supplier",
+      "args": {
+       "part_id": "P00024"
+      }
+     }
+    ],
+    "branch_id": "65",
+    "parent_id": "64",
+    "label": "Add a backup supplier for part P00024",
+    "rationale": "SUP013 has been struck, causing a significant increase in projected loss; adding a backup supplier for a critical part it supplies will mitigate this impact.",
+    "loss_pct": 8.3,
+    "abs_loss_pct": 22.0,
+    "llm_ms": 4466.8,
+    "db_ms": 1266.5,
+    "latency_ms": 5733.3,
+    "targets": [],
+    "arcs": [],
+    "fallback": false
+   }
+  },
+  {
+   "type": "round_done",
+   "t": 74.036,
+   "at": "2026-10-03T09:42:50Z",
+   "data": {
+    "round": 3,
+    "head": "65",
+    "loss_pct": 8.3,
+    "abs_loss_pct": 22.0
+   }
+  },
+  {
+   "type": "match_done",
+   "t": 74.037,
+   "at": "2026-10-03T09:42:50Z",
+   "data": {
+    "status": "done",
+    "summary": {
+     "match_id": "ac0c5862",
+     "status": "done",
+     "base_branch": "20",
+     "head": "65",
+     "rounds_played": 3,
+     "base_loss_pct": 13.8,
+     "final_loss_pct": 8.3,
+     "red_moves": 3,
+     "blue_moves": 3,
+     "injects": 1,
+     "fallbacks": 0,
+     "llm_ms": 62833.7,
+     "db_ms": 9214.3,
+     "file": "ac0c5862"
+    }
+   }
+  }
+ ],
+ "summary": {
+  "match_id": "ac0c5862",
+  "status": "done",
+  "base_branch": "20",
+  "head": "65",
+  "rounds_played": 3,
+  "base_loss_pct": 13.8,
+  "final_loss_pct": 8.3,
+  "red_moves": 3,
+  "blue_moves": 3,
+  "injects": 1,
+  "fallbacks": 0,
+  "llm_ms": 62833.7,
+  "db_ms": 9214.3,
+  "file": "ac0c5862"
+ }
+}

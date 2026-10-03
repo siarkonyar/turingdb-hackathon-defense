@@ -108,7 +108,7 @@ class BranchLab:
         if frame.empty:
             raise ValueError(f"branch {change_id} has no {MARKER} marker")
         role, label, parent, spec = frame.iloc[0]
-        parsed = json.loads(str(spec))
+        parsed = parse_marker_spec(str(spec))
         with self._lock:  # adopt it so later reads skip TuringDB
             self._ledger[change_id] = BranchRecord(change_id=change_id, role=str(role), label=str(label),
                                                    parent=str(parent), spec=parsed)
@@ -244,6 +244,12 @@ class BranchLab:
                     replay_branch(self, rec)
                 except Exception as exc:
                     log.error("could not replay branch %s (%s): %s", rec.change_id, rec.label, exc)
+
+
+def parse_marker_spec(stored: str) -> dict:
+    """Read back a spec written into a marker. `string_literal` swaps quote characters for typographic ones
+    (TuringDB string escaping is undocumented), so the stored JSON has ” and ’ where " and ' were."""
+    return json.loads(stored.replace("”", '"').replace("’", "'"))
 
 
 def _ref(change: str) -> Ref:

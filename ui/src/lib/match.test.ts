@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { MatchEvent, Move, Side } from "../api/types";
-import { EMPTY_MATCH, branchTree, headOf, isLive, latencyText, lossSeries, reduceMatch, signedPct, startMatchView } from "./match";
+import { EMPTY_MATCH, branchTree, headOf, injectLandsBefore, isLive, latencyText, lossSeries, reduceMatch, signedPct, startMatchView } from "./match";
 
 const move = (side: Side, round: number, branch: string, parent: string, abs: number): Move => ({
   round,
@@ -128,5 +128,16 @@ describe("derived views", () => {
     expect(signedPct(3.74)).toBe("+3.7%");
     expect(signedPct(-2)).toBe("−2.0%");
     expect(signedPct(0)).toBe("±0.0%");
+  });
+});
+
+describe("injectLandsBefore", () => {
+  const base = { ...EMPTY_MATCH, phase: "running" as const, rounds: 3 };
+  it("lands after the round in progress, matching the engine's round boundaries", () => {
+    expect(injectLandsBefore(base)).toBe(1); // nothing played yet
+    expect(injectLandsBefore({ ...base, pending: { round: 1, side: "red" } })).toBe(2); // red thinking in R1
+    expect(injectLandsBefore({ ...base, moves: [move("red", 1, "30", "25", 31)], pending: { round: 1, side: "blue" } })).toBe(2);
+    expect(injectLandsBefore({ ...base, moves: [move("red", 1, "30", "25", 31), move("blue", 1, "31", "30", 24)] })).toBe(2);
+    expect(injectLandsBefore({ ...base, pending: { round: 3, side: "red" } })).toBeNull(); // after the last round
   });
 });

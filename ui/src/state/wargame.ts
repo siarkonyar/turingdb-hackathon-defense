@@ -4,7 +4,7 @@
 import { api, eventsUrl } from "../api/client";
 import { follow, JOB_EVENTS, MATCH_EVENTS, type Unsubscribe } from "../api/sse";
 import type { JobEvent, MatchEvent, Move, RedBlueResult } from "../api/types";
-import { headOf, isLive, reduceMatch, startMatchView } from "../lib/match";
+import { headOf, injectLandsBefore, isLive, reduceMatch, startMatchView } from "../lib/match";
 import { overlayFromDiff } from "../lib/overlay";
 import { message, recordLatency, refreshBranches, runDiff, switchBranch, toast } from "./actions";
 import { setOps, useOps, type OneShotState, type WargameState } from "./store";
@@ -42,7 +42,8 @@ export async function refreshAgentStatus(): Promise<void> {
 export async function refreshSaved(): Promise<void> {
   try {
     const { matches } = await api.matches();
-    patch((w) => ({ saved: matches, replayFile: matches.some((m) => m.file === w.replayFile) ? w.replayFile : (matches[0]?.file ?? "") }));
+    const fallback = matches.find((m) => m.file === "demo")?.file ?? matches[0]?.file ?? "";
+    patch((w) => ({ saved: matches, replayFile: matches.some((m) => m.file === w.replayFile) ? w.replayFile : fallback }));
   } catch (err) {
     toast(`Could not list saved matches: ${message(err)}`, "warn");
   }
@@ -152,8 +153,8 @@ export async function injectEvent(): Promise<void> {
   if (!view.matchId || !isLive(view) || text.length < 3) return;
   try {
     const { queued } = await api.injectMatch(view.matchId, text);
-    const next = (view.moves.filter((m) => m.side === "blue").at(-1)?.round ?? 0) + 1;
-    patch({ injectNote: `Queued (#${queued}). Applies before round ${Math.min(next, view.rounds)}.` });
+    const before = injectLandsBefore(useOps.getState().wargame.view);
+    patch({ injectNote: `Queued (#${queued}). ${before ? `Applies before round ${before}.` : "Applies after the last round."}` });
   } catch (err) {
     toast(`Inject failed: ${message(err)}`, "error");
   }
