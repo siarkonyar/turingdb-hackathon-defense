@@ -20,7 +20,7 @@ type Pos = [number, number];
 const pos = (n: { lon?: number | null; lat?: number | null }): Pos => [n.lon as number, n.lat as number];
 const located = (n: GraphNode) => n.lat != null && n.lon != null;
 
-const LABEL_FONT = "Inter Variable, Inter, system-ui, sans-serif";
+export const LABEL_FONT = "Inter Variable, Inter, system-ui, sans-serif";
 const SITE_LABEL_MIN_ZOOM = 3.5;
 const DRONE_TRAIL_S = 900;
 const SHOCKWAVE_MS = 1300;
@@ -31,9 +31,10 @@ export const REPORT_OFFSET: [number, number] = [13, -13];
 
 export interface StaticInput {
   plants: GraphNode[];
-  facilities: GraphNode[]; // sites + suppliers
+  facilities: GraphNode[]; // sites + suppliers + deep facilities + ports
   sites: GraphNode[];
   crimes: GraphNode[];
+  chokepoints: GraphNode[];
   reports: Report[]; // already cut at the slider time
   overlay: Overlay; // settled overlay (excludes a strike that is still animating)
   overlayKey: string;
@@ -136,7 +137,7 @@ export function buildStaticLayers(input: StaticInput): Layer[] {
     );
   }
 
-  const facilities = input.facilities.filter((n) => (n.kind === "site" ? layers.site : layers.supplier));
+  const facilities = input.facilities.filter((n) => layers[n.kind as LayerKey] ?? false);
   out.push(
     new IconLayer<GraphNode>({
       id: "facilities",
@@ -145,7 +146,8 @@ export function buildStaticLayers(input: StaticInput): Layer[] {
       iconMapping: atlas.mapping,
       getIcon: (n) => iconFor(n, statusOf(overlay, n.id)),
       getPosition: pos,
-      getSize: (n) => glyphSize(n.importance, 16, 28),
+      // deep facilities cluster at city centroids: draw them small so a city reads as a cluster, not a blob
+      getSize: (n) => (n.kind === "facility" ? 9 : n.kind === "port" ? 14 : glyphSize(n.importance, 16, 28)),
       sizeUnits: "pixels",
       getColor: color,
       pickable: true,
@@ -171,6 +173,43 @@ export function buildStaticLayers(input: StaticInput): Layer[] {
         outlineColor: [7, 11, 18, 255],
         fontSettings: { sdf: true },
         updateTriggers: { getColor: triggers },
+      }),
+    );
+  }
+
+  if (layers.chokepoint) {
+    const chokes = input.chokepoints.filter(located);
+    const CHOKE: RGBA = [120, 200, 255, 255];
+    out.push(
+      new ScatterplotLayer<GraphNode>({
+        id: "chokepoints",
+        data: chokes,
+        getPosition: pos,
+        getRadius: 7,
+        radiusUnits: "pixels",
+        stroked: true,
+        filled: true,
+        getFillColor: (n) => withAlpha(statusColor(statusOf(overlay, n.id)) ?? CHOKE, 0.25),
+        getLineColor: (n) => statusColor(statusOf(overlay, n.id)) ?? CHOKE,
+        lineWidthMinPixels: 1.5,
+        pickable: true,
+        updateTriggers: { getFillColor: triggers, getLineColor: triggers },
+      }),
+      new TextLayer<GraphNode>({
+        id: "chokepoint-labels",
+        data: chokes,
+        getPosition: pos,
+        getText: (n) => n.name,
+        getSize: 11,
+        sizeUnits: "pixels",
+        getColor: [180, 220, 255, 220],
+        getPixelOffset: [0, 14],
+        fontFamily: LABEL_FONT,
+        fontWeight: 600,
+        characterSet: "auto",
+        outlineWidth: 3,
+        outlineColor: [7, 11, 18, 255],
+        fontSettings: { sdf: true },
       }),
     );
   }

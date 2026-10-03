@@ -7,12 +7,19 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-Kind = Literal["plant", "site", "supplier", "drone", "crime", "report", "part", "other"]
+Kind = Literal["plant", "site", "supplier", "drone", "crime", "report", "part", "facility", "port", "chokepoint",
+               "other"]
+# chokepoint/port/facility: the original contract; company/country/plant/item: entities whose loss reaches
+# facilities through one edge (OPERATED_BY / LOCATED_IN / POWERED_BY / PRODUCED_AT).
+# event: a Dover resilience exercise whose initial failures are listed in CascadeResponse.origins
+OriginKind = Literal["chokepoint", "port", "facility", "company", "country", "plant", "item", "event"]
 Status = Literal["at_risk", "lost", "no_power"]
-BranchKind = Literal["main", "hypothesis", "strike", "change"]
+BranchKind = Literal["main", "hypothesis", "strike", "change", "threat", "defence", "scenario", "disruption",
+                     "recovery"]
 Engine = Literal["turingdb", "fixtures"]
 
-LOCATED_KINDS: tuple[str, ...] = ("plant", "site", "supplier", "drone", "crime", "report")
+LOCATED_KINDS: tuple[str, ...] = ("plant", "site", "supplier", "drone", "crime", "report", "facility", "port",
+                                  "chokepoint")
 
 
 class Frozen(BaseModel):
@@ -104,6 +111,82 @@ class SimulateResponse(Timed):
     lost: list[Node]
     arcs: list[Arc]
     kpis: Kpis  # branch-wide: strikes stack on a strike branch
+
+
+# ---------------------------------------------------------------- impact cascade (supply_chain_deep)
+
+
+class CascadeHit(Frozen):
+    node: Node
+    degree: int
+    severity: float  # share of inbound supply volume lost, 0..1
+    parent_id: str | None
+    via: str  # TRANSITED | LOADED_AT | SUPPLIES
+
+
+class CascadeStage(Frozen):
+    degree: int
+    hits: list[CascadeHit]
+    arcs: list[Arc]
+    count: int
+    mean_severity: float
+
+
+class ReachProbe(Frozen):
+    cypher: str
+    depth_limit: int
+    reached: int
+    ms: float | None
+
+
+class PlatformExposure(Frozen):
+    name: str
+    archetype: str | None = None
+    severity: float
+    facility_id: str
+
+
+class CascadeRequest(Frozen):
+    origin_id: str = Field(min_length=1, max_length=64)
+    branch: str = Field(default="main", min_length=1, max_length=64)
+    min_severity: float = Field(default=0.05, ge=0.01, le=0.5)
+
+
+class CascadeAskRequest(Frozen):
+    question: str = Field(min_length=2, max_length=400)
+    branch: str = Field(default="main", min_length=1, max_length=64)
+    min_severity: float = Field(default=0.05, ge=0.01, le=0.5)
+
+
+class OriginCandidate(Frozen):
+    node: Node
+    origin_kind: OriginKind
+    score: float
+
+
+class OriginsResponse(Frozen):
+    query: str
+    candidates: list[OriginCandidate]
+
+
+class CascadeResponse(Timed):
+    branch: str
+    origin: Node
+    origin_kind: OriginKind
+    min_severity: float
+    stages: list[CascadeStage]
+    max_degree: int
+    graph_hops: int
+    total_affected: int
+    reach: ReachProbe
+    platforms: list[PlatformExposure]
+    connected: bool = True  # False: the origin has no link at all into the supply network
+    understood_as: str | None = None  # set when the LLM read the question: the entity name it extracted
+    # Several simultaneous initial failures (Dover exercises); empty for a single-origin cascade.
+    origins: list[Node] = Field(default_factory=list)
+    # supply_volume: share of inbound SUPPLIES volume lost (Plan A). service_loss: 1 - lowest DEPENDS_ON
+    # availability within the exercise window (Dover exercises). Degree never means simulation time.
+    measure: Literal["supply_volume", "service_loss"] = "supply_volume"
 
 
 class Commit(Frozen):

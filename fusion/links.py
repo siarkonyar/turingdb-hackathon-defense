@@ -10,6 +10,7 @@ import config as cfg
 from assemble import Assembly
 from assets import ASSET_TYPES, RUNS_BY_KIND, match_asset_types
 from bridges import near_links, powered_by, sources_from
+from geo import nearest_within
 
 SYNTHETIC = {"synthetic": True, "source": "theatre"}
 DERIVED = {"synthetic": False, "source": "theatre"}  # computed from real coordinates only
@@ -150,9 +151,35 @@ def add_asset_types(asm: Assembly) -> None:
     print(f"[bridge] RUNS: {sum(runs.values())} edges {dict(runs)}")
 
 
+def add_deep_powered_by(asm: Assembly) -> None:
+    """supply_chain_deep facilities draw power from their k nearest plants (<= max km), like Sites do, so a
+    power-plant loss can cascade into the deep supplier network."""
+    if cfg.DEEP not in asm.sources:
+        return
+    plants = asm.sources["power_plants"].nodes["PowerPlant"].frame
+    plant_ids = _unique_ids(asm, "power_plants", "PowerPlant", "gppd_idnr")
+    plant_keys = plants["gppd_idnr"].tolist()
+    p_lat, p_lon = plants["latitude"].to_numpy(), plants["longitude"].to_numpy()
+    fac = asm.sources[cfg.DEEP].nodes["Facility"].frame
+    edges, unpowered = 0, 0
+    for sid in fac["_id"]:
+        tid = asm.tid(cfg.DEEP, sid)
+        props = asm.builder.nodes[tid].props
+        hits = nearest_within(float(props["latitude"]), float(props["longitude"]), p_lat, p_lon,
+                              cfg.POWERED_BY_K, cfg.POWERED_BY_MAX_KM)
+        unpowered += not hits
+        for m in hits:
+            asm.builder.add_edge(tid, plant_ids[plant_keys[m.index]], "POWERED_BY",
+                                 SYNTHETIC | {"distance_km": round(m.distance_km, 3)})
+            edges += 1
+    print(f"[bridge] POWERED_BY: {edges} edges from {len(fac)} deep Facilities (k={cfg.POWERED_BY_K}, "
+          f"<= {cfg.POWERED_BY_MAX_KM:g} km); facilities with no plant in range: {unpowered}")
+
+
 def add_synthetic_links(asm: Assembly, rng: np.random.Generator) -> None:
     add_located_in(asm)
     add_powered_by(asm)
+    add_deep_powered_by(asm)
     add_sources_from(asm, rng)
     add_patrols(asm)
     add_near(asm)

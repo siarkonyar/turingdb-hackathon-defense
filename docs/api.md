@@ -16,6 +16,12 @@ OPSMAP_BACKEND=turingdb uv run uvicorn api.main:app --port 8000  # live `theatre
 | `TURINGDB_GRAPH` | `theatre` | Graph to serve (live backend) |
 | `OPSMAP_CORS` | Vite dev/preview origins | Comma-separated allowed origins |
 | `OPSMAP_FIXTURES` | `api/mock/fixtures` | Fixture directory (mock backend) |
+| `OPSMAP_MATCHES_DIR` | `matches/` | Where wargame matches are saved and replayed from (live backend) |
+| `FEATHERLESS_API_KEY` | unset | LLM key for the agents. Without it, everything except replay reports `LLM unavailable` |
+
+Every variable can also be set in a gitignored `.env` at the repo root (copy `.env.example`); real environment
+variables win. With `OPSMAP_BACKEND=turingdb` and `FEATHERLESS_API_KEY` in `.env`, a plain
+`uv run uvicorn api.main:app` serves the live graph with the agents and the wargame.
 
 Both backends return identical shapes, so a client cannot tell them apart except through `engine`.
 
@@ -46,7 +52,7 @@ Both backends return identical shapes, so a client cannot tell them apart except
  "fuel": "Solar", "capacity_mw": 20.0, "exposure": null, "confidence": null}
 ```
 
-`kind` is one of `plant | site | supplier | drone | crime | report | part | other`. `importance` (0..1)
+`kind` is one of `plant | site | supplier | drone | crime | report | part | facility | port | other` (`facility` and `port` come from the supply_chain_deep layer). `importance` (0..1)
 drives glyph size: plants scale by `capacity_mw` (log). `exposure` (sites and suppliers) counts the attack
 scenarios that target the systems the asset `RUNS`.
 
@@ -59,7 +65,7 @@ Located nodes for the map.
 | Param | Example | Notes |
 |---|---|---|
 | `bbox` | `-10,35,30,60` | `west,south,east,north` (MapLibre `getBounds()` order). Crossing the antimeridian is allowed. Omit for the whole world. |
-| `types` | `plant,site` | Comma list of kinds (`plant, site, supplier, drone, crime, report, part`). Omit for all. |
+| `types` | `plant,site` | Comma list of kinds (`plant, site, supplier, drone, crime, report, part, facility, port`). Omit for all. |
 | `branch` | `main` | Ref. Nodes carry their `status` on that branch. |
 
 Returns `{branch, nodes: Node[], ...timing}`. All 34,942 plants plus sites come back in about 250 ms of
@@ -157,6 +163,219 @@ The API keeps every 6th reading.
 
 `/meta` returns `{engine, graph, layers}`. `/health` returns `{"status": "ok"}`.
 
+## Agents and the wargame (live backend only)
+
+Mounted when `OPSMAP_BACKEND=turingdb`. Every agent action is a **background job**: the `POST` returns at
+once (`202`) with an id, the work runs on a worker thread (LLM calls and TuringDB branch builds never block
+the HTTP server), and progress arrives as **server-sent events**. Agent branches show up in `/branches`
+and `/diff` like any other change, so the map can follow them.
+
+### SSE streams
+
+`GET /agent/jobs/{job_id}/events` and `GET /match/{match_id}/events` return `text/event-stream`. Each event
+has an `id` (0, 1, 2, ...), an `event:` name and a JSON `data:` object that repeats the name as `type`. A
+client that reconnects with `Last-Event-ID: n` resumes at event `n+1`, so it never receives duplicates. A
+late subscriber first gets every past event, then follows live. Every stream starts with `job_started`,
+ends with `done {status: done|stopped|error}` and then closes. An idle stream sends a `: heartbeat`
+comment every 15 s.
+
+```
+id: 3
+event: move
+data: {"type": "move", "round": 1, "side": "red", "label": "Strike supplier SUP012", ...}
+```
+
+### One-shot agents
+
+| Endpoint | Body | Job events |
+|---|---|---|
+| `GET /agent/status` | | `{available, model?, reason?, graph}` (not a job) |
+| `POST /agent/scenario` | `{question, max_steps=16}` | `step*`, `result {branch, explanation, headline, impact_diff, steps, model}` |
+| `POST /agent/threat` | `{threat_steps=16}` | `step*`, `result {result, steps, model, branches}` |
+| `POST /agent/defence` | `{threat_branch, max_steps=16}` | `step*`, `result {result, steps, model}` |
+| `POST /agent/redblue` | `{threat_steps=16, defence_steps=16}` | `step*` (both agents), `result {headline, threat_branch, defence_branch, ...}` |
+| `GET /agent/jobs/{id}` | | `{id, kind, status, events, result}` |
+
+Each returns `{job_id}`. A `step` is `{agent, action, thought, args, observation}`, one per tool call, as it
+happens. A failure is an `error {message}` event, followed by `done {status: "error"}`.
+
+### Matches (turn-based red vs blue)
+
+A match starts on a **base branch** (`main` or a scenario branch). Each round, red plays ONE disruption as a
+branch stacked on the current head, then blue plays ONE countermeasure stacked on red's branch. The head
+moves forward each time. TuringDB 3.0 cannot open a change on top of a change, so a stacked branch is cut
+from `main` and replays its parent's recorded edits first (the lineage). Loss is measured **against the
+base**, so after a scenario the numbers mean "additional damage on top of the scenario".
+
+| Endpoint | Body | Returns |
+|---|---|---|
+| `POST /match` | `{base_branch="main", rounds=6, strategic=true, seed=7}` (1-6 rounds) | `202 {match_id}`; the match runs in the background |
+| `GET /match/{id}/events` | | SSE, see below |
+| `GET /match/{id}` | | `{id, kind, status, head, moves: Move[]}` |
+| `POST /match/{id}/inject` | `{text}` | `202 {queued}`; the event is applied before the next round |
+| `POST /match/{id}/pause` · `/resume` · `/stop` | | `200`; takes effect between moves (`409` once finished) |
+| `POST /match/replay` | `{file, speed=1.0}` | `202 {match_id}`; stream it with `/match/{id}/events` |
+| `GET /matches/{file}/download?format=md` | `format=md` (default) or `json` | Attachment: readable move script or full replay recording; no LLM calls |
+| `GET /matches` | | `{matches: [{file, id, created, base_branch, rounds, status, moves, final_loss_pct, model}]}` |
+
+Match events, in order:
+
+| Event | Data |
+|---|---|
+| `match_started` | `{match_id, base_branch, rounds, base_loss_pct, model}` |
+| `move_started` | `{round, side: red\|blue\|inject, head}` before every move |
+| `move` | a `Move` (below) |
+| `inject` | `{text, branch, move: Move}`: an operator event became the head (`side: "inject"`) |
+| `round_done` | `{round, head, loss_pct, abs_loss_pct}` |
+| `status` | `{state: paused\|running}` |
+| `match_done` | `{status: done\|stopped\|error, summary}` |
+| `error` | `{message, replay_available}` (e.g. the LLM is unavailable) |
+
+```json
+{"round": 1, "side": "red", "action": "strike_supplier", "args": {"supplier_id": "SUP012"},
+ "actions": [{"action": "strike_supplier", "args": {"supplier_id": "SUP012"}}],
+ "branch_id": "37", "parent_id": "36", "label": "Strike supplier SUP012",
+ "rationale": "SUP012 carries the most class-A demand", "loss_pct": 3.7, "abs_loss_pct": 17.5,
+ "llm_ms": 2140.2, "db_ms": 1785.0, "latency_ms": 3925.2, "fallback": false,
+ "targets": [{"id": "47937", "name": "Supplier: SUP012", "kind": "supplier", "lat": 51.2, "lon": 6.8}],
+ "arcs": [{"source": [6.8, 51.2], "target": [7.1, 50.9], "source_id": "47937", "target_id": "51002",
+           "hop": 1, "rel": "DEPENDS_ON"}]}
+```
+
+- `loss_pct` is additional projected loss vs the base (percentage points); `abs_loss_pct` is the absolute
+  loss of the branch.
+- `llm_ms` is model time and `db_ms` is the rest of the move (TuringDB branch build, evaluation, diff).
+- `targets`/`arcs` drive the map: for red, the destroyed nodes and arcs to the newly affected ones; for
+  blue, the protected/re-powered asset and the nodes it restored.
+- `fallback: true` means the model gave no valid move within its budget (one decision, at most 3 model
+  calls) and the top-ranked default was played.
+
+Every match is saved to `matches/<id>.json` as it runs: `{id, created, base_branch, base_actions,
+base_loss_pct, rounds, status, model, moves, events: [{type, t, at, data}], summary}`, where `t` is seconds
+since the start. **Replay** plays it back with that timing and **no LLM calls**: it rebuilds every branch from
+the recorded edits (so TuringDB must be up), emits the same events with the new branch ids and
+`replay: true`. Use it as the demo fallback when the LLM is down (`speed` > 1 plays faster).
+
+The CLI wraps the same functions:
+
+```bash
+uv run python -m agents.match --base 25 --rounds 3 --inject 2:"the Liverpool port is closed" --save-as demo
+uv run python -m agents.match --replay demo
+```
+
+## Impact cascade (live backend only)
+
+"What breaks if X falls?" over the `supply_chain_deep` layer of `theatre`. Read-only: it never creates a branch
+and works on `main` or any existing branch ref. Mounted only when `OPSMAP_BACKEND=turingdb`.
+
+| Method + path | Body / query | Returns |
+|---|---|---|
+| `GET /cascade/origins?q=hormuz&branch=main` | `q` 2..120 chars | `OriginsResponse {query, candidates: OriginCandidate[]}` (max 8) |
+| `POST /cascade` | `CascadeRequest {origin_id, branch="main", min_severity=0.05 (0.01..0.5)}` | `CascadeResponse`; 404 unknown node, 422 not a chokepoint/port/facility |
+| `POST /cascade/ask` | `CascadeAskRequest {question (2..400), branch, min_severity}` | `CascadeResponse`, or **422** `{detail, candidates}` when no place or several places match |
+
+`question` is free text ("What happens if the Strait of Hormuz closes?", "What if Europe's biggest port shuts?").
+Resolution runs in two steps:
+
+1. **Deterministic** (`api/cascade_resolve.py`): chokepoint aliases plus name-token matching over every
+   chokepoint, port, facility, company, country, power plant and supply item (~48k names, 30-250 ms). A
+   confident, unambiguous match runs immediately, with no model involved.
+2. **LLM fallback** (`agents/place_extractor.py`, Featherless, one bounded call, 60 s timeout): only when step 1
+   is not confident. The model only turns the question into concrete entity names ("Europe's biggest port" ->
+   "Port of Rotterdam"); those names go back through step 1. It never queries the graph or estimates impact.
+   The name it used is returned as `understood_as`. Without `FEATHERLESS_API_KEY`, or when the call fails, the
+   endpoint answers from step 1 alone.
+
+Several confident matches (e.g. "Busan Hamburg") return 422 with them as `candidates` (chips in the UI, which
+then call `POST /cascade`). If nothing matches, the 422 says it is not connected to anything in the TuringDB graph
+dataset. An entity that exists but has no link into the supply network (e.g. a solar park powering no facility)
+returns 200 with `connected: false` and no stages.
+
+**Origin kinds.** `chokepoint`, `port`, `facility` as below, plus entities that reach facilities through one
+edge: `company` (facilities `OPERATED_BY` it), `country` (facilities `LOCATED_IN` it), `plant` (facilities
+`POWERED_BY` it; seed severity = 1 / that facility's number of power feeds) and `item` (minerals, materials,
+components, assemblies, subsystems, systems: facilities it is `PRODUCED_AT`). Their seeds are degree 1 with
+severity 1 (plants: as above). Companies and items have no coordinates and are drawn at their facilities' centroid.
+
+**Model.** Degree 0 is the origin (`status: "lost"`). Seeds (degree 1) for a chokepoint/port are the
+facilities that ship consignments through it (`TRANSITED` / `LOADED_AT`), with
+`severity = transiting consignments / all consignments shipped from that facility`. A facility origin's buyers
+are degree 1. Propagation follows `(a:Facility)-[:SUPPLIES {annual_volume}]->(b:Facility)` breadth-first:
+
+    severity(b) = min(1, Σ over affected suppliers a of severity(a) * volume(a,b) / inbound_volume(b))
+
+kept when `>= min_severity` (`MIN_SEVERITY = 0.05`), at most `MAX_DEGREE = 12` degrees. Each facility is
+reported once, at its first degree; `parent_id` is its biggest contributor. Severity is the share of a
+facility's inbound supply volume lost: an explainable proxy, not a calibrated forecast.
+
+`CascadeResponse` (plus `Timed` fields `latency_ms`, `roundtrip_ms`, `queries`):
+
+| Field | Meaning |
+|---|---|
+| `origin`, `origin_kind` | origin node (`lost`), `chokepoint` / `port` / `facility` / `company` / `country` / `plant` / `item` |
+| `stages[]` | `{degree, hits[], arcs[], count, mean_severity}`; `stages[i].degree == i + 1`; hits sorted by severity |
+| `hits[]` | `{node (at_risk), degree, severity, parent_id, via: TRANSITED / LOADED_AT / SUPPLIES}` |
+| `arcs[]` | parent → hit, `hop == degree`, `rel == via` |
+| `max_degree`, `graph_hops` | degrees reached; edges walked (`max_degree + 1` for a chokepoint/port) |
+| `total_affected` | sum of stage counts |
+| `reach` | `{cypher, depth_limit: 12, reached, ms}`: the one deep `-[:SUPPLIES]->{1,12}` query, unweighted, timed by TuringDB |
+| `connected` | `false` when the origin has no link into the supply network |
+| `understood_as` | entity name the LLM extracted, when step 2 was needed |
+| `platforms[]` | `{name, archetype, severity, facility_id}`: weapon platforms whose final-assembly facility is affected |
+
+Measured on the live in-memory `theatre` (TuringDB 3.0, laptop, 3 October 2026):
+
+| Origin | Degrees (new facilities per degree) | Total | Graph hops | 12-hop reach query |
+|---|---|---|---|---|
+| Strait of Hormuz | 7 (7, 18, 110, 122, 68, 12, 3) | 340 | 8 | 2,262 facilities in 10–41 ms; whole answer 22–51 ms |
+| Taiwan Strait | 6 (1,082, 1,894, 769, 174, 54, 1) | 3,974 | 7 | 3,925 facilities in 1,061–1,155 ms; whole answer ~1,180 ms |
+| Port of Rotterdam | 5 (37, 80, 31, 9, 1) | 158 | 6 | 806 facilities in 5–30 ms |
+| Netherlands (country) | 6 (79, 197, 114, 64, 7, 1) | 462 | 6 | 1,163 facilities in ~3 ms |
+| Cobalt ore (item) | 7 (14, 8, 14, 98, 36, 17, 1) | 188 | 7 | 1,417 facilities in ~1 ms |
+
+## Dover resilience exercises (live `dover` graph only)
+
+Mounted only when `OPSMAP_BACKEND=turingdb` and `TURINGDB_GRAPH=dover`. Rules, assumptions and the demo procedure:
+`docs/dover-resilience.md`. Shapes: `api/resilience_models.py`, mirrored in `ui/src/api/types.ts`.
+
+| Method + path | Body / query | Returns |
+|---|---|---|
+| `GET /resilience/exercises` | | `{exercises: [{scenario_id, title, prompt, kind, hours}]}` (exactly three) |
+| `POST /resilience/run` | `{scenario_id}`: `scenario:strait_closure` \| `scenario:kent_power` \| `scenario:london_loss` | `{job_id, scenario_id}`; 422 for any other id; 429 while a run is in progress |
+| `GET /resilience/jobs/{job_id}?after=N` | | `{job_id, status, events: [{id, type, data}], next}` (poll with `after=next`) |
+
+Event types, in order:
+
+1. `phase`: `{phase, message}`.
+2. `disruption`: `DisruptionView`, which carries:
+   - `branch {branch, role, plan_id, parent, verified}`;
+   - `cascade`, a `CascadeResponse` with `origin_kind: "event"`, `measure: "service_loss"`, `origins: Node[]`
+     (every initial failure), stages by `DEPENDS_ON` degree, and a timed 16-hop `reach` query;
+   - `metrics`, `timeline` (simulation hours), `paths [{names, via, severity}]` and `unavailable [string]`.
+3. `agent_step`: `{thought, action, args}` for each bounded model turn.
+4. `recovery`: `RecoveryView`, which carries:
+   - `decision {mode: agent|fallback, plan_id, rationale, model, calls, reason}`;
+   - `candidates [{plan_id, title, summary, actions, rank, chosen, metrics, consumption}]`;
+   - `before`, `after`, `before_timeline` and `after_timeline`;
+   - `consumption {stock_released_t, reserves_drawn, reserves_exhausted, generators, generator_fuel_t,
+     aircraft_sorties, route_tonnes, provider_spare_t_day, programme_people}`;
+   - `groups [{key, label, actions, ready_h, capacity, essential_gain, overall_gain, cargo_gain_t}]`;
+   - `limitations`, `counts`, `services_relocated` and `programmes_relocated`;
+   - `points [{node, state: lost|relocated|restored|improved|residual, before, after, receiver_id}]`;
+   - `links [{kind: route|power|stock|relocation|export, source, target, source_id, target_id, label}]`.
+5. `error` `{message}` (only if the run fails) and `done` `{status}`.
+
+`MetricsView` holds:
+- `essential_fulfilment`, `overall_fulfilment` (0..1, time-weighted);
+- `demands_below_minimum`, `capabilities_below_minimum` / `capabilities_total`;
+- `cargo_scheduled_t`, `cargo_on_time_t`, `cargo_delayed_t`, `cargo_unmet_t`;
+- `affected_facilities`, `affected_at_end`;
+- `essential_recovery_h` (first hour essential fulfilment reaches 80%, or null);
+- `cost_units`.
+
+Branches created by a run appear in `GET /branches` with kind `disruption` or `recovery`; both can be discarded
+with `DELETE /branches/{id}`. Main is never written.
+
 ## Calling it from an agent
 
 ```python
@@ -166,3 +385,20 @@ sim = api.post("/simulate", json={"node_id": "47937", "base_branch": "main"}).js
 print(sim["kpis"], sim["latency_ms"])
 api.delete(f"/branches/{sim['branch']}")   # clean up
 ```
+
+### Strategic exercise rules
+
+`POST /match` now defaults to `{base_branch: "main", rounds: 6, strategic: true, seed: 7}`.
+`strategic: false` selects the original match rules. `seed` is an integer from 0 to 1,000,000.
+RED disruption kinds have a two-turn cooldown. Strategic matches stream a BLUE preparation move at round 0, an initialization `inject`, and a clock
+`inject` before each combat round. Clock moves contain replayable `game_tick` edits; BLUE move edits
+contain `game_order` with the selected measure nested in `args`. The public move `action`/`args`
+continue to describe the selected measure.
+
+Moves additionally contain `strategy`: credits remaining/total, cost, ready round, pending orders,
+completed recoveries/events, cumulative loss, priority programme capability/threshold, event status,
+chosen planning preview and compared alternatives. Summaries additionally contain `strategic`,
+`cumulative_loss` (percentage-point rounds), `average_loss_pct`, `round_scores`, `objective_met`,
+and the final budget, pending orders and programme capabilities. Programme objectives are checked
+at each combat round end. Replay reproduces orders, maturity, stock exhaustion and seeded events
+without model calls. Recordings made before strategic rules continue to replay unchanged.

@@ -1,0 +1,1629 @@
+{
+ "id": "8be8d63d",
+ "created": "2026-10-03T10:00:01Z",
+ "base_branch": "main",
+ "base_actions": [],
+ "base_loss_pct": 0.0,
+ "rounds": 3,
+ "status": "done",
+ "model": "Qwen/Qwen2.5-72B-Instruct",
+ "moves": [
+  {
+   "round": 1,
+   "side": "red",
+   "action": "strike_supplier",
+   "args": {
+    "supplier_id": "SUP012"
+   },
+   "actions": [
+    {
+     "action": "strike_supplier",
+     "args": {
+      "supplier_id": "SUP012"
+     }
+    }
+   ],
+   "branch_id": "142",
+   "parent_id": "main",
+   "label": "Strike supplier SUP012",
+   "rationale": "Striking the supplier with the highest critical demand will cause the most immediate disruption.",
+   "loss_pct": 4.4,
+   "abs_loss_pct": 4.4,
+   "llm_ms": 7138.3,
+   "db_ms": 1711.7,
+   "latency_ms": 8850.0,
+   "targets": [
+    {
+     "id": "47951",
+     "name": "Supplier: SUP012",
+     "kind": "supplier",
+     "lat": 41.355053,
+     "lon": 2.141328,
+     "status": null
+    }
+   ],
+   "arcs": [
+    {
+     "source": [
+      2.141328,
+      41.355053
+     ],
+     "target": [
+      9.825988,
+      53.526549
+     ],
+     "source_id": "47951",
+     "target_id": "78798",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      2.141328,
+      41.355053
+     ],
+     "target": [
+      22.004047,
+      50.106663
+     ],
+     "source_id": "47951",
+     "target_id": "78795",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      2.141328,
+      41.355053
+     ],
+     "target": [
+      1.348118,
+      43.623119
+     ],
+     "source_id": "47951",
+     "target_id": "78797",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      2.141328,
+      41.355053
+     ],
+     "target": [
+      -2.893456,
+      53.745995
+     ],
+     "source_id": "47951",
+     "target_id": "78796",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      2.141328,
+      41.355053
+     ],
+     "target": [
+      -2.312924,
+      53.472024
+     ],
+     "source_id": "47951",
+     "target_id": "78800",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      2.141328,
+      41.355053
+     ],
+     "target": [
+      -5.876135,
+      37.417473
+     ],
+     "source_id": "47951",
+     "target_id": "78799",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    }
+   ],
+   "fallback": false
+  },
+  {
+   "round": 1,
+   "side": "blue",
+   "action": "backup_all_affected_parts",
+   "args": {},
+   "actions": [
+    {
+     "action": "backup_all_affected_parts",
+     "args": {}
+    }
+   ],
+   "branch_id": "145",
+   "parent_id": "142",
+   "label": "Qualify backup suppliers for every affected part",
+   "rationale": "Since 14 parts are unavailable, the best action is to restore all affected parts at once.",
+   "loss_pct": 0.0,
+   "abs_loss_pct": 0.0,
+   "llm_ms": 5262.1,
+   "db_ms": 2220.6,
+   "latency_ms": 7482.7,
+   "targets": [
+    {
+     "id": "47937",
+     "name": "Supplier: SUP011",
+     "kind": "supplier",
+     "lat": 45.059375,
+     "lon": 7.666228,
+     "status": null
+    }
+   ],
+   "arcs": [
+    {
+     "source": [
+      7.666228,
+      45.059375
+     ],
+     "target": [
+      9.825988,
+      53.526549
+     ],
+     "source_id": "47937",
+     "target_id": "78798",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      7.666228,
+      45.059375
+     ],
+     "target": [
+      22.004047,
+      50.106663
+     ],
+     "source_id": "47937",
+     "target_id": "78795",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      7.666228,
+      45.059375
+     ],
+     "target": [
+      1.348118,
+      43.623119
+     ],
+     "source_id": "47937",
+     "target_id": "78797",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      7.666228,
+      45.059375
+     ],
+     "target": [
+      -2.893456,
+      53.745995
+     ],
+     "source_id": "47937",
+     "target_id": "78796",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      7.666228,
+      45.059375
+     ],
+     "target": [
+      -2.312924,
+      53.472024
+     ],
+     "source_id": "47937",
+     "target_id": "78800",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      7.666228,
+      45.059375
+     ],
+     "target": [
+      -5.876135,
+      37.417473
+     ],
+     "source_id": "47937",
+     "target_id": "78799",
+     "hop": 1,
+     "rel": "RESTORED"
+    }
+   ],
+   "fallback": false
+  },
+  {
+   "round": 2,
+   "side": "red",
+   "action": "strike_supplier",
+   "args": {
+    "supplier_id": "SUP011"
+   },
+   "actions": [
+    {
+     "action": "strike_supplier",
+     "args": {
+      "supplier_id": "SUP011"
+     }
+    }
+   ],
+   "branch_id": "146",
+   "parent_id": "145",
+   "label": "Strike supplier SUP011",
+   "rationale": "Striking the supplier with the highest critical demand will maximize the projected loss.",
+   "loss_pct": 6.5,
+   "abs_loss_pct": 6.5,
+   "llm_ms": 4408.9,
+   "db_ms": 1334.9,
+   "latency_ms": 5743.8,
+   "targets": [
+    {
+     "id": "47937",
+     "name": "Supplier: SUP011",
+     "kind": "supplier",
+     "lat": 45.059375,
+     "lon": 7.666228,
+     "status": null
+    }
+   ],
+   "arcs": [
+    {
+     "source": [
+      7.666228,
+      45.059375
+     ],
+     "target": [
+      9.825988,
+      53.526549
+     ],
+     "source_id": "47937",
+     "target_id": "78798",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      7.666228,
+      45.059375
+     ],
+     "target": [
+      22.004047,
+      50.106663
+     ],
+     "source_id": "47937",
+     "target_id": "78795",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      7.666228,
+      45.059375
+     ],
+     "target": [
+      1.348118,
+      43.623119
+     ],
+     "source_id": "47937",
+     "target_id": "78797",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      7.666228,
+      45.059375
+     ],
+     "target": [
+      -2.893456,
+      53.745995
+     ],
+     "source_id": "47937",
+     "target_id": "78796",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      7.666228,
+      45.059375
+     ],
+     "target": [
+      -2.312924,
+      53.472024
+     ],
+     "source_id": "47937",
+     "target_id": "78800",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      7.666228,
+      45.059375
+     ],
+     "target": [
+      -5.876135,
+      37.417473
+     ],
+     "source_id": "47937",
+     "target_id": "78799",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    }
+   ],
+   "fallback": false
+  },
+  {
+   "round": 2,
+   "side": "blue",
+   "action": "backup_all_affected_parts",
+   "args": {},
+   "actions": [
+    {
+     "action": "backup_all_affected_parts",
+     "args": {}
+    }
+   ],
+   "branch_id": "148",
+   "parent_id": "146",
+   "label": "Qualify backup suppliers for every affected part",
+   "rationale": "Since 19 parts are unavailable, the best action is to restore all affected parts in one move.",
+   "loss_pct": 0.0,
+   "abs_loss_pct": 0.0,
+   "llm_ms": 4285.0,
+   "db_ms": 1215.6,
+   "latency_ms": 5500.6,
+   "targets": [
+    {
+     "id": "47952",
+     "name": "Supplier: SUP024",
+     "kind": "supplier",
+     "lat": 49.038936,
+     "lon": 17.433718,
+     "status": null
+    }
+   ],
+   "arcs": [
+    {
+     "source": [
+      17.433718,
+      49.038936
+     ],
+     "target": [
+      9.825988,
+      53.526549
+     ],
+     "source_id": "47952",
+     "target_id": "78798",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      17.433718,
+      49.038936
+     ],
+     "target": [
+      22.004047,
+      50.106663
+     ],
+     "source_id": "47952",
+     "target_id": "78795",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      17.433718,
+      49.038936
+     ],
+     "target": [
+      1.348118,
+      43.623119
+     ],
+     "source_id": "47952",
+     "target_id": "78797",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      17.433718,
+      49.038936
+     ],
+     "target": [
+      -2.893456,
+      53.745995
+     ],
+     "source_id": "47952",
+     "target_id": "78796",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      17.433718,
+      49.038936
+     ],
+     "target": [
+      -2.312924,
+      53.472024
+     ],
+     "source_id": "47952",
+     "target_id": "78800",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      17.433718,
+      49.038936
+     ],
+     "target": [
+      -5.876135,
+      37.417473
+     ],
+     "source_id": "47952",
+     "target_id": "78799",
+     "hop": 1,
+     "rel": "RESTORED"
+    }
+   ],
+   "fallback": false
+  },
+  {
+   "round": 3,
+   "side": "red",
+   "action": "strike_supplier",
+   "args": {
+    "supplier_id": "SUP024"
+   },
+   "actions": [
+    {
+     "action": "strike_supplier",
+     "args": {
+      "supplier_id": "SUP024"
+     }
+    }
+   ],
+   "branch_id": "150",
+   "parent_id": "148",
+   "label": "Strike supplier SUP024",
+   "rationale": "Striking the supplier with the highest critical demand will cause the most significant disruption.",
+   "loss_pct": 8.6,
+   "abs_loss_pct": 8.6,
+   "llm_ms": 5054.4,
+   "db_ms": 1629.2,
+   "latency_ms": 6683.6,
+   "targets": [
+    {
+     "id": "47952",
+     "name": "Supplier: SUP024",
+     "kind": "supplier",
+     "lat": 49.038936,
+     "lon": 17.433718,
+     "status": null
+    }
+   ],
+   "arcs": [
+    {
+     "source": [
+      17.433718,
+      49.038936
+     ],
+     "target": [
+      9.825988,
+      53.526549
+     ],
+     "source_id": "47952",
+     "target_id": "78798",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      17.433718,
+      49.038936
+     ],
+     "target": [
+      22.004047,
+      50.106663
+     ],
+     "source_id": "47952",
+     "target_id": "78795",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      17.433718,
+      49.038936
+     ],
+     "target": [
+      1.348118,
+      43.623119
+     ],
+     "source_id": "47952",
+     "target_id": "78797",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      17.433718,
+      49.038936
+     ],
+     "target": [
+      -2.893456,
+      53.745995
+     ],
+     "source_id": "47952",
+     "target_id": "78796",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      17.433718,
+      49.038936
+     ],
+     "target": [
+      -2.312924,
+      53.472024
+     ],
+     "source_id": "47952",
+     "target_id": "78800",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      17.433718,
+      49.038936
+     ],
+     "target": [
+      -5.876135,
+      37.417473
+     ],
+     "source_id": "47952",
+     "target_id": "78799",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    }
+   ],
+   "fallback": false
+  },
+  {
+   "round": 3,
+   "side": "blue",
+   "action": "backup_all_affected_parts",
+   "args": {},
+   "actions": [
+    {
+     "action": "backup_all_affected_parts",
+     "args": {}
+    }
+   ],
+   "branch_id": "151",
+   "parent_id": "150",
+   "label": "Qualify backup suppliers for every affected part",
+   "rationale": "With 25 parts unavailable, the most efficient action is to restore all affected parts at once.",
+   "loss_pct": 0.0,
+   "abs_loss_pct": 0.0,
+   "llm_ms": 4486.4,
+   "db_ms": 1538.3,
+   "latency_ms": 6024.7,
+   "targets": [
+    {
+     "id": "47909",
+     "name": "Supplier: SUP025",
+     "kind": "supplier",
+     "lat": 55.427877,
+     "lon": 10.370155,
+     "status": null
+    }
+   ],
+   "arcs": [
+    {
+     "source": [
+      10.370155,
+      55.427877
+     ],
+     "target": [
+      9.825988,
+      53.526549
+     ],
+     "source_id": "47909",
+     "target_id": "78798",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      10.370155,
+      55.427877
+     ],
+     "target": [
+      22.004047,
+      50.106663
+     ],
+     "source_id": "47909",
+     "target_id": "78795",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      10.370155,
+      55.427877
+     ],
+     "target": [
+      1.348118,
+      43.623119
+     ],
+     "source_id": "47909",
+     "target_id": "78797",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      10.370155,
+      55.427877
+     ],
+     "target": [
+      -2.893456,
+      53.745995
+     ],
+     "source_id": "47909",
+     "target_id": "78796",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      10.370155,
+      55.427877
+     ],
+     "target": [
+      -2.312924,
+      53.472024
+     ],
+     "source_id": "47909",
+     "target_id": "78800",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      10.370155,
+      55.427877
+     ],
+     "target": [
+      -5.876135,
+      37.417473
+     ],
+     "source_id": "47909",
+     "target_id": "78799",
+     "hop": 1,
+     "rel": "RESTORED"
+    }
+   ],
+   "fallback": false
+  }
+ ],
+ "events": [
+  {
+   "type": "match_started",
+   "t": 2.102,
+   "at": "2026-10-03T10:00:01Z",
+   "data": {
+    "match_id": "8be8d63d",
+    "base_branch": "main",
+    "rounds": 3,
+    "base_loss_pct": 0.0,
+    "model": "Qwen/Qwen2.5-72B-Instruct"
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 2.104,
+   "at": "2026-10-03T10:00:01Z",
+   "data": {
+    "round": 1,
+    "side": "red",
+    "head": "main"
+   }
+  },
+  {
+   "type": "move",
+   "t": 10.954,
+   "at": "2026-10-03T10:00:10Z",
+   "data": {
+    "round": 1,
+    "side": "red",
+    "action": "strike_supplier",
+    "args": {
+     "supplier_id": "SUP012"
+    },
+    "actions": [
+     {
+      "action": "strike_supplier",
+      "args": {
+       "supplier_id": "SUP012"
+      }
+     }
+    ],
+    "branch_id": "142",
+    "parent_id": "main",
+    "label": "Strike supplier SUP012",
+    "rationale": "Striking the supplier with the highest critical demand will cause the most immediate disruption.",
+    "loss_pct": 4.4,
+    "abs_loss_pct": 4.4,
+    "llm_ms": 7138.3,
+    "db_ms": 1711.7,
+    "latency_ms": 8850.0,
+    "targets": [
+     {
+      "id": "47951",
+      "name": "Supplier: SUP012",
+      "kind": "supplier",
+      "lat": 41.355053,
+      "lon": 2.141328,
+      "status": null
+     }
+    ],
+    "arcs": [
+     {
+      "source": [
+       2.141328,
+       41.355053
+      ],
+      "target": [
+       9.825988,
+       53.526549
+      ],
+      "source_id": "47951",
+      "target_id": "78798",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       2.141328,
+       41.355053
+      ],
+      "target": [
+       22.004047,
+       50.106663
+      ],
+      "source_id": "47951",
+      "target_id": "78795",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       2.141328,
+       41.355053
+      ],
+      "target": [
+       1.348118,
+       43.623119
+      ],
+      "source_id": "47951",
+      "target_id": "78797",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       2.141328,
+       41.355053
+      ],
+      "target": [
+       -2.893456,
+       53.745995
+      ],
+      "source_id": "47951",
+      "target_id": "78796",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       2.141328,
+       41.355053
+      ],
+      "target": [
+       -2.312924,
+       53.472024
+      ],
+      "source_id": "47951",
+      "target_id": "78800",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       2.141328,
+       41.355053
+      ],
+      "target": [
+       -5.876135,
+       37.417473
+      ],
+      "source_id": "47951",
+      "target_id": "78799",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     }
+    ],
+    "fallback": false
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 10.956,
+   "at": "2026-10-03T10:00:10Z",
+   "data": {
+    "round": 1,
+    "side": "blue",
+    "head": "142"
+   }
+  },
+  {
+   "type": "move",
+   "t": 18.44,
+   "at": "2026-10-03T10:00:18Z",
+   "data": {
+    "round": 1,
+    "side": "blue",
+    "action": "backup_all_affected_parts",
+    "args": {},
+    "actions": [
+     {
+      "action": "backup_all_affected_parts",
+      "args": {}
+     }
+    ],
+    "branch_id": "145",
+    "parent_id": "142",
+    "label": "Qualify backup suppliers for every affected part",
+    "rationale": "Since 14 parts are unavailable, the best action is to restore all affected parts at once.",
+    "loss_pct": 0.0,
+    "abs_loss_pct": 0.0,
+    "llm_ms": 5262.1,
+    "db_ms": 2220.6,
+    "latency_ms": 7482.7,
+    "targets": [
+     {
+      "id": "47937",
+      "name": "Supplier: SUP011",
+      "kind": "supplier",
+      "lat": 45.059375,
+      "lon": 7.666228,
+      "status": null
+     }
+    ],
+    "arcs": [
+     {
+      "source": [
+       7.666228,
+       45.059375
+      ],
+      "target": [
+       9.825988,
+       53.526549
+      ],
+      "source_id": "47937",
+      "target_id": "78798",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       7.666228,
+       45.059375
+      ],
+      "target": [
+       22.004047,
+       50.106663
+      ],
+      "source_id": "47937",
+      "target_id": "78795",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       7.666228,
+       45.059375
+      ],
+      "target": [
+       1.348118,
+       43.623119
+      ],
+      "source_id": "47937",
+      "target_id": "78797",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       7.666228,
+       45.059375
+      ],
+      "target": [
+       -2.893456,
+       53.745995
+      ],
+      "source_id": "47937",
+      "target_id": "78796",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       7.666228,
+       45.059375
+      ],
+      "target": [
+       -2.312924,
+       53.472024
+      ],
+      "source_id": "47937",
+      "target_id": "78800",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       7.666228,
+       45.059375
+      ],
+      "target": [
+       -5.876135,
+       37.417473
+      ],
+      "source_id": "47937",
+      "target_id": "78799",
+      "hop": 1,
+      "rel": "RESTORED"
+     }
+    ],
+    "fallback": false
+   }
+  },
+  {
+   "type": "round_done",
+   "t": 18.442,
+   "at": "2026-10-03T10:00:18Z",
+   "data": {
+    "round": 1,
+    "head": "145",
+    "loss_pct": 0.0,
+    "abs_loss_pct": 0.0
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 18.443,
+   "at": "2026-10-03T10:00:18Z",
+   "data": {
+    "round": 2,
+    "side": "red",
+    "head": "145"
+   }
+  },
+  {
+   "type": "move",
+   "t": 24.187,
+   "at": "2026-10-03T10:00:23Z",
+   "data": {
+    "round": 2,
+    "side": "red",
+    "action": "strike_supplier",
+    "args": {
+     "supplier_id": "SUP011"
+    },
+    "actions": [
+     {
+      "action": "strike_supplier",
+      "args": {
+       "supplier_id": "SUP011"
+      }
+     }
+    ],
+    "branch_id": "146",
+    "parent_id": "145",
+    "label": "Strike supplier SUP011",
+    "rationale": "Striking the supplier with the highest critical demand will maximize the projected loss.",
+    "loss_pct": 6.5,
+    "abs_loss_pct": 6.5,
+    "llm_ms": 4408.9,
+    "db_ms": 1334.9,
+    "latency_ms": 5743.8,
+    "targets": [
+     {
+      "id": "47937",
+      "name": "Supplier: SUP011",
+      "kind": "supplier",
+      "lat": 45.059375,
+      "lon": 7.666228,
+      "status": null
+     }
+    ],
+    "arcs": [
+     {
+      "source": [
+       7.666228,
+       45.059375
+      ],
+      "target": [
+       9.825988,
+       53.526549
+      ],
+      "source_id": "47937",
+      "target_id": "78798",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       7.666228,
+       45.059375
+      ],
+      "target": [
+       22.004047,
+       50.106663
+      ],
+      "source_id": "47937",
+      "target_id": "78795",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       7.666228,
+       45.059375
+      ],
+      "target": [
+       1.348118,
+       43.623119
+      ],
+      "source_id": "47937",
+      "target_id": "78797",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       7.666228,
+       45.059375
+      ],
+      "target": [
+       -2.893456,
+       53.745995
+      ],
+      "source_id": "47937",
+      "target_id": "78796",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       7.666228,
+       45.059375
+      ],
+      "target": [
+       -2.312924,
+       53.472024
+      ],
+      "source_id": "47937",
+      "target_id": "78800",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       7.666228,
+       45.059375
+      ],
+      "target": [
+       -5.876135,
+       37.417473
+      ],
+      "source_id": "47937",
+      "target_id": "78799",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     }
+    ],
+    "fallback": false
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 24.188,
+   "at": "2026-10-03T10:00:23Z",
+   "data": {
+    "round": 2,
+    "side": "blue",
+    "head": "146"
+   }
+  },
+  {
+   "type": "move",
+   "t": 29.689,
+   "at": "2026-10-03T10:00:29Z",
+   "data": {
+    "round": 2,
+    "side": "blue",
+    "action": "backup_all_affected_parts",
+    "args": {},
+    "actions": [
+     {
+      "action": "backup_all_affected_parts",
+      "args": {}
+     }
+    ],
+    "branch_id": "148",
+    "parent_id": "146",
+    "label": "Qualify backup suppliers for every affected part",
+    "rationale": "Since 19 parts are unavailable, the best action is to restore all affected parts in one move.",
+    "loss_pct": 0.0,
+    "abs_loss_pct": 0.0,
+    "llm_ms": 4285.0,
+    "db_ms": 1215.6,
+    "latency_ms": 5500.6,
+    "targets": [
+     {
+      "id": "47952",
+      "name": "Supplier: SUP024",
+      "kind": "supplier",
+      "lat": 49.038936,
+      "lon": 17.433718,
+      "status": null
+     }
+    ],
+    "arcs": [
+     {
+      "source": [
+       17.433718,
+       49.038936
+      ],
+      "target": [
+       9.825988,
+       53.526549
+      ],
+      "source_id": "47952",
+      "target_id": "78798",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       17.433718,
+       49.038936
+      ],
+      "target": [
+       22.004047,
+       50.106663
+      ],
+      "source_id": "47952",
+      "target_id": "78795",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       17.433718,
+       49.038936
+      ],
+      "target": [
+       1.348118,
+       43.623119
+      ],
+      "source_id": "47952",
+      "target_id": "78797",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       17.433718,
+       49.038936
+      ],
+      "target": [
+       -2.893456,
+       53.745995
+      ],
+      "source_id": "47952",
+      "target_id": "78796",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       17.433718,
+       49.038936
+      ],
+      "target": [
+       -2.312924,
+       53.472024
+      ],
+      "source_id": "47952",
+      "target_id": "78800",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       17.433718,
+       49.038936
+      ],
+      "target": [
+       -5.876135,
+       37.417473
+      ],
+      "source_id": "47952",
+      "target_id": "78799",
+      "hop": 1,
+      "rel": "RESTORED"
+     }
+    ],
+    "fallback": false
+   }
+  },
+  {
+   "type": "round_done",
+   "t": 29.69,
+   "at": "2026-10-03T10:00:29Z",
+   "data": {
+    "round": 2,
+    "head": "148",
+    "loss_pct": 0.0,
+    "abs_loss_pct": 0.0
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 29.691,
+   "at": "2026-10-03T10:00:29Z",
+   "data": {
+    "round": 3,
+    "side": "red",
+    "head": "148"
+   }
+  },
+  {
+   "type": "move",
+   "t": 36.375,
+   "at": "2026-10-03T10:00:36Z",
+   "data": {
+    "round": 3,
+    "side": "red",
+    "action": "strike_supplier",
+    "args": {
+     "supplier_id": "SUP024"
+    },
+    "actions": [
+     {
+      "action": "strike_supplier",
+      "args": {
+       "supplier_id": "SUP024"
+      }
+     }
+    ],
+    "branch_id": "150",
+    "parent_id": "148",
+    "label": "Strike supplier SUP024",
+    "rationale": "Striking the supplier with the highest critical demand will cause the most significant disruption.",
+    "loss_pct": 8.6,
+    "abs_loss_pct": 8.6,
+    "llm_ms": 5054.4,
+    "db_ms": 1629.2,
+    "latency_ms": 6683.6,
+    "targets": [
+     {
+      "id": "47952",
+      "name": "Supplier: SUP024",
+      "kind": "supplier",
+      "lat": 49.038936,
+      "lon": 17.433718,
+      "status": null
+     }
+    ],
+    "arcs": [
+     {
+      "source": [
+       17.433718,
+       49.038936
+      ],
+      "target": [
+       9.825988,
+       53.526549
+      ],
+      "source_id": "47952",
+      "target_id": "78798",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       17.433718,
+       49.038936
+      ],
+      "target": [
+       22.004047,
+       50.106663
+      ],
+      "source_id": "47952",
+      "target_id": "78795",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       17.433718,
+       49.038936
+      ],
+      "target": [
+       1.348118,
+       43.623119
+      ],
+      "source_id": "47952",
+      "target_id": "78797",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       17.433718,
+       49.038936
+      ],
+      "target": [
+       -2.893456,
+       53.745995
+      ],
+      "source_id": "47952",
+      "target_id": "78796",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       17.433718,
+       49.038936
+      ],
+      "target": [
+       -2.312924,
+       53.472024
+      ],
+      "source_id": "47952",
+      "target_id": "78800",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       17.433718,
+       49.038936
+      ],
+      "target": [
+       -5.876135,
+       37.417473
+      ],
+      "source_id": "47952",
+      "target_id": "78799",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     }
+    ],
+    "fallback": false
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 36.376,
+   "at": "2026-10-03T10:00:36Z",
+   "data": {
+    "round": 3,
+    "side": "blue",
+    "head": "150"
+   }
+  },
+  {
+   "type": "move",
+   "t": 42.403,
+   "at": "2026-10-03T10:00:42Z",
+   "data": {
+    "round": 3,
+    "side": "blue",
+    "action": "backup_all_affected_parts",
+    "args": {},
+    "actions": [
+     {
+      "action": "backup_all_affected_parts",
+      "args": {}
+     }
+    ],
+    "branch_id": "151",
+    "parent_id": "150",
+    "label": "Qualify backup suppliers for every affected part",
+    "rationale": "With 25 parts unavailable, the most efficient action is to restore all affected parts at once.",
+    "loss_pct": 0.0,
+    "abs_loss_pct": 0.0,
+    "llm_ms": 4486.4,
+    "db_ms": 1538.3,
+    "latency_ms": 6024.7,
+    "targets": [
+     {
+      "id": "47909",
+      "name": "Supplier: SUP025",
+      "kind": "supplier",
+      "lat": 55.427877,
+      "lon": 10.370155,
+      "status": null
+     }
+    ],
+    "arcs": [
+     {
+      "source": [
+       10.370155,
+       55.427877
+      ],
+      "target": [
+       9.825988,
+       53.526549
+      ],
+      "source_id": "47909",
+      "target_id": "78798",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       10.370155,
+       55.427877
+      ],
+      "target": [
+       22.004047,
+       50.106663
+      ],
+      "source_id": "47909",
+      "target_id": "78795",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       10.370155,
+       55.427877
+      ],
+      "target": [
+       1.348118,
+       43.623119
+      ],
+      "source_id": "47909",
+      "target_id": "78797",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       10.370155,
+       55.427877
+      ],
+      "target": [
+       -2.893456,
+       53.745995
+      ],
+      "source_id": "47909",
+      "target_id": "78796",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       10.370155,
+       55.427877
+      ],
+      "target": [
+       -2.312924,
+       53.472024
+      ],
+      "source_id": "47909",
+      "target_id": "78800",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       10.370155,
+       55.427877
+      ],
+      "target": [
+       -5.876135,
+       37.417473
+      ],
+      "source_id": "47909",
+      "target_id": "78799",
+      "hop": 1,
+      "rel": "RESTORED"
+     }
+    ],
+    "fallback": false
+   }
+  },
+  {
+   "type": "round_done",
+   "t": 42.404,
+   "at": "2026-10-03T10:00:42Z",
+   "data": {
+    "round": 3,
+    "head": "151",
+    "loss_pct": 0.0,
+    "abs_loss_pct": 0.0
+   }
+  },
+  {
+   "type": "match_done",
+   "t": 42.405,
+   "at": "2026-10-03T10:00:42Z",
+   "data": {
+    "status": "done",
+    "summary": {
+     "match_id": "8be8d63d",
+     "status": "done",
+     "base_branch": "main",
+     "head": "151",
+     "rounds_played": 3,
+     "base_loss_pct": 0.0,
+     "final_loss_pct": 0.0,
+     "red_moves": 3,
+     "blue_moves": 3,
+     "injects": 0,
+     "fallbacks": 0,
+     "llm_ms": 30635.1,
+     "db_ms": 9650.3,
+     "file": "8be8d63d"
+    }
+   }
+  }
+ ],
+ "summary": {
+  "match_id": "8be8d63d",
+  "status": "done",
+  "base_branch": "main",
+  "head": "151",
+  "rounds_played": 3,
+  "base_loss_pct": 0.0,
+  "final_loss_pct": 0.0,
+  "red_moves": 3,
+  "blue_moves": 3,
+  "injects": 0,
+  "fallbacks": 0,
+  "llm_ms": 30635.1,
+  "db_ms": 9650.3,
+  "file": "8be8d63d"
+ }
+}

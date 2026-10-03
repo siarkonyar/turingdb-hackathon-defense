@@ -1,0 +1,10169 @@
+{
+ "id": "56dd494f",
+ "created": "2026-10-03T11:02:31Z",
+ "base_branch": "main",
+ "base_actions": [],
+ "base_loss_pct": 0.0,
+ "rounds": 3,
+ "status": "done",
+ "model": "Qwen/Qwen2.5-72B-Instruct",
+ "moves": [
+  {
+   "round": 1,
+   "side": "red",
+   "action": "close_port",
+   "args": {
+    "port_id": "USLAX"
+   },
+   "actions": [
+    {
+     "action": "close_port",
+     "args": {
+      "port_id": "USLAX"
+     }
+    }
+   ],
+   "branch_id": "399",
+   "parent_id": "main",
+   "label": "Close port USLAX (Port of Los Angeles)",
+   "rationale": "Closing the Port of Los Angeles will disrupt a significant number of exporters and cause substantial immediate loss.",
+   "loss_pct": 25.8,
+   "abs_loss_pct": 25.8,
+   "llm_ms": 3746.2,
+   "db_ms": 1263.5,
+   "latency_ms": 5009.7,
+   "targets": [
+    {
+     "id": "294287",
+     "name": "Port of Los Angeles",
+     "kind": "port",
+     "lat": 33.73,
+     "lon": -118.26,
+     "status": null
+    }
+   ],
+   "arcs": [
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -79.985574,
+      40.474836
+     ],
+     "source_id": "294287",
+     "target_id": "298791",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -86.591021,
+      34.682
+     ],
+     "source_id": "294287",
+     "target_id": "298829",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -80.037479,
+      40.440587
+     ],
+     "source_id": "294287",
+     "target_id": "298830",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -79.96205,
+      40.422962
+     ],
+     "source_id": "294287",
+     "target_id": "298836",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -96.811547,
+      32.73957
+     ],
+     "source_id": "294287",
+     "target_id": "298842",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -96.849511,
+      32.758644
+     ],
+     "source_id": "294287",
+     "target_id": "298847",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -96.763203,
+      32.740824
+     ],
+     "source_id": "294287",
+     "target_id": "298852",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -97.307374,
+      37.645698
+     ],
+     "source_id": "294287",
+     "target_id": "298889",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -110.991423,
+      32.206072
+     ],
+     "source_id": "294287",
+     "target_id": "298903",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -86.62647,
+      34.747862
+     ],
+     "source_id": "294287",
+     "target_id": "298945",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -71.064704,
+      42.32181
+     ],
+     "source_id": "294287",
+     "target_id": "298950",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -112.084076,
+      33.444314
+     ],
+     "source_id": "294287",
+     "target_id": "298958",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -117.118486,
+      32.722915
+     ],
+     "source_id": "294287",
+     "target_id": "298959",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -79.981355,
+      40.444986
+     ],
+     "source_id": "294287",
+     "target_id": "298997",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -96.860487,
+      32.77035
+     ],
+     "source_id": "294287",
+     "target_id": "299005",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -97.391596,
+      37.715572
+     ],
+     "source_id": "294287",
+     "target_id": "299009",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -112.013777,
+      33.476093
+     ],
+     "source_id": "294287",
+     "target_id": "299010",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -80.033416,
+      40.434756
+     ],
+     "source_id": "294287",
+     "target_id": "299013",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -71.067306,
+      42.311994
+     ],
+     "source_id": "294287",
+     "target_id": "299016",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -117.12571,
+      32.757918
+     ],
+     "source_id": "294287",
+     "target_id": "299034",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -112.099774,
+      33.479734
+     ],
+     "source_id": "294287",
+     "target_id": "299052",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -117.204835,
+      32.683253
+     ],
+     "source_id": "294287",
+     "target_id": "299053",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -79.977927,
+      40.421539
+     ],
+     "source_id": "294287",
+     "target_id": "299054",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -112.015843,
+      33.469064
+     ],
+     "source_id": "294287",
+     "target_id": "299116",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -96.82191,
+      32.782579
+     ],
+     "source_id": "294287",
+     "target_id": "299118",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -117.139242,
+      32.711943
+     ],
+     "source_id": "294287",
+     "target_id": "299124",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -80.021059,
+      40.435817
+     ],
+     "source_id": "294287",
+     "target_id": "299126",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -112.023909,
+      33.467718
+     ],
+     "source_id": "294287",
+     "target_id": "299129",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -117.177294,
+      32.768791
+     ],
+     "source_id": "294287",
+     "target_id": "299153",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -97.319435,
+      37.72588
+     ],
+     "source_id": "294287",
+     "target_id": "299172",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -110.994484,
+      32.261805
+     ],
+     "source_id": "294287",
+     "target_id": "299174",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -117.16311,
+      32.68526
+     ],
+     "source_id": "294287",
+     "target_id": "299175",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -97.283738,
+      37.691373
+     ],
+     "source_id": "294287",
+     "target_id": "299241",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -112.043636,
+      33.456445
+     ],
+     "source_id": "294287",
+     "target_id": "299262",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -79.997253,
+      40.481988
+     ],
+     "source_id": "294287",
+     "target_id": "299276",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -96.831217,
+      32.798945
+     ],
+     "source_id": "294287",
+     "target_id": "299293",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -112.093359,
+      33.477002
+     ],
+     "source_id": "294287",
+     "target_id": "299298",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -80.013414,
+      40.398799
+     ],
+     "source_id": "294287",
+     "target_id": "299319",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -86.590702,
+      34.778239
+     ],
+     "source_id": "294287",
+     "target_id": "299415",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -110.929867,
+      32.181508
+     ],
+     "source_id": "294287",
+     "target_id": "299441",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -80.028672,
+      40.415418
+     ],
+     "source_id": "294287",
+     "target_id": "301112",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      35.030925,
+      32.774252
+     ],
+     "source_id": "294287",
+     "target_id": "301023",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      10.294351,
+      52.825599
+     ],
+     "source_id": "294287",
+     "target_id": "301218",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      23.751449,
+      61.510989
+     ],
+     "source_id": "294287",
+     "target_id": "302989",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      4.85783,
+      45.716763
+     ],
+     "source_id": "294287",
+     "target_id": "302270",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      8.917536,
+      44.44718
+     ],
+     "source_id": "294287",
+     "target_id": "301432",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      12.55338,
+      41.866319
+     ],
+     "source_id": "294287",
+     "target_id": "301137",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      128.655348,
+      35.263279
+     ],
+     "source_id": "294287",
+     "target_id": "301057",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      9.630805,
+      59.637254
+     ],
+     "source_id": "294287",
+     "target_id": "302997",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      8.945102,
+      44.446463
+     ],
+     "source_id": "294287",
+     "target_id": "301121",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -1.471211,
+      52.884767
+     ],
+     "source_id": "294287",
+     "target_id": "301900",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      14.464812,
+      59.351793
+     ],
+     "source_id": "294287",
+     "target_id": "301366",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      6.776688,
+      51.273895
+     ],
+     "source_id": "294287",
+     "target_id": "301015",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      16.647005,
+      49.2018
+     ],
+     "source_id": "294287",
+     "target_id": "301255",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -79.952521,
+      40.430835
+     ],
+     "source_id": "294287",
+     "target_id": "301054",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      135.728693,
+      34.998133
+     ],
+     "source_id": "294287",
+     "target_id": "302994",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -1.895784,
+      52.537606
+     ],
+     "source_id": "294287",
+     "target_id": "301460",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -111.016611,
+      32.222997
+     ],
+     "source_id": "294287",
+     "target_id": "300992",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      4.822924,
+      45.748378
+     ],
+     "source_id": "294287",
+     "target_id": "301233",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      19.884784,
+      50.058524
+     ],
+     "source_id": "294287",
+     "target_id": "301155",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -71.030567,
+      42.399415
+     ],
+     "source_id": "294287",
+     "target_id": "302818",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      15.681944,
+      58.385697
+     ],
+     "source_id": "294287",
+     "target_id": "301043",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -86.591372,
+      34.699493
+     ],
+     "source_id": "294287",
+     "target_id": "303012",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      10.681554,
+      59.869033
+     ],
+     "source_id": "294287",
+     "target_id": "301329",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      2.357976,
+      47.111382
+     ],
+     "source_id": "294287",
+     "target_id": "302839",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      22.027021,
+      50.566262
+     ],
+     "source_id": "294287",
+     "target_id": "301093",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -117.179898,
+      32.707373
+     ],
+     "source_id": "294287",
+     "target_id": "302256",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -79.93127,
+      40.440027
+     ],
+     "source_id": "294287",
+     "target_id": "301007",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -4.236312,
+      55.822742
+     ],
+     "source_id": "294287",
+     "target_id": "302235",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      10.329433,
+      52.806006
+     ],
+     "source_id": "294287",
+     "target_id": "301250",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      10.220655,
+      52.845695
+     ],
+     "source_id": "294287",
+     "target_id": "301383",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    }
+   ],
+   "fallback": false,
+   "breakdown": {
+    "deep_pct": 34.4,
+    "legacy_pct": 0.0
+   }
+  },
+  {
+   "round": 1,
+   "side": "blue",
+   "action": "reroute_exports",
+   "args": {
+    "port_id": "USLAX"
+   },
+   "actions": [
+    {
+     "action": "reroute_exports",
+     "args": {
+      "port_id": "USLAX"
+     }
+    }
+   ],
+   "branch_id": "400",
+   "parent_id": "399",
+   "label": "Reroute exports away from port USLAX (Port of Los Angeles)",
+   "rationale": "Rerouting exports from the closed Port of Los Angeles to other open ports will significantly reduce the current capability loss.",
+   "loss_pct": 8.6,
+   "abs_loss_pct": 8.6,
+   "llm_ms": 4486.3,
+   "db_ms": 3691.7,
+   "latency_ms": 8177.9,
+   "targets": [
+    {
+     "id": "294287",
+     "name": "Port of Los Angeles",
+     "kind": "port",
+     "lat": 33.73,
+     "lon": -118.26,
+     "status": null
+    }
+   ],
+   "arcs": [
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -79.985574,
+      40.474836
+     ],
+     "source_id": "294287",
+     "target_id": "298791",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -86.591021,
+      34.682
+     ],
+     "source_id": "294287",
+     "target_id": "298829",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -80.037479,
+      40.440587
+     ],
+     "source_id": "294287",
+     "target_id": "298830",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -79.96205,
+      40.422962
+     ],
+     "source_id": "294287",
+     "target_id": "298836",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -96.811547,
+      32.73957
+     ],
+     "source_id": "294287",
+     "target_id": "298842",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -96.849511,
+      32.758644
+     ],
+     "source_id": "294287",
+     "target_id": "298847",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -96.763203,
+      32.740824
+     ],
+     "source_id": "294287",
+     "target_id": "298852",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -97.307374,
+      37.645698
+     ],
+     "source_id": "294287",
+     "target_id": "298889",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -110.991423,
+      32.206072
+     ],
+     "source_id": "294287",
+     "target_id": "298903",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -86.62647,
+      34.747862
+     ],
+     "source_id": "294287",
+     "target_id": "298945",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -71.064704,
+      42.32181
+     ],
+     "source_id": "294287",
+     "target_id": "298950",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -112.084076,
+      33.444314
+     ],
+     "source_id": "294287",
+     "target_id": "298958",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -117.118486,
+      32.722915
+     ],
+     "source_id": "294287",
+     "target_id": "298959",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -79.981355,
+      40.444986
+     ],
+     "source_id": "294287",
+     "target_id": "298997",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -96.860487,
+      32.77035
+     ],
+     "source_id": "294287",
+     "target_id": "299005",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -97.391596,
+      37.715572
+     ],
+     "source_id": "294287",
+     "target_id": "299009",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -112.013777,
+      33.476093
+     ],
+     "source_id": "294287",
+     "target_id": "299010",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -80.033416,
+      40.434756
+     ],
+     "source_id": "294287",
+     "target_id": "299013",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -71.067306,
+      42.311994
+     ],
+     "source_id": "294287",
+     "target_id": "299016",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -117.12571,
+      32.757918
+     ],
+     "source_id": "294287",
+     "target_id": "299034",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -112.099774,
+      33.479734
+     ],
+     "source_id": "294287",
+     "target_id": "299052",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -117.204835,
+      32.683253
+     ],
+     "source_id": "294287",
+     "target_id": "299053",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -79.977927,
+      40.421539
+     ],
+     "source_id": "294287",
+     "target_id": "299054",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -112.015843,
+      33.469064
+     ],
+     "source_id": "294287",
+     "target_id": "299116",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -96.82191,
+      32.782579
+     ],
+     "source_id": "294287",
+     "target_id": "299118",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -117.139242,
+      32.711943
+     ],
+     "source_id": "294287",
+     "target_id": "299124",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -80.021059,
+      40.435817
+     ],
+     "source_id": "294287",
+     "target_id": "299126",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -112.023909,
+      33.467718
+     ],
+     "source_id": "294287",
+     "target_id": "299129",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -117.177294,
+      32.768791
+     ],
+     "source_id": "294287",
+     "target_id": "299153",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -97.319435,
+      37.72588
+     ],
+     "source_id": "294287",
+     "target_id": "299172",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -110.994484,
+      32.261805
+     ],
+     "source_id": "294287",
+     "target_id": "299174",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -117.16311,
+      32.68526
+     ],
+     "source_id": "294287",
+     "target_id": "299175",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -97.283738,
+      37.691373
+     ],
+     "source_id": "294287",
+     "target_id": "299241",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -112.043636,
+      33.456445
+     ],
+     "source_id": "294287",
+     "target_id": "299262",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -79.997253,
+      40.481988
+     ],
+     "source_id": "294287",
+     "target_id": "299276",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -96.831217,
+      32.798945
+     ],
+     "source_id": "294287",
+     "target_id": "299293",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -112.093359,
+      33.477002
+     ],
+     "source_id": "294287",
+     "target_id": "299298",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -80.013414,
+      40.398799
+     ],
+     "source_id": "294287",
+     "target_id": "299319",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -86.590702,
+      34.778239
+     ],
+     "source_id": "294287",
+     "target_id": "299415",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -110.929867,
+      32.181508
+     ],
+     "source_id": "294287",
+     "target_id": "299441",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -80.028672,
+      40.415418
+     ],
+     "source_id": "294287",
+     "target_id": "301112",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      35.030925,
+      32.774252
+     ],
+     "source_id": "294287",
+     "target_id": "301023",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      10.294351,
+      52.825599
+     ],
+     "source_id": "294287",
+     "target_id": "301218",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      23.751449,
+      61.510989
+     ],
+     "source_id": "294287",
+     "target_id": "302989",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      4.85783,
+      45.716763
+     ],
+     "source_id": "294287",
+     "target_id": "302270",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      8.917536,
+      44.44718
+     ],
+     "source_id": "294287",
+     "target_id": "301432",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      12.55338,
+      41.866319
+     ],
+     "source_id": "294287",
+     "target_id": "301137",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      128.655348,
+      35.263279
+     ],
+     "source_id": "294287",
+     "target_id": "301057",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      9.630805,
+      59.637254
+     ],
+     "source_id": "294287",
+     "target_id": "302997",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      8.945102,
+      44.446463
+     ],
+     "source_id": "294287",
+     "target_id": "301121",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -1.471211,
+      52.884767
+     ],
+     "source_id": "294287",
+     "target_id": "301900",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      14.464812,
+      59.351793
+     ],
+     "source_id": "294287",
+     "target_id": "301366",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      6.776688,
+      51.273895
+     ],
+     "source_id": "294287",
+     "target_id": "301015",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      16.647005,
+      49.2018
+     ],
+     "source_id": "294287",
+     "target_id": "301255",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -79.952521,
+      40.430835
+     ],
+     "source_id": "294287",
+     "target_id": "301054",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      135.728693,
+      34.998133
+     ],
+     "source_id": "294287",
+     "target_id": "302994",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -1.895784,
+      52.537606
+     ],
+     "source_id": "294287",
+     "target_id": "301460",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -111.016611,
+      32.222997
+     ],
+     "source_id": "294287",
+     "target_id": "300992",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      4.822924,
+      45.748378
+     ],
+     "source_id": "294287",
+     "target_id": "301233",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      19.884784,
+      50.058524
+     ],
+     "source_id": "294287",
+     "target_id": "301155",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -71.030567,
+      42.399415
+     ],
+     "source_id": "294287",
+     "target_id": "302818",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      15.681944,
+      58.385697
+     ],
+     "source_id": "294287",
+     "target_id": "301043",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -86.591372,
+      34.699493
+     ],
+     "source_id": "294287",
+     "target_id": "303012",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      10.681554,
+      59.869033
+     ],
+     "source_id": "294287",
+     "target_id": "301329",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      2.357976,
+      47.111382
+     ],
+     "source_id": "294287",
+     "target_id": "302839",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      22.027021,
+      50.566262
+     ],
+     "source_id": "294287",
+     "target_id": "301093",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -117.179898,
+      32.707373
+     ],
+     "source_id": "294287",
+     "target_id": "302256",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -79.93127,
+      40.440027
+     ],
+     "source_id": "294287",
+     "target_id": "301007",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      -4.236312,
+      55.822742
+     ],
+     "source_id": "294287",
+     "target_id": "302235",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      10.329433,
+      52.806006
+     ],
+     "source_id": "294287",
+     "target_id": "301250",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -118.26,
+      33.73
+     ],
+     "target": [
+      10.220655,
+      52.845695
+     ],
+     "source_id": "294287",
+     "target_id": "301383",
+     "hop": 1,
+     "rel": "RESTORED"
+    }
+   ],
+   "fallback": false,
+   "breakdown": {
+    "deep_pct": 11.5,
+    "legacy_pct": 0.0
+   }
+  },
+  {
+   "round": 2,
+   "side": "red",
+   "action": "facility_outage",
+   "args": {
+    "facility_id": "FAC02801"
+   },
+   "actions": [
+    {
+     "action": "facility_outage",
+     "args": {
+      "facility_id": "FAC02801"
+     }
+    }
+   ],
+   "branch_id": "401",
+   "parent_id": "400",
+   "label": "Outage at facility FAC02801 (Ulvane Volans Industries Ltd - Barrow)",
+   "rationale": "Targeting a single point of failure facility will maximize immediate impact and create lasting pressure.",
+   "loss_pct": 17.0,
+   "abs_loss_pct": 17.0,
+   "llm_ms": 4122.2,
+   "db_ms": 2551.4,
+   "latency_ms": 6673.6,
+   "targets": [
+    {
+     "id": "301846",
+     "name": "Ulvane Volans Industries Ltd - Barrow",
+     "kind": "facility",
+     "lat": 54.121382,
+     "lon": -3.255906,
+     "status": null
+    }
+   ],
+   "arcs": [
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      -80.028672,
+      40.415418
+     ],
+     "source_id": "301846",
+     "target_id": "301112",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      35.030925,
+      32.774252
+     ],
+     "source_id": "301846",
+     "target_id": "301023",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      10.294351,
+      52.825599
+     ],
+     "source_id": "301846",
+     "target_id": "301218",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      23.751449,
+      61.510989
+     ],
+     "source_id": "301846",
+     "target_id": "302989",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      4.85783,
+      45.716763
+     ],
+     "source_id": "301846",
+     "target_id": "302270",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      8.917536,
+      44.44718
+     ],
+     "source_id": "301846",
+     "target_id": "301432",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      12.55338,
+      41.866319
+     ],
+     "source_id": "301846",
+     "target_id": "301137",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      128.655348,
+      35.263279
+     ],
+     "source_id": "301846",
+     "target_id": "301057",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      9.630805,
+      59.637254
+     ],
+     "source_id": "301846",
+     "target_id": "302997",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      8.945102,
+      44.446463
+     ],
+     "source_id": "301846",
+     "target_id": "301121",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      -1.471211,
+      52.884767
+     ],
+     "source_id": "301846",
+     "target_id": "301900",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      14.464812,
+      59.351793
+     ],
+     "source_id": "301846",
+     "target_id": "301366",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      6.776688,
+      51.273895
+     ],
+     "source_id": "301846",
+     "target_id": "301015",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      135.728693,
+      34.998133
+     ],
+     "source_id": "301846",
+     "target_id": "302994",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      -1.895784,
+      52.537606
+     ],
+     "source_id": "301846",
+     "target_id": "301460",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      -111.016611,
+      32.222997
+     ],
+     "source_id": "301846",
+     "target_id": "300992",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      4.822924,
+      45.748378
+     ],
+     "source_id": "301846",
+     "target_id": "301233",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      19.884784,
+      50.058524
+     ],
+     "source_id": "301846",
+     "target_id": "301155",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      -71.030567,
+      42.399415
+     ],
+     "source_id": "301846",
+     "target_id": "302818",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      -86.591372,
+      34.699493
+     ],
+     "source_id": "301846",
+     "target_id": "303012",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      10.681554,
+      59.869033
+     ],
+     "source_id": "301846",
+     "target_id": "301329",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      2.357976,
+      47.111382
+     ],
+     "source_id": "301846",
+     "target_id": "302839",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      22.027021,
+      50.566262
+     ],
+     "source_id": "301846",
+     "target_id": "301093",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      -79.93127,
+      40.440027
+     ],
+     "source_id": "301846",
+     "target_id": "301007",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      -4.236312,
+      55.822742
+     ],
+     "source_id": "301846",
+     "target_id": "302235",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      10.329433,
+      52.806006
+     ],
+     "source_id": "301846",
+     "target_id": "301250",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      10.220655,
+      52.845695
+     ],
+     "source_id": "301846",
+     "target_id": "301383",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    }
+   ],
+   "fallback": false,
+   "breakdown": {
+    "deep_pct": 22.6,
+    "legacy_pct": 0.0
+   }
+  },
+  {
+   "round": 2,
+   "side": "blue",
+   "action": "replace_facility",
+   "args": {
+    "facility_id": "FAC02801"
+   },
+   "actions": [
+    {
+     "action": "replace_facility",
+     "args": {
+      "facility_id": "FAC02801"
+     }
+    }
+   ],
+   "branch_id": "402",
+   "parent_id": "401",
+   "label": "Replace the production of facility FAC02801 (Ulvane Volans Industries Ltd - Barrow)",
+   "rationale": "Replacing the facility that was just hit will recover the most immediate loss.",
+   "loss_pct": 11.8,
+   "abs_loss_pct": 11.8,
+   "llm_ms": 5756.3,
+   "db_ms": 3468.5,
+   "latency_ms": 9224.8,
+   "targets": [
+    {
+     "id": "301846",
+     "name": "Ulvane Volans Industries Ltd - Barrow",
+     "kind": "facility",
+     "lat": 54.121382,
+     "lon": -3.255906,
+     "status": null
+    }
+   ],
+   "arcs": [
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      -80.028672,
+      40.415418
+     ],
+     "source_id": "301846",
+     "target_id": "301112",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      35.030925,
+      32.774252
+     ],
+     "source_id": "301846",
+     "target_id": "301023",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      10.294351,
+      52.825599
+     ],
+     "source_id": "301846",
+     "target_id": "301218",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      23.751449,
+      61.510989
+     ],
+     "source_id": "301846",
+     "target_id": "302989",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      4.85783,
+      45.716763
+     ],
+     "source_id": "301846",
+     "target_id": "302270",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      8.917536,
+      44.44718
+     ],
+     "source_id": "301846",
+     "target_id": "301432",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      12.55338,
+      41.866319
+     ],
+     "source_id": "301846",
+     "target_id": "301137",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      128.655348,
+      35.263279
+     ],
+     "source_id": "301846",
+     "target_id": "301057",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      9.630805,
+      59.637254
+     ],
+     "source_id": "301846",
+     "target_id": "302997",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      8.945102,
+      44.446463
+     ],
+     "source_id": "301846",
+     "target_id": "301121",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      -1.471211,
+      52.884767
+     ],
+     "source_id": "301846",
+     "target_id": "301900",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      14.464812,
+      59.351793
+     ],
+     "source_id": "301846",
+     "target_id": "301366",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      6.776688,
+      51.273895
+     ],
+     "source_id": "301846",
+     "target_id": "301015",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      135.728693,
+      34.998133
+     ],
+     "source_id": "301846",
+     "target_id": "302994",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      -1.895784,
+      52.537606
+     ],
+     "source_id": "301846",
+     "target_id": "301460",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      -111.016611,
+      32.222997
+     ],
+     "source_id": "301846",
+     "target_id": "300992",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      4.822924,
+      45.748378
+     ],
+     "source_id": "301846",
+     "target_id": "301233",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      19.884784,
+      50.058524
+     ],
+     "source_id": "301846",
+     "target_id": "301155",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      -71.030567,
+      42.399415
+     ],
+     "source_id": "301846",
+     "target_id": "302818",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      -86.591372,
+      34.699493
+     ],
+     "source_id": "301846",
+     "target_id": "303012",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      10.681554,
+      59.869033
+     ],
+     "source_id": "301846",
+     "target_id": "301329",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      2.357976,
+      47.111382
+     ],
+     "source_id": "301846",
+     "target_id": "302839",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      22.027021,
+      50.566262
+     ],
+     "source_id": "301846",
+     "target_id": "301093",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      -79.93127,
+      40.440027
+     ],
+     "source_id": "301846",
+     "target_id": "301007",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      -4.236312,
+      55.822742
+     ],
+     "source_id": "301846",
+     "target_id": "302235",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      10.329433,
+      52.806006
+     ],
+     "source_id": "301846",
+     "target_id": "301250",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -3.255906,
+      54.121382
+     ],
+     "target": [
+      10.220655,
+      52.845695
+     ],
+     "source_id": "301846",
+     "target_id": "301383",
+     "hop": 1,
+     "rel": "RESTORED"
+    }
+   ],
+   "fallback": false,
+   "breakdown": {
+    "deep_pct": 15.8,
+    "legacy_pct": 0.0
+   }
+  },
+  {
+   "round": 3,
+   "side": "red",
+   "action": "close_port",
+   "args": {
+    "port_id": "USHOU"
+   },
+   "actions": [
+    {
+     "action": "close_port",
+     "args": {
+      "port_id": "USHOU"
+     }
+    }
+   ],
+   "branch_id": "403",
+   "parent_id": "402",
+   "label": "Close port USHOU (Port of Houston)",
+   "rationale": "Targeting the Port of Houston will disrupt a significant number of exporters and add substantial capability loss.",
+   "loss_pct": 28.0,
+   "abs_loss_pct": 28.0,
+   "llm_ms": 5014.8,
+   "db_ms": 2549.4,
+   "latency_ms": 7564.2,
+   "targets": [
+    {
+     "id": "294288",
+     "name": "Port of Houston",
+     "kind": "port",
+     "lat": 29.73,
+     "lon": -95.27,
+     "status": null
+    }
+   ],
+   "arcs": [
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -71.087207,
+      42.3267
+     ],
+     "source_id": "294288",
+     "target_id": "298788",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -79.985574,
+      40.474836
+     ],
+     "source_id": "294288",
+     "target_id": "298791",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.194384,
+      32.697034
+     ],
+     "source_id": "294288",
+     "target_id": "298793",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -79.96205,
+      40.422962
+     ],
+     "source_id": "294288",
+     "target_id": "298836",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -96.763203,
+      32.740824
+     ],
+     "source_id": "294288",
+     "target_id": "298852",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -86.610035,
+      34.712123
+     ],
+     "source_id": "294288",
+     "target_id": "298905",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -79.977194,
+      40.4395
+     ],
+     "source_id": "294288",
+     "target_id": "298919",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -71.07323,
+      42.360018
+     ],
+     "source_id": "294288",
+     "target_id": "298921",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -79.974455,
+      40.435584
+     ],
+     "source_id": "294288",
+     "target_id": "298930",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -86.62647,
+      34.747862
+     ],
+     "source_id": "294288",
+     "target_id": "298945",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.199617,
+      32.758399
+     ],
+     "source_id": "294288",
+     "target_id": "298954",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -86.546145,
+      34.753736
+     ],
+     "source_id": "294288",
+     "target_id": "298956",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.118486,
+      32.722915
+     ],
+     "source_id": "294288",
+     "target_id": "298959",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.126988,
+      32.687096
+     ],
+     "source_id": "294288",
+     "target_id": "298969",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -110.938817,
+      32.25322
+     ],
+     "source_id": "294288",
+     "target_id": "298984",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.168131,
+      32.768533
+     ],
+     "source_id": "294288",
+     "target_id": "298986",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -86.636106,
+      34.700901
+     ],
+     "source_id": "294288",
+     "target_id": "298994",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -97.391596,
+      37.715572
+     ],
+     "source_id": "294288",
+     "target_id": "299009",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -97.339182,
+      37.66487
+     ],
+     "source_id": "294288",
+     "target_id": "299012",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -71.067306,
+      42.311994
+     ],
+     "source_id": "294288",
+     "target_id": "299016",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -110.956554,
+      32.18623
+     ],
+     "source_id": "294288",
+     "target_id": "299036",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.194102,
+      32.687877
+     ],
+     "source_id": "294288",
+     "target_id": "299041",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.204835,
+      32.683253
+     ],
+     "source_id": "294288",
+     "target_id": "299053",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -112.1015,
+      33.4746
+     ],
+     "source_id": "294288",
+     "target_id": "299062",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -97.334783,
+      37.63785
+     ],
+     "source_id": "294288",
+     "target_id": "299073",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -110.95144,
+      32.193113
+     ],
+     "source_id": "294288",
+     "target_id": "299074",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -86.539911,
+      34.753504
+     ],
+     "source_id": "294288",
+     "target_id": "299081",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -97.356616,
+      37.663399
+     ],
+     "source_id": "294288",
+     "target_id": "299094",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -112.027788,
+      33.417437
+     ],
+     "source_id": "294288",
+     "target_id": "299097",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -110.923283,
+      32.211922
+     ],
+     "source_id": "294288",
+     "target_id": "299101",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -96.82191,
+      32.782579
+     ],
+     "source_id": "294288",
+     "target_id": "299118",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -112.023909,
+      33.467718
+     ],
+     "source_id": "294288",
+     "target_id": "299129",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -110.959589,
+      32.180209
+     ],
+     "source_id": "294288",
+     "target_id": "299137",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -97.341613,
+      37.739501
+     ],
+     "source_id": "294288",
+     "target_id": "299161",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -110.994484,
+      32.261805
+     ],
+     "source_id": "294288",
+     "target_id": "299174",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -80.034704,
+      40.399934
+     ],
+     "source_id": "294288",
+     "target_id": "299192",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -97.381612,
+      37.7015
+     ],
+     "source_id": "294288",
+     "target_id": "299196",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.191311,
+      32.726123
+     ],
+     "source_id": "294288",
+     "target_id": "299218",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.114646,
+      32.746357
+     ],
+     "source_id": "294288",
+     "target_id": "299240",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -112.043636,
+      33.456445
+     ],
+     "source_id": "294288",
+     "target_id": "299262",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -80.028672,
+      40.415418
+     ],
+     "source_id": "294288",
+     "target_id": "301112",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      35.030925,
+      32.774252
+     ],
+     "source_id": "294288",
+     "target_id": "301023",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      10.294351,
+      52.825599
+     ],
+     "source_id": "294288",
+     "target_id": "301218",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      23.751449,
+      61.510989
+     ],
+     "source_id": "294288",
+     "target_id": "302989",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      4.85783,
+      45.716763
+     ],
+     "source_id": "294288",
+     "target_id": "302270",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      8.917536,
+      44.44718
+     ],
+     "source_id": "294288",
+     "target_id": "301432",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      12.55338,
+      41.866319
+     ],
+     "source_id": "294288",
+     "target_id": "301137",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      128.655348,
+      35.263279
+     ],
+     "source_id": "294288",
+     "target_id": "301057",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      9.630805,
+      59.637254
+     ],
+     "source_id": "294288",
+     "target_id": "302997",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      8.945102,
+      44.446463
+     ],
+     "source_id": "294288",
+     "target_id": "301121",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -1.471211,
+      52.884767
+     ],
+     "source_id": "294288",
+     "target_id": "301900",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      14.464812,
+      59.351793
+     ],
+     "source_id": "294288",
+     "target_id": "301366",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      6.776688,
+      51.273895
+     ],
+     "source_id": "294288",
+     "target_id": "301015",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      16.647005,
+      49.2018
+     ],
+     "source_id": "294288",
+     "target_id": "301255",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -79.952521,
+      40.430835
+     ],
+     "source_id": "294288",
+     "target_id": "301054",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      135.728693,
+      34.998133
+     ],
+     "source_id": "294288",
+     "target_id": "302994",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -1.895784,
+      52.537606
+     ],
+     "source_id": "294288",
+     "target_id": "301460",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -111.016611,
+      32.222997
+     ],
+     "source_id": "294288",
+     "target_id": "300992",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      4.822924,
+      45.748378
+     ],
+     "source_id": "294288",
+     "target_id": "301233",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      19.884784,
+      50.058524
+     ],
+     "source_id": "294288",
+     "target_id": "301155",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -71.030567,
+      42.399415
+     ],
+     "source_id": "294288",
+     "target_id": "302818",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      15.681944,
+      58.385697
+     ],
+     "source_id": "294288",
+     "target_id": "301043",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -86.591372,
+      34.699493
+     ],
+     "source_id": "294288",
+     "target_id": "303012",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      10.681554,
+      59.869033
+     ],
+     "source_id": "294288",
+     "target_id": "301329",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      2.357976,
+      47.111382
+     ],
+     "source_id": "294288",
+     "target_id": "302839",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      22.027021,
+      50.566262
+     ],
+     "source_id": "294288",
+     "target_id": "301093",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.179898,
+      32.707373
+     ],
+     "source_id": "294288",
+     "target_id": "302256",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -79.93127,
+      40.440027
+     ],
+     "source_id": "294288",
+     "target_id": "301007",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -4.236312,
+      55.822742
+     ],
+     "source_id": "294288",
+     "target_id": "302235",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      10.329433,
+      52.806006
+     ],
+     "source_id": "294288",
+     "target_id": "301250",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      10.220655,
+      52.845695
+     ],
+     "source_id": "294288",
+     "target_id": "301383",
+     "hop": 1,
+     "rel": "DEPENDS_ON"
+    }
+   ],
+   "fallback": false,
+   "breakdown": {
+    "deep_pct": 37.3,
+    "legacy_pct": 0.0
+   }
+  },
+  {
+   "round": 3,
+   "side": "blue",
+   "action": "reroute_exports",
+   "args": {
+    "port_id": "USHOU"
+   },
+   "actions": [
+    {
+     "action": "reroute_exports",
+     "args": {
+      "port_id": "USHOU"
+     }
+    }
+   ],
+   "branch_id": "404",
+   "parent_id": "403",
+   "label": "Reroute exports away from port USHOU (Port of Houston)",
+   "rationale": "Rerouting exports from the recently closed Port of Houston will significantly reduce the current capability loss.",
+   "loss_pct": 12.7,
+   "abs_loss_pct": 12.7,
+   "llm_ms": 3701.2,
+   "db_ms": 4148.3,
+   "latency_ms": 7849.5,
+   "targets": [
+    {
+     "id": "294288",
+     "name": "Port of Houston",
+     "kind": "port",
+     "lat": 29.73,
+     "lon": -95.27,
+     "status": null
+    }
+   ],
+   "arcs": [
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -71.087207,
+      42.3267
+     ],
+     "source_id": "294288",
+     "target_id": "298788",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -79.985574,
+      40.474836
+     ],
+     "source_id": "294288",
+     "target_id": "298791",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.194384,
+      32.697034
+     ],
+     "source_id": "294288",
+     "target_id": "298793",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -79.96205,
+      40.422962
+     ],
+     "source_id": "294288",
+     "target_id": "298836",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -96.763203,
+      32.740824
+     ],
+     "source_id": "294288",
+     "target_id": "298852",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -86.610035,
+      34.712123
+     ],
+     "source_id": "294288",
+     "target_id": "298905",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -79.977194,
+      40.4395
+     ],
+     "source_id": "294288",
+     "target_id": "298919",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -71.07323,
+      42.360018
+     ],
+     "source_id": "294288",
+     "target_id": "298921",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -79.974455,
+      40.435584
+     ],
+     "source_id": "294288",
+     "target_id": "298930",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -86.62647,
+      34.747862
+     ],
+     "source_id": "294288",
+     "target_id": "298945",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.199617,
+      32.758399
+     ],
+     "source_id": "294288",
+     "target_id": "298954",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -86.546145,
+      34.753736
+     ],
+     "source_id": "294288",
+     "target_id": "298956",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.118486,
+      32.722915
+     ],
+     "source_id": "294288",
+     "target_id": "298959",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.126988,
+      32.687096
+     ],
+     "source_id": "294288",
+     "target_id": "298969",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -110.938817,
+      32.25322
+     ],
+     "source_id": "294288",
+     "target_id": "298984",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.168131,
+      32.768533
+     ],
+     "source_id": "294288",
+     "target_id": "298986",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -86.636106,
+      34.700901
+     ],
+     "source_id": "294288",
+     "target_id": "298994",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -97.391596,
+      37.715572
+     ],
+     "source_id": "294288",
+     "target_id": "299009",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -97.339182,
+      37.66487
+     ],
+     "source_id": "294288",
+     "target_id": "299012",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -71.067306,
+      42.311994
+     ],
+     "source_id": "294288",
+     "target_id": "299016",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -110.956554,
+      32.18623
+     ],
+     "source_id": "294288",
+     "target_id": "299036",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.194102,
+      32.687877
+     ],
+     "source_id": "294288",
+     "target_id": "299041",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.204835,
+      32.683253
+     ],
+     "source_id": "294288",
+     "target_id": "299053",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -112.1015,
+      33.4746
+     ],
+     "source_id": "294288",
+     "target_id": "299062",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -97.334783,
+      37.63785
+     ],
+     "source_id": "294288",
+     "target_id": "299073",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -110.95144,
+      32.193113
+     ],
+     "source_id": "294288",
+     "target_id": "299074",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -86.539911,
+      34.753504
+     ],
+     "source_id": "294288",
+     "target_id": "299081",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -97.356616,
+      37.663399
+     ],
+     "source_id": "294288",
+     "target_id": "299094",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -112.027788,
+      33.417437
+     ],
+     "source_id": "294288",
+     "target_id": "299097",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -110.923283,
+      32.211922
+     ],
+     "source_id": "294288",
+     "target_id": "299101",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -96.82191,
+      32.782579
+     ],
+     "source_id": "294288",
+     "target_id": "299118",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -112.023909,
+      33.467718
+     ],
+     "source_id": "294288",
+     "target_id": "299129",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -110.959589,
+      32.180209
+     ],
+     "source_id": "294288",
+     "target_id": "299137",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -97.341613,
+      37.739501
+     ],
+     "source_id": "294288",
+     "target_id": "299161",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -110.994484,
+      32.261805
+     ],
+     "source_id": "294288",
+     "target_id": "299174",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -80.034704,
+      40.399934
+     ],
+     "source_id": "294288",
+     "target_id": "299192",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -97.381612,
+      37.7015
+     ],
+     "source_id": "294288",
+     "target_id": "299196",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.191311,
+      32.726123
+     ],
+     "source_id": "294288",
+     "target_id": "299218",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.114646,
+      32.746357
+     ],
+     "source_id": "294288",
+     "target_id": "299240",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -112.043636,
+      33.456445
+     ],
+     "source_id": "294288",
+     "target_id": "299262",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -80.028672,
+      40.415418
+     ],
+     "source_id": "294288",
+     "target_id": "301112",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      35.030925,
+      32.774252
+     ],
+     "source_id": "294288",
+     "target_id": "301023",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      10.294351,
+      52.825599
+     ],
+     "source_id": "294288",
+     "target_id": "301218",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      23.751449,
+      61.510989
+     ],
+     "source_id": "294288",
+     "target_id": "302989",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      4.85783,
+      45.716763
+     ],
+     "source_id": "294288",
+     "target_id": "302270",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      8.917536,
+      44.44718
+     ],
+     "source_id": "294288",
+     "target_id": "301432",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      12.55338,
+      41.866319
+     ],
+     "source_id": "294288",
+     "target_id": "301137",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      128.655348,
+      35.263279
+     ],
+     "source_id": "294288",
+     "target_id": "301057",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      9.630805,
+      59.637254
+     ],
+     "source_id": "294288",
+     "target_id": "302997",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      8.945102,
+      44.446463
+     ],
+     "source_id": "294288",
+     "target_id": "301121",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -1.471211,
+      52.884767
+     ],
+     "source_id": "294288",
+     "target_id": "301900",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      14.464812,
+      59.351793
+     ],
+     "source_id": "294288",
+     "target_id": "301366",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      6.776688,
+      51.273895
+     ],
+     "source_id": "294288",
+     "target_id": "301015",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      16.647005,
+      49.2018
+     ],
+     "source_id": "294288",
+     "target_id": "301255",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -79.952521,
+      40.430835
+     ],
+     "source_id": "294288",
+     "target_id": "301054",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      135.728693,
+      34.998133
+     ],
+     "source_id": "294288",
+     "target_id": "302994",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -1.895784,
+      52.537606
+     ],
+     "source_id": "294288",
+     "target_id": "301460",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -111.016611,
+      32.222997
+     ],
+     "source_id": "294288",
+     "target_id": "300992",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      4.822924,
+      45.748378
+     ],
+     "source_id": "294288",
+     "target_id": "301233",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      19.884784,
+      50.058524
+     ],
+     "source_id": "294288",
+     "target_id": "301155",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -71.030567,
+      42.399415
+     ],
+     "source_id": "294288",
+     "target_id": "302818",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      15.681944,
+      58.385697
+     ],
+     "source_id": "294288",
+     "target_id": "301043",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -86.591372,
+      34.699493
+     ],
+     "source_id": "294288",
+     "target_id": "303012",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      10.681554,
+      59.869033
+     ],
+     "source_id": "294288",
+     "target_id": "301329",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      2.357976,
+      47.111382
+     ],
+     "source_id": "294288",
+     "target_id": "302839",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      22.027021,
+      50.566262
+     ],
+     "source_id": "294288",
+     "target_id": "301093",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -117.179898,
+      32.707373
+     ],
+     "source_id": "294288",
+     "target_id": "302256",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -79.93127,
+      40.440027
+     ],
+     "source_id": "294288",
+     "target_id": "301007",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      -4.236312,
+      55.822742
+     ],
+     "source_id": "294288",
+     "target_id": "302235",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      10.329433,
+      52.806006
+     ],
+     "source_id": "294288",
+     "target_id": "301250",
+     "hop": 1,
+     "rel": "RESTORED"
+    },
+    {
+     "source": [
+      -95.27,
+      29.73
+     ],
+     "target": [
+      10.220655,
+      52.845695
+     ],
+     "source_id": "294288",
+     "target_id": "301383",
+     "hop": 1,
+     "rel": "RESTORED"
+    }
+   ],
+   "fallback": false,
+   "breakdown": {
+    "deep_pct": 16.9,
+    "legacy_pct": 0.0
+   }
+  }
+ ],
+ "events": [
+  {
+   "type": "match_started",
+   "t": 2.377,
+   "at": "2026-10-03T11:02:31Z",
+   "data": {
+    "match_id": "56dd494f",
+    "base_branch": "main",
+    "rounds": 3,
+    "base_loss_pct": 0.0,
+    "model": "Qwen/Qwen2.5-72B-Instruct"
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 2.378,
+   "at": "2026-10-03T11:02:31Z",
+   "data": {
+    "round": 1,
+    "side": "red",
+    "head": "main"
+   }
+  },
+  {
+   "type": "move",
+   "t": 7.388,
+   "at": "2026-10-03T11:02:36Z",
+   "data": {
+    "round": 1,
+    "side": "red",
+    "action": "close_port",
+    "args": {
+     "port_id": "USLAX"
+    },
+    "actions": [
+     {
+      "action": "close_port",
+      "args": {
+       "port_id": "USLAX"
+      }
+     }
+    ],
+    "branch_id": "399",
+    "parent_id": "main",
+    "label": "Close port USLAX (Port of Los Angeles)",
+    "rationale": "Closing the Port of Los Angeles will disrupt a significant number of exporters and cause substantial immediate loss.",
+    "loss_pct": 25.8,
+    "abs_loss_pct": 25.8,
+    "llm_ms": 3746.2,
+    "db_ms": 1263.5,
+    "latency_ms": 5009.7,
+    "targets": [
+     {
+      "id": "294287",
+      "name": "Port of Los Angeles",
+      "kind": "port",
+      "lat": 33.73,
+      "lon": -118.26,
+      "status": null
+     }
+    ],
+    "arcs": [
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -79.985574,
+       40.474836
+      ],
+      "source_id": "294287",
+      "target_id": "298791",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -86.591021,
+       34.682
+      ],
+      "source_id": "294287",
+      "target_id": "298829",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -80.037479,
+       40.440587
+      ],
+      "source_id": "294287",
+      "target_id": "298830",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -79.96205,
+       40.422962
+      ],
+      "source_id": "294287",
+      "target_id": "298836",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -96.811547,
+       32.73957
+      ],
+      "source_id": "294287",
+      "target_id": "298842",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -96.849511,
+       32.758644
+      ],
+      "source_id": "294287",
+      "target_id": "298847",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -96.763203,
+       32.740824
+      ],
+      "source_id": "294287",
+      "target_id": "298852",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -97.307374,
+       37.645698
+      ],
+      "source_id": "294287",
+      "target_id": "298889",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -110.991423,
+       32.206072
+      ],
+      "source_id": "294287",
+      "target_id": "298903",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -86.62647,
+       34.747862
+      ],
+      "source_id": "294287",
+      "target_id": "298945",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -71.064704,
+       42.32181
+      ],
+      "source_id": "294287",
+      "target_id": "298950",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -112.084076,
+       33.444314
+      ],
+      "source_id": "294287",
+      "target_id": "298958",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -117.118486,
+       32.722915
+      ],
+      "source_id": "294287",
+      "target_id": "298959",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -79.981355,
+       40.444986
+      ],
+      "source_id": "294287",
+      "target_id": "298997",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -96.860487,
+       32.77035
+      ],
+      "source_id": "294287",
+      "target_id": "299005",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -97.391596,
+       37.715572
+      ],
+      "source_id": "294287",
+      "target_id": "299009",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -112.013777,
+       33.476093
+      ],
+      "source_id": "294287",
+      "target_id": "299010",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -80.033416,
+       40.434756
+      ],
+      "source_id": "294287",
+      "target_id": "299013",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -71.067306,
+       42.311994
+      ],
+      "source_id": "294287",
+      "target_id": "299016",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -117.12571,
+       32.757918
+      ],
+      "source_id": "294287",
+      "target_id": "299034",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -112.099774,
+       33.479734
+      ],
+      "source_id": "294287",
+      "target_id": "299052",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -117.204835,
+       32.683253
+      ],
+      "source_id": "294287",
+      "target_id": "299053",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -79.977927,
+       40.421539
+      ],
+      "source_id": "294287",
+      "target_id": "299054",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -112.015843,
+       33.469064
+      ],
+      "source_id": "294287",
+      "target_id": "299116",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -96.82191,
+       32.782579
+      ],
+      "source_id": "294287",
+      "target_id": "299118",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -117.139242,
+       32.711943
+      ],
+      "source_id": "294287",
+      "target_id": "299124",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -80.021059,
+       40.435817
+      ],
+      "source_id": "294287",
+      "target_id": "299126",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -112.023909,
+       33.467718
+      ],
+      "source_id": "294287",
+      "target_id": "299129",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -117.177294,
+       32.768791
+      ],
+      "source_id": "294287",
+      "target_id": "299153",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -97.319435,
+       37.72588
+      ],
+      "source_id": "294287",
+      "target_id": "299172",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -110.994484,
+       32.261805
+      ],
+      "source_id": "294287",
+      "target_id": "299174",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -117.16311,
+       32.68526
+      ],
+      "source_id": "294287",
+      "target_id": "299175",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -97.283738,
+       37.691373
+      ],
+      "source_id": "294287",
+      "target_id": "299241",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -112.043636,
+       33.456445
+      ],
+      "source_id": "294287",
+      "target_id": "299262",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -79.997253,
+       40.481988
+      ],
+      "source_id": "294287",
+      "target_id": "299276",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -96.831217,
+       32.798945
+      ],
+      "source_id": "294287",
+      "target_id": "299293",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -112.093359,
+       33.477002
+      ],
+      "source_id": "294287",
+      "target_id": "299298",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -80.013414,
+       40.398799
+      ],
+      "source_id": "294287",
+      "target_id": "299319",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -86.590702,
+       34.778239
+      ],
+      "source_id": "294287",
+      "target_id": "299415",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -110.929867,
+       32.181508
+      ],
+      "source_id": "294287",
+      "target_id": "299441",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -80.028672,
+       40.415418
+      ],
+      "source_id": "294287",
+      "target_id": "301112",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       35.030925,
+       32.774252
+      ],
+      "source_id": "294287",
+      "target_id": "301023",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       10.294351,
+       52.825599
+      ],
+      "source_id": "294287",
+      "target_id": "301218",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       23.751449,
+       61.510989
+      ],
+      "source_id": "294287",
+      "target_id": "302989",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       4.85783,
+       45.716763
+      ],
+      "source_id": "294287",
+      "target_id": "302270",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       8.917536,
+       44.44718
+      ],
+      "source_id": "294287",
+      "target_id": "301432",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       12.55338,
+       41.866319
+      ],
+      "source_id": "294287",
+      "target_id": "301137",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       128.655348,
+       35.263279
+      ],
+      "source_id": "294287",
+      "target_id": "301057",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       9.630805,
+       59.637254
+      ],
+      "source_id": "294287",
+      "target_id": "302997",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       8.945102,
+       44.446463
+      ],
+      "source_id": "294287",
+      "target_id": "301121",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -1.471211,
+       52.884767
+      ],
+      "source_id": "294287",
+      "target_id": "301900",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       14.464812,
+       59.351793
+      ],
+      "source_id": "294287",
+      "target_id": "301366",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       6.776688,
+       51.273895
+      ],
+      "source_id": "294287",
+      "target_id": "301015",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       16.647005,
+       49.2018
+      ],
+      "source_id": "294287",
+      "target_id": "301255",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -79.952521,
+       40.430835
+      ],
+      "source_id": "294287",
+      "target_id": "301054",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       135.728693,
+       34.998133
+      ],
+      "source_id": "294287",
+      "target_id": "302994",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -1.895784,
+       52.537606
+      ],
+      "source_id": "294287",
+      "target_id": "301460",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -111.016611,
+       32.222997
+      ],
+      "source_id": "294287",
+      "target_id": "300992",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       4.822924,
+       45.748378
+      ],
+      "source_id": "294287",
+      "target_id": "301233",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       19.884784,
+       50.058524
+      ],
+      "source_id": "294287",
+      "target_id": "301155",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -71.030567,
+       42.399415
+      ],
+      "source_id": "294287",
+      "target_id": "302818",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       15.681944,
+       58.385697
+      ],
+      "source_id": "294287",
+      "target_id": "301043",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -86.591372,
+       34.699493
+      ],
+      "source_id": "294287",
+      "target_id": "303012",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       10.681554,
+       59.869033
+      ],
+      "source_id": "294287",
+      "target_id": "301329",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       2.357976,
+       47.111382
+      ],
+      "source_id": "294287",
+      "target_id": "302839",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       22.027021,
+       50.566262
+      ],
+      "source_id": "294287",
+      "target_id": "301093",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -117.179898,
+       32.707373
+      ],
+      "source_id": "294287",
+      "target_id": "302256",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -79.93127,
+       40.440027
+      ],
+      "source_id": "294287",
+      "target_id": "301007",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -4.236312,
+       55.822742
+      ],
+      "source_id": "294287",
+      "target_id": "302235",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       10.329433,
+       52.806006
+      ],
+      "source_id": "294287",
+      "target_id": "301250",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       10.220655,
+       52.845695
+      ],
+      "source_id": "294287",
+      "target_id": "301383",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     }
+    ],
+    "fallback": false,
+    "breakdown": {
+     "deep_pct": 34.4,
+     "legacy_pct": 0.0
+    }
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 7.389,
+   "at": "2026-10-03T11:02:36Z",
+   "data": {
+    "round": 1,
+    "side": "blue",
+    "head": "399"
+   }
+  },
+  {
+   "type": "move",
+   "t": 15.569,
+   "at": "2026-10-03T11:02:44Z",
+   "data": {
+    "round": 1,
+    "side": "blue",
+    "action": "reroute_exports",
+    "args": {
+     "port_id": "USLAX"
+    },
+    "actions": [
+     {
+      "action": "reroute_exports",
+      "args": {
+       "port_id": "USLAX"
+      }
+     }
+    ],
+    "branch_id": "400",
+    "parent_id": "399",
+    "label": "Reroute exports away from port USLAX (Port of Los Angeles)",
+    "rationale": "Rerouting exports from the closed Port of Los Angeles to other open ports will significantly reduce the current capability loss.",
+    "loss_pct": 8.6,
+    "abs_loss_pct": 8.6,
+    "llm_ms": 4486.3,
+    "db_ms": 3691.7,
+    "latency_ms": 8177.9,
+    "targets": [
+     {
+      "id": "294287",
+      "name": "Port of Los Angeles",
+      "kind": "port",
+      "lat": 33.73,
+      "lon": -118.26,
+      "status": null
+     }
+    ],
+    "arcs": [
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -79.985574,
+       40.474836
+      ],
+      "source_id": "294287",
+      "target_id": "298791",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -86.591021,
+       34.682
+      ],
+      "source_id": "294287",
+      "target_id": "298829",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -80.037479,
+       40.440587
+      ],
+      "source_id": "294287",
+      "target_id": "298830",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -79.96205,
+       40.422962
+      ],
+      "source_id": "294287",
+      "target_id": "298836",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -96.811547,
+       32.73957
+      ],
+      "source_id": "294287",
+      "target_id": "298842",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -96.849511,
+       32.758644
+      ],
+      "source_id": "294287",
+      "target_id": "298847",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -96.763203,
+       32.740824
+      ],
+      "source_id": "294287",
+      "target_id": "298852",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -97.307374,
+       37.645698
+      ],
+      "source_id": "294287",
+      "target_id": "298889",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -110.991423,
+       32.206072
+      ],
+      "source_id": "294287",
+      "target_id": "298903",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -86.62647,
+       34.747862
+      ],
+      "source_id": "294287",
+      "target_id": "298945",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -71.064704,
+       42.32181
+      ],
+      "source_id": "294287",
+      "target_id": "298950",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -112.084076,
+       33.444314
+      ],
+      "source_id": "294287",
+      "target_id": "298958",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -117.118486,
+       32.722915
+      ],
+      "source_id": "294287",
+      "target_id": "298959",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -79.981355,
+       40.444986
+      ],
+      "source_id": "294287",
+      "target_id": "298997",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -96.860487,
+       32.77035
+      ],
+      "source_id": "294287",
+      "target_id": "299005",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -97.391596,
+       37.715572
+      ],
+      "source_id": "294287",
+      "target_id": "299009",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -112.013777,
+       33.476093
+      ],
+      "source_id": "294287",
+      "target_id": "299010",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -80.033416,
+       40.434756
+      ],
+      "source_id": "294287",
+      "target_id": "299013",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -71.067306,
+       42.311994
+      ],
+      "source_id": "294287",
+      "target_id": "299016",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -117.12571,
+       32.757918
+      ],
+      "source_id": "294287",
+      "target_id": "299034",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -112.099774,
+       33.479734
+      ],
+      "source_id": "294287",
+      "target_id": "299052",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -117.204835,
+       32.683253
+      ],
+      "source_id": "294287",
+      "target_id": "299053",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -79.977927,
+       40.421539
+      ],
+      "source_id": "294287",
+      "target_id": "299054",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -112.015843,
+       33.469064
+      ],
+      "source_id": "294287",
+      "target_id": "299116",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -96.82191,
+       32.782579
+      ],
+      "source_id": "294287",
+      "target_id": "299118",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -117.139242,
+       32.711943
+      ],
+      "source_id": "294287",
+      "target_id": "299124",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -80.021059,
+       40.435817
+      ],
+      "source_id": "294287",
+      "target_id": "299126",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -112.023909,
+       33.467718
+      ],
+      "source_id": "294287",
+      "target_id": "299129",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -117.177294,
+       32.768791
+      ],
+      "source_id": "294287",
+      "target_id": "299153",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -97.319435,
+       37.72588
+      ],
+      "source_id": "294287",
+      "target_id": "299172",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -110.994484,
+       32.261805
+      ],
+      "source_id": "294287",
+      "target_id": "299174",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -117.16311,
+       32.68526
+      ],
+      "source_id": "294287",
+      "target_id": "299175",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -97.283738,
+       37.691373
+      ],
+      "source_id": "294287",
+      "target_id": "299241",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -112.043636,
+       33.456445
+      ],
+      "source_id": "294287",
+      "target_id": "299262",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -79.997253,
+       40.481988
+      ],
+      "source_id": "294287",
+      "target_id": "299276",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -96.831217,
+       32.798945
+      ],
+      "source_id": "294287",
+      "target_id": "299293",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -112.093359,
+       33.477002
+      ],
+      "source_id": "294287",
+      "target_id": "299298",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -80.013414,
+       40.398799
+      ],
+      "source_id": "294287",
+      "target_id": "299319",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -86.590702,
+       34.778239
+      ],
+      "source_id": "294287",
+      "target_id": "299415",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -110.929867,
+       32.181508
+      ],
+      "source_id": "294287",
+      "target_id": "299441",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -80.028672,
+       40.415418
+      ],
+      "source_id": "294287",
+      "target_id": "301112",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       35.030925,
+       32.774252
+      ],
+      "source_id": "294287",
+      "target_id": "301023",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       10.294351,
+       52.825599
+      ],
+      "source_id": "294287",
+      "target_id": "301218",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       23.751449,
+       61.510989
+      ],
+      "source_id": "294287",
+      "target_id": "302989",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       4.85783,
+       45.716763
+      ],
+      "source_id": "294287",
+      "target_id": "302270",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       8.917536,
+       44.44718
+      ],
+      "source_id": "294287",
+      "target_id": "301432",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       12.55338,
+       41.866319
+      ],
+      "source_id": "294287",
+      "target_id": "301137",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       128.655348,
+       35.263279
+      ],
+      "source_id": "294287",
+      "target_id": "301057",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       9.630805,
+       59.637254
+      ],
+      "source_id": "294287",
+      "target_id": "302997",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       8.945102,
+       44.446463
+      ],
+      "source_id": "294287",
+      "target_id": "301121",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -1.471211,
+       52.884767
+      ],
+      "source_id": "294287",
+      "target_id": "301900",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       14.464812,
+       59.351793
+      ],
+      "source_id": "294287",
+      "target_id": "301366",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       6.776688,
+       51.273895
+      ],
+      "source_id": "294287",
+      "target_id": "301015",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       16.647005,
+       49.2018
+      ],
+      "source_id": "294287",
+      "target_id": "301255",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -79.952521,
+       40.430835
+      ],
+      "source_id": "294287",
+      "target_id": "301054",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       135.728693,
+       34.998133
+      ],
+      "source_id": "294287",
+      "target_id": "302994",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -1.895784,
+       52.537606
+      ],
+      "source_id": "294287",
+      "target_id": "301460",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -111.016611,
+       32.222997
+      ],
+      "source_id": "294287",
+      "target_id": "300992",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       4.822924,
+       45.748378
+      ],
+      "source_id": "294287",
+      "target_id": "301233",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       19.884784,
+       50.058524
+      ],
+      "source_id": "294287",
+      "target_id": "301155",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -71.030567,
+       42.399415
+      ],
+      "source_id": "294287",
+      "target_id": "302818",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       15.681944,
+       58.385697
+      ],
+      "source_id": "294287",
+      "target_id": "301043",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -86.591372,
+       34.699493
+      ],
+      "source_id": "294287",
+      "target_id": "303012",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       10.681554,
+       59.869033
+      ],
+      "source_id": "294287",
+      "target_id": "301329",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       2.357976,
+       47.111382
+      ],
+      "source_id": "294287",
+      "target_id": "302839",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       22.027021,
+       50.566262
+      ],
+      "source_id": "294287",
+      "target_id": "301093",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -117.179898,
+       32.707373
+      ],
+      "source_id": "294287",
+      "target_id": "302256",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -79.93127,
+       40.440027
+      ],
+      "source_id": "294287",
+      "target_id": "301007",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       -4.236312,
+       55.822742
+      ],
+      "source_id": "294287",
+      "target_id": "302235",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       10.329433,
+       52.806006
+      ],
+      "source_id": "294287",
+      "target_id": "301250",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -118.26,
+       33.73
+      ],
+      "target": [
+       10.220655,
+       52.845695
+      ],
+      "source_id": "294287",
+      "target_id": "301383",
+      "hop": 1,
+      "rel": "RESTORED"
+     }
+    ],
+    "fallback": false,
+    "breakdown": {
+     "deep_pct": 11.5,
+     "legacy_pct": 0.0
+    }
+   }
+  },
+  {
+   "type": "round_done",
+   "t": 15.581,
+   "at": "2026-10-03T11:02:44Z",
+   "data": {
+    "round": 1,
+    "head": "400",
+    "loss_pct": 8.6,
+    "abs_loss_pct": 8.6,
+    "breakdown": {
+     "deep_pct": 11.5,
+     "legacy_pct": 0.0
+    }
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 15.582,
+   "at": "2026-10-03T11:02:44Z",
+   "data": {
+    "round": 2,
+    "side": "red",
+    "head": "400"
+   }
+  },
+  {
+   "type": "move",
+   "t": 22.257,
+   "at": "2026-10-03T11:02:51Z",
+   "data": {
+    "round": 2,
+    "side": "red",
+    "action": "facility_outage",
+    "args": {
+     "facility_id": "FAC02801"
+    },
+    "actions": [
+     {
+      "action": "facility_outage",
+      "args": {
+       "facility_id": "FAC02801"
+      }
+     }
+    ],
+    "branch_id": "401",
+    "parent_id": "400",
+    "label": "Outage at facility FAC02801 (Ulvane Volans Industries Ltd - Barrow)",
+    "rationale": "Targeting a single point of failure facility will maximize immediate impact and create lasting pressure.",
+    "loss_pct": 17.0,
+    "abs_loss_pct": 17.0,
+    "llm_ms": 4122.2,
+    "db_ms": 2551.4,
+    "latency_ms": 6673.6,
+    "targets": [
+     {
+      "id": "301846",
+      "name": "Ulvane Volans Industries Ltd - Barrow",
+      "kind": "facility",
+      "lat": 54.121382,
+      "lon": -3.255906,
+      "status": null
+     }
+    ],
+    "arcs": [
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       -80.028672,
+       40.415418
+      ],
+      "source_id": "301846",
+      "target_id": "301112",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       35.030925,
+       32.774252
+      ],
+      "source_id": "301846",
+      "target_id": "301023",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       10.294351,
+       52.825599
+      ],
+      "source_id": "301846",
+      "target_id": "301218",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       23.751449,
+       61.510989
+      ],
+      "source_id": "301846",
+      "target_id": "302989",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       4.85783,
+       45.716763
+      ],
+      "source_id": "301846",
+      "target_id": "302270",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       8.917536,
+       44.44718
+      ],
+      "source_id": "301846",
+      "target_id": "301432",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       12.55338,
+       41.866319
+      ],
+      "source_id": "301846",
+      "target_id": "301137",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       128.655348,
+       35.263279
+      ],
+      "source_id": "301846",
+      "target_id": "301057",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       9.630805,
+       59.637254
+      ],
+      "source_id": "301846",
+      "target_id": "302997",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       8.945102,
+       44.446463
+      ],
+      "source_id": "301846",
+      "target_id": "301121",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       -1.471211,
+       52.884767
+      ],
+      "source_id": "301846",
+      "target_id": "301900",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       14.464812,
+       59.351793
+      ],
+      "source_id": "301846",
+      "target_id": "301366",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       6.776688,
+       51.273895
+      ],
+      "source_id": "301846",
+      "target_id": "301015",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       135.728693,
+       34.998133
+      ],
+      "source_id": "301846",
+      "target_id": "302994",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       -1.895784,
+       52.537606
+      ],
+      "source_id": "301846",
+      "target_id": "301460",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       -111.016611,
+       32.222997
+      ],
+      "source_id": "301846",
+      "target_id": "300992",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       4.822924,
+       45.748378
+      ],
+      "source_id": "301846",
+      "target_id": "301233",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       19.884784,
+       50.058524
+      ],
+      "source_id": "301846",
+      "target_id": "301155",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       -71.030567,
+       42.399415
+      ],
+      "source_id": "301846",
+      "target_id": "302818",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       -86.591372,
+       34.699493
+      ],
+      "source_id": "301846",
+      "target_id": "303012",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       10.681554,
+       59.869033
+      ],
+      "source_id": "301846",
+      "target_id": "301329",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       2.357976,
+       47.111382
+      ],
+      "source_id": "301846",
+      "target_id": "302839",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       22.027021,
+       50.566262
+      ],
+      "source_id": "301846",
+      "target_id": "301093",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       -79.93127,
+       40.440027
+      ],
+      "source_id": "301846",
+      "target_id": "301007",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       -4.236312,
+       55.822742
+      ],
+      "source_id": "301846",
+      "target_id": "302235",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       10.329433,
+       52.806006
+      ],
+      "source_id": "301846",
+      "target_id": "301250",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       10.220655,
+       52.845695
+      ],
+      "source_id": "301846",
+      "target_id": "301383",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     }
+    ],
+    "fallback": false,
+    "breakdown": {
+     "deep_pct": 22.6,
+     "legacy_pct": 0.0
+    }
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 22.261,
+   "at": "2026-10-03T11:02:51Z",
+   "data": {
+    "round": 2,
+    "side": "blue",
+    "head": "401"
+   }
+  },
+  {
+   "type": "move",
+   "t": 31.488,
+   "at": "2026-10-03T11:03:00Z",
+   "data": {
+    "round": 2,
+    "side": "blue",
+    "action": "replace_facility",
+    "args": {
+     "facility_id": "FAC02801"
+    },
+    "actions": [
+     {
+      "action": "replace_facility",
+      "args": {
+       "facility_id": "FAC02801"
+      }
+     }
+    ],
+    "branch_id": "402",
+    "parent_id": "401",
+    "label": "Replace the production of facility FAC02801 (Ulvane Volans Industries Ltd - Barrow)",
+    "rationale": "Replacing the facility that was just hit will recover the most immediate loss.",
+    "loss_pct": 11.8,
+    "abs_loss_pct": 11.8,
+    "llm_ms": 5756.3,
+    "db_ms": 3468.5,
+    "latency_ms": 9224.8,
+    "targets": [
+     {
+      "id": "301846",
+      "name": "Ulvane Volans Industries Ltd - Barrow",
+      "kind": "facility",
+      "lat": 54.121382,
+      "lon": -3.255906,
+      "status": null
+     }
+    ],
+    "arcs": [
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       -80.028672,
+       40.415418
+      ],
+      "source_id": "301846",
+      "target_id": "301112",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       35.030925,
+       32.774252
+      ],
+      "source_id": "301846",
+      "target_id": "301023",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       10.294351,
+       52.825599
+      ],
+      "source_id": "301846",
+      "target_id": "301218",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       23.751449,
+       61.510989
+      ],
+      "source_id": "301846",
+      "target_id": "302989",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       4.85783,
+       45.716763
+      ],
+      "source_id": "301846",
+      "target_id": "302270",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       8.917536,
+       44.44718
+      ],
+      "source_id": "301846",
+      "target_id": "301432",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       12.55338,
+       41.866319
+      ],
+      "source_id": "301846",
+      "target_id": "301137",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       128.655348,
+       35.263279
+      ],
+      "source_id": "301846",
+      "target_id": "301057",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       9.630805,
+       59.637254
+      ],
+      "source_id": "301846",
+      "target_id": "302997",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       8.945102,
+       44.446463
+      ],
+      "source_id": "301846",
+      "target_id": "301121",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       -1.471211,
+       52.884767
+      ],
+      "source_id": "301846",
+      "target_id": "301900",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       14.464812,
+       59.351793
+      ],
+      "source_id": "301846",
+      "target_id": "301366",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       6.776688,
+       51.273895
+      ],
+      "source_id": "301846",
+      "target_id": "301015",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       135.728693,
+       34.998133
+      ],
+      "source_id": "301846",
+      "target_id": "302994",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       -1.895784,
+       52.537606
+      ],
+      "source_id": "301846",
+      "target_id": "301460",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       -111.016611,
+       32.222997
+      ],
+      "source_id": "301846",
+      "target_id": "300992",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       4.822924,
+       45.748378
+      ],
+      "source_id": "301846",
+      "target_id": "301233",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       19.884784,
+       50.058524
+      ],
+      "source_id": "301846",
+      "target_id": "301155",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       -71.030567,
+       42.399415
+      ],
+      "source_id": "301846",
+      "target_id": "302818",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       -86.591372,
+       34.699493
+      ],
+      "source_id": "301846",
+      "target_id": "303012",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       10.681554,
+       59.869033
+      ],
+      "source_id": "301846",
+      "target_id": "301329",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       2.357976,
+       47.111382
+      ],
+      "source_id": "301846",
+      "target_id": "302839",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       22.027021,
+       50.566262
+      ],
+      "source_id": "301846",
+      "target_id": "301093",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       -79.93127,
+       40.440027
+      ],
+      "source_id": "301846",
+      "target_id": "301007",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       -4.236312,
+       55.822742
+      ],
+      "source_id": "301846",
+      "target_id": "302235",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       10.329433,
+       52.806006
+      ],
+      "source_id": "301846",
+      "target_id": "301250",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -3.255906,
+       54.121382
+      ],
+      "target": [
+       10.220655,
+       52.845695
+      ],
+      "source_id": "301846",
+      "target_id": "301383",
+      "hop": 1,
+      "rel": "RESTORED"
+     }
+    ],
+    "fallback": false,
+    "breakdown": {
+     "deep_pct": 15.8,
+     "legacy_pct": 0.0
+    }
+   }
+  },
+  {
+   "type": "round_done",
+   "t": 31.501,
+   "at": "2026-10-03T11:03:00Z",
+   "data": {
+    "round": 2,
+    "head": "402",
+    "loss_pct": 11.8,
+    "abs_loss_pct": 11.8,
+    "breakdown": {
+     "deep_pct": 15.8,
+     "legacy_pct": 0.0
+    }
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 31.503,
+   "at": "2026-10-03T11:03:00Z",
+   "data": {
+    "round": 3,
+    "side": "red",
+    "head": "402"
+   }
+  },
+  {
+   "type": "move",
+   "t": 39.071,
+   "at": "2026-10-03T11:03:08Z",
+   "data": {
+    "round": 3,
+    "side": "red",
+    "action": "close_port",
+    "args": {
+     "port_id": "USHOU"
+    },
+    "actions": [
+     {
+      "action": "close_port",
+      "args": {
+       "port_id": "USHOU"
+      }
+     }
+    ],
+    "branch_id": "403",
+    "parent_id": "402",
+    "label": "Close port USHOU (Port of Houston)",
+    "rationale": "Targeting the Port of Houston will disrupt a significant number of exporters and add substantial capability loss.",
+    "loss_pct": 28.0,
+    "abs_loss_pct": 28.0,
+    "llm_ms": 5014.8,
+    "db_ms": 2549.4,
+    "latency_ms": 7564.2,
+    "targets": [
+     {
+      "id": "294288",
+      "name": "Port of Houston",
+      "kind": "port",
+      "lat": 29.73,
+      "lon": -95.27,
+      "status": null
+     }
+    ],
+    "arcs": [
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -71.087207,
+       42.3267
+      ],
+      "source_id": "294288",
+      "target_id": "298788",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -79.985574,
+       40.474836
+      ],
+      "source_id": "294288",
+      "target_id": "298791",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.194384,
+       32.697034
+      ],
+      "source_id": "294288",
+      "target_id": "298793",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -79.96205,
+       40.422962
+      ],
+      "source_id": "294288",
+      "target_id": "298836",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -96.763203,
+       32.740824
+      ],
+      "source_id": "294288",
+      "target_id": "298852",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -86.610035,
+       34.712123
+      ],
+      "source_id": "294288",
+      "target_id": "298905",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -79.977194,
+       40.4395
+      ],
+      "source_id": "294288",
+      "target_id": "298919",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -71.07323,
+       42.360018
+      ],
+      "source_id": "294288",
+      "target_id": "298921",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -79.974455,
+       40.435584
+      ],
+      "source_id": "294288",
+      "target_id": "298930",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -86.62647,
+       34.747862
+      ],
+      "source_id": "294288",
+      "target_id": "298945",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.199617,
+       32.758399
+      ],
+      "source_id": "294288",
+      "target_id": "298954",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -86.546145,
+       34.753736
+      ],
+      "source_id": "294288",
+      "target_id": "298956",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.118486,
+       32.722915
+      ],
+      "source_id": "294288",
+      "target_id": "298959",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.126988,
+       32.687096
+      ],
+      "source_id": "294288",
+      "target_id": "298969",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -110.938817,
+       32.25322
+      ],
+      "source_id": "294288",
+      "target_id": "298984",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.168131,
+       32.768533
+      ],
+      "source_id": "294288",
+      "target_id": "298986",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -86.636106,
+       34.700901
+      ],
+      "source_id": "294288",
+      "target_id": "298994",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -97.391596,
+       37.715572
+      ],
+      "source_id": "294288",
+      "target_id": "299009",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -97.339182,
+       37.66487
+      ],
+      "source_id": "294288",
+      "target_id": "299012",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -71.067306,
+       42.311994
+      ],
+      "source_id": "294288",
+      "target_id": "299016",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -110.956554,
+       32.18623
+      ],
+      "source_id": "294288",
+      "target_id": "299036",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.194102,
+       32.687877
+      ],
+      "source_id": "294288",
+      "target_id": "299041",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.204835,
+       32.683253
+      ],
+      "source_id": "294288",
+      "target_id": "299053",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -112.1015,
+       33.4746
+      ],
+      "source_id": "294288",
+      "target_id": "299062",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -97.334783,
+       37.63785
+      ],
+      "source_id": "294288",
+      "target_id": "299073",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -110.95144,
+       32.193113
+      ],
+      "source_id": "294288",
+      "target_id": "299074",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -86.539911,
+       34.753504
+      ],
+      "source_id": "294288",
+      "target_id": "299081",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -97.356616,
+       37.663399
+      ],
+      "source_id": "294288",
+      "target_id": "299094",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -112.027788,
+       33.417437
+      ],
+      "source_id": "294288",
+      "target_id": "299097",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -110.923283,
+       32.211922
+      ],
+      "source_id": "294288",
+      "target_id": "299101",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -96.82191,
+       32.782579
+      ],
+      "source_id": "294288",
+      "target_id": "299118",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -112.023909,
+       33.467718
+      ],
+      "source_id": "294288",
+      "target_id": "299129",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -110.959589,
+       32.180209
+      ],
+      "source_id": "294288",
+      "target_id": "299137",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -97.341613,
+       37.739501
+      ],
+      "source_id": "294288",
+      "target_id": "299161",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -110.994484,
+       32.261805
+      ],
+      "source_id": "294288",
+      "target_id": "299174",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -80.034704,
+       40.399934
+      ],
+      "source_id": "294288",
+      "target_id": "299192",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -97.381612,
+       37.7015
+      ],
+      "source_id": "294288",
+      "target_id": "299196",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.191311,
+       32.726123
+      ],
+      "source_id": "294288",
+      "target_id": "299218",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.114646,
+       32.746357
+      ],
+      "source_id": "294288",
+      "target_id": "299240",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -112.043636,
+       33.456445
+      ],
+      "source_id": "294288",
+      "target_id": "299262",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -80.028672,
+       40.415418
+      ],
+      "source_id": "294288",
+      "target_id": "301112",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       35.030925,
+       32.774252
+      ],
+      "source_id": "294288",
+      "target_id": "301023",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       10.294351,
+       52.825599
+      ],
+      "source_id": "294288",
+      "target_id": "301218",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       23.751449,
+       61.510989
+      ],
+      "source_id": "294288",
+      "target_id": "302989",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       4.85783,
+       45.716763
+      ],
+      "source_id": "294288",
+      "target_id": "302270",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       8.917536,
+       44.44718
+      ],
+      "source_id": "294288",
+      "target_id": "301432",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       12.55338,
+       41.866319
+      ],
+      "source_id": "294288",
+      "target_id": "301137",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       128.655348,
+       35.263279
+      ],
+      "source_id": "294288",
+      "target_id": "301057",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       9.630805,
+       59.637254
+      ],
+      "source_id": "294288",
+      "target_id": "302997",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       8.945102,
+       44.446463
+      ],
+      "source_id": "294288",
+      "target_id": "301121",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -1.471211,
+       52.884767
+      ],
+      "source_id": "294288",
+      "target_id": "301900",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       14.464812,
+       59.351793
+      ],
+      "source_id": "294288",
+      "target_id": "301366",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       6.776688,
+       51.273895
+      ],
+      "source_id": "294288",
+      "target_id": "301015",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       16.647005,
+       49.2018
+      ],
+      "source_id": "294288",
+      "target_id": "301255",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -79.952521,
+       40.430835
+      ],
+      "source_id": "294288",
+      "target_id": "301054",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       135.728693,
+       34.998133
+      ],
+      "source_id": "294288",
+      "target_id": "302994",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -1.895784,
+       52.537606
+      ],
+      "source_id": "294288",
+      "target_id": "301460",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -111.016611,
+       32.222997
+      ],
+      "source_id": "294288",
+      "target_id": "300992",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       4.822924,
+       45.748378
+      ],
+      "source_id": "294288",
+      "target_id": "301233",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       19.884784,
+       50.058524
+      ],
+      "source_id": "294288",
+      "target_id": "301155",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -71.030567,
+       42.399415
+      ],
+      "source_id": "294288",
+      "target_id": "302818",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       15.681944,
+       58.385697
+      ],
+      "source_id": "294288",
+      "target_id": "301043",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -86.591372,
+       34.699493
+      ],
+      "source_id": "294288",
+      "target_id": "303012",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       10.681554,
+       59.869033
+      ],
+      "source_id": "294288",
+      "target_id": "301329",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       2.357976,
+       47.111382
+      ],
+      "source_id": "294288",
+      "target_id": "302839",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       22.027021,
+       50.566262
+      ],
+      "source_id": "294288",
+      "target_id": "301093",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.179898,
+       32.707373
+      ],
+      "source_id": "294288",
+      "target_id": "302256",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -79.93127,
+       40.440027
+      ],
+      "source_id": "294288",
+      "target_id": "301007",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -4.236312,
+       55.822742
+      ],
+      "source_id": "294288",
+      "target_id": "302235",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       10.329433,
+       52.806006
+      ],
+      "source_id": "294288",
+      "target_id": "301250",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       10.220655,
+       52.845695
+      ],
+      "source_id": "294288",
+      "target_id": "301383",
+      "hop": 1,
+      "rel": "DEPENDS_ON"
+     }
+    ],
+    "fallback": false,
+    "breakdown": {
+     "deep_pct": 37.3,
+     "legacy_pct": 0.0
+    }
+   }
+  },
+  {
+   "type": "move_started",
+   "t": 39.074,
+   "at": "2026-10-03T11:03:08Z",
+   "data": {
+    "round": 3,
+    "side": "blue",
+    "head": "403"
+   }
+  },
+  {
+   "type": "move",
+   "t": 46.926,
+   "at": "2026-10-03T11:03:16Z",
+   "data": {
+    "round": 3,
+    "side": "blue",
+    "action": "reroute_exports",
+    "args": {
+     "port_id": "USHOU"
+    },
+    "actions": [
+     {
+      "action": "reroute_exports",
+      "args": {
+       "port_id": "USHOU"
+      }
+     }
+    ],
+    "branch_id": "404",
+    "parent_id": "403",
+    "label": "Reroute exports away from port USHOU (Port of Houston)",
+    "rationale": "Rerouting exports from the recently closed Port of Houston will significantly reduce the current capability loss.",
+    "loss_pct": 12.7,
+    "abs_loss_pct": 12.7,
+    "llm_ms": 3701.2,
+    "db_ms": 4148.3,
+    "latency_ms": 7849.5,
+    "targets": [
+     {
+      "id": "294288",
+      "name": "Port of Houston",
+      "kind": "port",
+      "lat": 29.73,
+      "lon": -95.27,
+      "status": null
+     }
+    ],
+    "arcs": [
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -71.087207,
+       42.3267
+      ],
+      "source_id": "294288",
+      "target_id": "298788",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -79.985574,
+       40.474836
+      ],
+      "source_id": "294288",
+      "target_id": "298791",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.194384,
+       32.697034
+      ],
+      "source_id": "294288",
+      "target_id": "298793",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -79.96205,
+       40.422962
+      ],
+      "source_id": "294288",
+      "target_id": "298836",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -96.763203,
+       32.740824
+      ],
+      "source_id": "294288",
+      "target_id": "298852",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -86.610035,
+       34.712123
+      ],
+      "source_id": "294288",
+      "target_id": "298905",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -79.977194,
+       40.4395
+      ],
+      "source_id": "294288",
+      "target_id": "298919",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -71.07323,
+       42.360018
+      ],
+      "source_id": "294288",
+      "target_id": "298921",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -79.974455,
+       40.435584
+      ],
+      "source_id": "294288",
+      "target_id": "298930",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -86.62647,
+       34.747862
+      ],
+      "source_id": "294288",
+      "target_id": "298945",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.199617,
+       32.758399
+      ],
+      "source_id": "294288",
+      "target_id": "298954",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -86.546145,
+       34.753736
+      ],
+      "source_id": "294288",
+      "target_id": "298956",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.118486,
+       32.722915
+      ],
+      "source_id": "294288",
+      "target_id": "298959",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.126988,
+       32.687096
+      ],
+      "source_id": "294288",
+      "target_id": "298969",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -110.938817,
+       32.25322
+      ],
+      "source_id": "294288",
+      "target_id": "298984",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.168131,
+       32.768533
+      ],
+      "source_id": "294288",
+      "target_id": "298986",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -86.636106,
+       34.700901
+      ],
+      "source_id": "294288",
+      "target_id": "298994",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -97.391596,
+       37.715572
+      ],
+      "source_id": "294288",
+      "target_id": "299009",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -97.339182,
+       37.66487
+      ],
+      "source_id": "294288",
+      "target_id": "299012",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -71.067306,
+       42.311994
+      ],
+      "source_id": "294288",
+      "target_id": "299016",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -110.956554,
+       32.18623
+      ],
+      "source_id": "294288",
+      "target_id": "299036",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.194102,
+       32.687877
+      ],
+      "source_id": "294288",
+      "target_id": "299041",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.204835,
+       32.683253
+      ],
+      "source_id": "294288",
+      "target_id": "299053",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -112.1015,
+       33.4746
+      ],
+      "source_id": "294288",
+      "target_id": "299062",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -97.334783,
+       37.63785
+      ],
+      "source_id": "294288",
+      "target_id": "299073",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -110.95144,
+       32.193113
+      ],
+      "source_id": "294288",
+      "target_id": "299074",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -86.539911,
+       34.753504
+      ],
+      "source_id": "294288",
+      "target_id": "299081",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -97.356616,
+       37.663399
+      ],
+      "source_id": "294288",
+      "target_id": "299094",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -112.027788,
+       33.417437
+      ],
+      "source_id": "294288",
+      "target_id": "299097",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -110.923283,
+       32.211922
+      ],
+      "source_id": "294288",
+      "target_id": "299101",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -96.82191,
+       32.782579
+      ],
+      "source_id": "294288",
+      "target_id": "299118",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -112.023909,
+       33.467718
+      ],
+      "source_id": "294288",
+      "target_id": "299129",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -110.959589,
+       32.180209
+      ],
+      "source_id": "294288",
+      "target_id": "299137",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -97.341613,
+       37.739501
+      ],
+      "source_id": "294288",
+      "target_id": "299161",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -110.994484,
+       32.261805
+      ],
+      "source_id": "294288",
+      "target_id": "299174",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -80.034704,
+       40.399934
+      ],
+      "source_id": "294288",
+      "target_id": "299192",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -97.381612,
+       37.7015
+      ],
+      "source_id": "294288",
+      "target_id": "299196",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.191311,
+       32.726123
+      ],
+      "source_id": "294288",
+      "target_id": "299218",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.114646,
+       32.746357
+      ],
+      "source_id": "294288",
+      "target_id": "299240",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -112.043636,
+       33.456445
+      ],
+      "source_id": "294288",
+      "target_id": "299262",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -80.028672,
+       40.415418
+      ],
+      "source_id": "294288",
+      "target_id": "301112",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       35.030925,
+       32.774252
+      ],
+      "source_id": "294288",
+      "target_id": "301023",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       10.294351,
+       52.825599
+      ],
+      "source_id": "294288",
+      "target_id": "301218",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       23.751449,
+       61.510989
+      ],
+      "source_id": "294288",
+      "target_id": "302989",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       4.85783,
+       45.716763
+      ],
+      "source_id": "294288",
+      "target_id": "302270",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       8.917536,
+       44.44718
+      ],
+      "source_id": "294288",
+      "target_id": "301432",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       12.55338,
+       41.866319
+      ],
+      "source_id": "294288",
+      "target_id": "301137",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       128.655348,
+       35.263279
+      ],
+      "source_id": "294288",
+      "target_id": "301057",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       9.630805,
+       59.637254
+      ],
+      "source_id": "294288",
+      "target_id": "302997",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       8.945102,
+       44.446463
+      ],
+      "source_id": "294288",
+      "target_id": "301121",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -1.471211,
+       52.884767
+      ],
+      "source_id": "294288",
+      "target_id": "301900",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       14.464812,
+       59.351793
+      ],
+      "source_id": "294288",
+      "target_id": "301366",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       6.776688,
+       51.273895
+      ],
+      "source_id": "294288",
+      "target_id": "301015",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       16.647005,
+       49.2018
+      ],
+      "source_id": "294288",
+      "target_id": "301255",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -79.952521,
+       40.430835
+      ],
+      "source_id": "294288",
+      "target_id": "301054",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       135.728693,
+       34.998133
+      ],
+      "source_id": "294288",
+      "target_id": "302994",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -1.895784,
+       52.537606
+      ],
+      "source_id": "294288",
+      "target_id": "301460",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -111.016611,
+       32.222997
+      ],
+      "source_id": "294288",
+      "target_id": "300992",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       4.822924,
+       45.748378
+      ],
+      "source_id": "294288",
+      "target_id": "301233",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       19.884784,
+       50.058524
+      ],
+      "source_id": "294288",
+      "target_id": "301155",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -71.030567,
+       42.399415
+      ],
+      "source_id": "294288",
+      "target_id": "302818",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       15.681944,
+       58.385697
+      ],
+      "source_id": "294288",
+      "target_id": "301043",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -86.591372,
+       34.699493
+      ],
+      "source_id": "294288",
+      "target_id": "303012",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       10.681554,
+       59.869033
+      ],
+      "source_id": "294288",
+      "target_id": "301329",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       2.357976,
+       47.111382
+      ],
+      "source_id": "294288",
+      "target_id": "302839",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       22.027021,
+       50.566262
+      ],
+      "source_id": "294288",
+      "target_id": "301093",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -117.179898,
+       32.707373
+      ],
+      "source_id": "294288",
+      "target_id": "302256",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -79.93127,
+       40.440027
+      ],
+      "source_id": "294288",
+      "target_id": "301007",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       -4.236312,
+       55.822742
+      ],
+      "source_id": "294288",
+      "target_id": "302235",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       10.329433,
+       52.806006
+      ],
+      "source_id": "294288",
+      "target_id": "301250",
+      "hop": 1,
+      "rel": "RESTORED"
+     },
+     {
+      "source": [
+       -95.27,
+       29.73
+      ],
+      "target": [
+       10.220655,
+       52.845695
+      ],
+      "source_id": "294288",
+      "target_id": "301383",
+      "hop": 1,
+      "rel": "RESTORED"
+     }
+    ],
+    "fallback": false,
+    "breakdown": {
+     "deep_pct": 16.9,
+     "legacy_pct": 0.0
+    }
+   }
+  },
+  {
+   "type": "round_done",
+   "t": 46.938,
+   "at": "2026-10-03T11:03:16Z",
+   "data": {
+    "round": 3,
+    "head": "404",
+    "loss_pct": 12.7,
+    "abs_loss_pct": 12.7,
+    "breakdown": {
+     "deep_pct": 16.9,
+     "legacy_pct": 0.0
+    }
+   }
+  },
+  {
+   "type": "match_done",
+   "t": 46.94,
+   "at": "2026-10-03T11:03:16Z",
+   "data": {
+    "status": "done",
+    "summary": {
+     "match_id": "56dd494f",
+     "status": "done",
+     "base_branch": "main",
+     "head": "404",
+     "rounds_played": 3,
+     "base_loss_pct": 0.0,
+     "final_loss_pct": 12.7,
+     "red_moves": 3,
+     "blue_moves": 3,
+     "injects": 0,
+     "fallbacks": 0,
+     "llm_ms": 26827.0,
+     "db_ms": 17672.8,
+     "file": "56dd494f"
+    }
+   }
+  }
+ ],
+ "summary": {
+  "match_id": "56dd494f",
+  "status": "done",
+  "base_branch": "main",
+  "head": "404",
+  "rounds_played": 3,
+  "base_loss_pct": 0.0,
+  "final_loss_pct": 12.7,
+  "red_moves": 3,
+  "blue_moves": 3,
+  "injects": 0,
+  "fallbacks": 0,
+  "llm_ms": 26827.0,
+  "db_ms": 17672.8,
+  "file": "56dd494f"
+ }
+}

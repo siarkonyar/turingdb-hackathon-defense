@@ -9,7 +9,7 @@ from api.models import (BranchesResponse, DiffResponse, MetaResponse, Neighbours
 from api.refs import BBox, Ref
 
 NEIGHBOUR_CAP = 40  # nodes listed per relationship group in the drawer
-NODE_KINDS = ("plant", "site", "supplier", "drone", "crime", "report", "part")
+NODE_KINDS = ("plant", "site", "supplier", "drone", "crime", "report", "part", "facility", "port", "chokepoint")
 
 
 class Backend(Protocol):

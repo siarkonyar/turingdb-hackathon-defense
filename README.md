@@ -4,7 +4,7 @@
 
 A ready-to-run pack of **graph datasets for the EDTH hackathon**, built on
 [**TuringDB**](https://turing.bio). Clone this repo, point a TuringDB server at it, and you
-have six domain graphs - supply chain, logistics risk, drone-swarm telemetry, global power
+have seven domain graphs - supply chain, a deep multi-tier defense supply chain, logistics risk, drone-swarm telemetry, global power
 infrastructure, POLE crime investigation, and a cyber attack-scenario knowledge base -
 loadable and queryable in seconds, plus a browser visualizer.
 
@@ -54,12 +54,18 @@ which is exactly what this repo ships.
 | Graph | Domain | Nodes | Edges | Docs |
 |---|---|--:|--:|---|
 | `supply_chain` | Aerospace / defense supply chain (parts, suppliers, POs, quality incidents) | 30,380 | 90,402 | [docs/supply_chain.md](docs/supply_chain.md) |
+| `supply_chain_deep` | **Deep** multi-tier defense supply chain (platform → BOM → minerals, supplier network, ownership chains, sea lanes & chokepoints, shipments, real disruptions) - 5-12 hop queries | 132,834 | 763,831 | [docs/supply_chain_deep.md](docs/supply_chain_deep.md) |
 | `logistics_risk` | Supply-chain **risk** & performance indicators (shipments, suppliers, countries, risk class) | 117,718 | 233,242 | [docs/logistics_risk.md](docs/logistics_risk.md) |
 | `drone_swarm` | Drone-swarm coordination telemetry (positions, battery, formation, mission, trajectories) | 21,028 | 99,980 | [docs/drone_swarm.md](docs/drone_swarm.md) |
 | `power_plants` | Global power infrastructure (plants, fuels, owners, countries, plants within 10 km) | 45,262 | 149,218 | [docs/power_plants.md](docs/power_plants.md) |
 | `poledb` | POLE crime investigation (people, associates, crimes, officers, vehicles, phone calls, locations) | 61,521 | 105,840 | [docs/poledb.md](docs/poledb.md) |
 | `attack_scenarios` | Cyber attack knowledge base (scenarios → MITRE ATT&CK techniques, tools, categories) | 18,354 | 60,014 | [docs/attack_scenarios.md](docs/attack_scenarios.md) |
-| `theatre` | All six fused into one operating picture, with synthetic sites, bridges and intel `Report` nodes | 294,200 | 845,561 | [docs/theatre.md](docs/theatre.md) |
+| `theatre` | All seven fused into one operating picture (incl. `supply_chain_deep`), with synthetic sites, bridges and intel `Report` nodes. Generated: `uv run python fusion/build_theatre.py` | 426,969 | 1,621,798 | [docs/theatre.md](docs/theatre.md) |
+
+The isolated **London–Dover–Paris demo** is generated independently of those graphs:
+`.venv/bin/python scripts/run_dover_demo.py` (map on port 5174). It has 6,095 synthetic nodes,
+23,914 edges and 12-degree supply cascades. Schema, assumptions, scenarios and the future-agent
+contract are in [docs/dover.md](docs/dover.md). No worldwide data is imported into `dover`.
 
 ---
 
@@ -71,6 +77,10 @@ These graphs are picked for **defense, resilience, and intelligence** scenarios:
   order or a quality defect back through the part to every affected site; find where high-risk
   shipments concentrate by supplier, product, and country; quantify supplier reliability
   (on-time-in-full) and single-source risk.
+- **Deep, multi-tier dependency analysis** (`supply_chain_deep`) - follow a platform through 8
+  levels of bill of materials to the mines and countries behind it; trace mine-to-prime supplier
+  chains; unmask foreign or sanctioned ultimate owners behind holding companies; measure the
+  impact of Red Sea reroutes, chokepoint closures and export controls on shipments.
 - **Critical-infrastructure mapping** (`power_plants`) - map generation capacity by country
   and fuel; identify ownership concentration and fuel-dependency for energy-security analysis;
   use `NEAR` edges (plants within 10 km) to find co-located clusters and cross-border neighbours
@@ -95,12 +105,15 @@ The only thing you need is a Python package manager - we recommend [`uv`](https:
 Installing the `turingdb` package gives you **both** the `turingdb` CLI (on your `PATH`) and the
 Python SDK (as a library) - there's nothing else to install separately.
 
+This repo is already a `uv` project pinned to `turingdb==3.0` (see [`pyproject.toml`](pyproject.toml)),
+so `uv sync` (or any `uv run ...`) installs everything. For a project of your own:
+
 ```bash
 uv init my-project
-uv add turingdb
+uv add "turingdb==3.0"
 ```
 
-(Or with pip: `pip install turingdb`.)
+(Or with pip: `pip install "turingdb==3.0"`.)
 
 ---
 
@@ -108,16 +121,15 @@ uv add turingdb
 
 ### 1. Start the server pointed at this repo
 
-The repo root **is** a TuringDB "turing-dir" (it contains a `graphs/` store). Clone it, make it
-your own project with `uv`, and start the server with the visualizer enabled:
+The repo root **is** a TuringDB "turing-dir" (it contains a `graphs/` store) and a `uv` project.
+Clone it, install the pinned dependencies, and start the server with the visualizer enabled:
 
 ```bash
 git clone https://github.com/turing-db/turingdb-hackathon-defense.git
 cd turingdb-hackathon-defense
 rm -rf .git                 # so you can start your own git repo in the cloned directory
 
-uv init .
-uv add turingdb
+uv sync                     # installs turingdb==3.0 (CLI + SDK) into .venv
 uv run turingdb start -turing-dir "$(pwd)" -ui   # look for graphs in the current dir, start the visualizer UI
 ```
 
@@ -193,10 +205,11 @@ Then start a Claude Code session and type `/turingdb` followed by what you want 
 ### 4. OpsMap - the operating picture
 
 `ui/` + `api/` put the `theatre` graph on a map: strike simulation with cascade arcs, branch
-diff, competing intel hypotheses and time replay, with TuringDB query latency on screen.
+diff and competing intel hypotheses, with TuringDB query latency on screen.
 
 ```bash
-uv run turingdb start -turing-dir "$(pwd)" -demon -in-memory -load theatre -start-timeout 20000
+uv run python fusion/build_theatre.py && uv run turingdb stop -turing-dir "$(pwd)"   # once (~2 min)
+uv run turingdb start -turing-dir "$(pwd)" -demon -in-memory -load theatre -start-timeout 60000
 OPSMAP_BACKEND=turingdb uv run python -m api.seed_hypotheses
 OPSMAP_BACKEND=turingdb uv run uvicorn api.main:app --port 8000
 npm --prefix ui install && npm --prefix ui run dev     # http://localhost:5173
@@ -206,6 +219,28 @@ Drop `OPSMAP_BACKEND=turingdb` to run on the bundled mock fixtures without a ser
 [ui/README.md](ui/README.md) and the API contract in [docs/api.md](docs/api.md).
 
 ![OpsMap strike simulation](docs/opsmap-strike.png)
+
+### 5. Agents - TuringDB branches as the search space
+
+Three LLM agents (powered by [Featherless AI](https://featherless.ai)) use TuringDB **branches as their
+search space**: every strategy or scenario is explored in its own change, evaluated from graph state, and
+kept for comparison by diff - `main` is never touched. They run unattended; a supervisor starts and heals
+the server, so nothing has to be shut down by hand.
+
+- **Threat** - finds the disruptions that cause the most supply-chain loss for the fewest attacks.
+- **Defence** - tests countermeasures (backup supplier, alternative route, power feed, air-defence) against
+  the worst threat branch and proves the loss reduction with a diff.
+- **Scenario** - answers a natural-language disaster question ("a catastrophic event has destroyed everything
+  across Manchester...") by generating Cypher, simulating it in a branch, and driving the map.
+
+```bash
+export FEATHERLESS_API_KEY=...        # already set as an environment secret here
+uv run python -m agents.orchestrator                       # threat -> defence, with the comparison
+uv run python -m agents.orchestrator --scenario "A catastrophic event has destroyed everything across Manchester..."
+```
+
+In the OpsMap UI (live backend) the agent branches appear in the branch switcher and the **Scenario** button
+runs the scenario agent and visualises the result on the map. Full write-up: [docs/agents.md](docs/agents.md).
 
 ---
 
@@ -224,7 +259,8 @@ turingdb-hackathon-defense/  ← repo root (point -turing-dir here)
 │   ├── attack_scenarios/
 │   └── theatre/         ← all six fused (built by fusion/)
 ├── fusion/              ← builds `theatre`, its queries and versioning demo
-├── api/                 ← OpsMap FastAPI backend (TuringDB or mock fixtures)
+├── agents/              ← threat / defence / scenario LLM agents (Featherless + TuringDB branches)
+├── api/                 ← OpsMap FastAPI backend (TuringDB or mock fixtures; mounts /agent/*)
 ├── ui/                  ← OpsMap map UI (Vite + React + MapLibre + deck.gl)
 ├── docs/                ← per-dataset schema, queries, licensing; api.md (OpsMap API)
 │   ├── supply_chain.md
@@ -248,6 +284,7 @@ doc. Summary:
 | Graph | Source license |
 |---|---|
 | `supply_chain` | MIT (synthetic data) |
+| `supply_chain_deep` | MIT (synthetic data; generator in [`scripts/`](scripts/)) |
 | `logistics_risk` | Apache-2.0 |
 | `drone_swarm` | CC BY 4.0 |
 | `power_plants` | CC BY 4.0 (WRI Global Power Plant Database) |

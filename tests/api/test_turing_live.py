@@ -92,3 +92,37 @@ def test_invalid_ids_never_reach_cypher(live: TuringBackend):
 def test_unknown_branch_cannot_be_discarded(live: TuringBackend):
     with pytest.raises((NotFound, Conflict)):
         live.discard("999999")
+
+
+def test_deep_facilities_and_ports_are_served_and_strikable(live: TuringBackend):
+    facilities = live.nodes(Ref("main"), ("facility",), None).nodes
+    ports = live.nodes(Ref("main"), ("port",), None).nodes
+    assert len(facilities) == 4404 and len(ports) == 71
+    assert all(n.lat is not None and n.kind == "facility" for n in facilities)
+    # a facility that supplies others: its buyers are put at risk through SUPPLIES
+    struck = None
+    for node in facilities[:300]:
+        result = live.simulate(node.id, Ref("main"))
+        if any(a.via == "SUPPLIES" for a in result.affected):
+            struck = result
+            break
+        live.discard(result.branch)
+    assert struck is not None, "no facility in the sample cascades to a buyer"
+    try:
+        assert struck.struck.status == "lost" and struck.arcs
+        diff = live.diff(Ref("main"), Ref(struck.branch))
+        assert [n.kind for n in diff.removed] == ["facility"]
+    finally:
+        live.discard(struck.branch)
+
+
+def test_port_strike_reaches_exporting_facilities(live: TuringBackend):
+    port = next(n for n in live.nodes(Ref("main"), ("port",), None).nodes if "Rotterdam" in n.name)
+    result = live.simulate(port.id, Ref("main"))
+    try:
+        assert result.struck.kind == "port" and result.struck.status == "lost"
+        first = [a for a in result.affected if a.hop == 1]
+        assert first and all(a.via == "SHIPS_VIA" and a.node.kind == "facility" for a in first)
+        assert any(a.via == "SUPPLIES" for a in result.affected)  # then on to their buyers
+    finally:
+        live.discard(result.branch)

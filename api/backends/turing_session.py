@@ -15,7 +15,8 @@ from api.nodes import make_node
 from api.refs import Ref
 from api.support import ApiError, BackendUnavailable, NotFound, Stopwatch
 
-ID_CHUNK = 400  # ids per `WHERE n = a OR n = b ...` clause
+ID_CHUNK = 200  # ids per `WHERE n = a OR n = b ...` clause (3.0 rejects expressions nested > 256 deep;
+#                 OR chains are id lookups, far faster than `n IN [...]`, which scans)
 _NODE_ID = re.compile(r"^\d{1,12}$")
 _HEAD = re.compile(r"\(HEAD\)$")
 
@@ -71,6 +72,11 @@ class Session:
         self.sw.record(cypher, self.client.get_query_exec_time())
         return frame
 
+    def refresh_schema(self) -> None:
+        """Forget cached labels / property names (a write in this session may have created new ones)."""
+        self.__dict__.pop("labels", None)
+        self.__dict__.pop("property_types", None)
+
     @cached_property
     def labels(self) -> frozenset[str]:
         return frozenset(self.q("CALL db.labels()")["label"].astype(str))
@@ -108,5 +114,13 @@ class Session:
                 continue
             seen.add(nid)
             props = {c[len(prefix):]: row[c] for c in prop_cols}
-            out.append(make_node(nid, str(row[label_col]) if label_col else (label or "Node"), props))
+            out.append(make_node(nid, first_label(row[label_col]) if label_col else (label or "Node"), props))
         return out
+
+
+def first_label(value) -> str:
+    """`labels(n)` is a list in TuringDB 3.0 (a string in 1.37); every theatre node has one label."""
+    if isinstance(value, (list, tuple)) or hasattr(value, "tolist"):
+        items = list(value.tolist() if hasattr(value, "tolist") else value)
+        return str(items[0]) if items else "Node"
+    return str(value)

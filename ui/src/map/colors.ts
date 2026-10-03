@@ -1,4 +1,5 @@
-// Colour only means something: amber = selected / at risk, red = lost, white = appeared (diff).
+// Colour only means something: amber = selected / at risk, red = lost, white = appeared (diff),
+// blue = defended (a wargame countermeasure).
 // Everything else is a desaturated grey, brighter for more important asset types.
 
 import type { GraphNode, Kind, Status } from "../api/types";
@@ -8,11 +9,15 @@ export type RGBA = [number, number, number, number];
 export const AMBER: RGBA = [245, 166, 35, 255];
 export const RED: RGBA = [235, 72, 76, 255];
 export const WHITE: RGBA = [244, 247, 251, 255];
+export const BLUE: RGBA = [61, 139, 240, 255]; // #3d8bf0, validated against RED on the dark surface
 
 const NEUTRAL: Record<Kind, RGBA> = {
   plant: [146, 158, 175, 190],
   site: [236, 240, 246, 255],
   supplier: [196, 204, 216, 240],
+  facility: [168, 180, 196, 215],
+  port: [208, 216, 228, 240],
+  chokepoint: [120, 200, 255, 255],
   drone: [214, 220, 229, 240],
   crime: [120, 130, 146, 150],
   report: [226, 232, 240, 235],
@@ -43,4 +48,5 @@ export const CSS = {
   amber: "rgb(245 166 35)",
   red: "rgb(235 72 76)",
   white: "rgb(244 247 251)",
+  blue: "rgb(61 139 240)",
 } as const;

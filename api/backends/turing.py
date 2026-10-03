@@ -41,8 +41,11 @@ KIND_QUERIES: dict[str, tuple[tuple[str, ...], str, str | None]] = {
     "crime": (("Crime", "Location", "Site"), "MATCH (n:Crime)-[:OCCURRED_AT]->(l:Location)-[:NEAR]->(s:Site)", None),
     "report": (("Report",), "MATCH (n:Report)", None),
     "part": (("Part",), "MATCH (n:Part)", None),
+    "facility": (("Facility",), "MATCH (n:Facility)", None),  # supply_chain_deep
+    "port": (("Port",), "MATCH (n:Port)", None),
+    "chokepoint": (("Chokepoint",), "MATCH (n:Chokepoint)", None),  # supply_chain_deep sea chokepoints
 }
-SNAPSHOT_KINDS = ("plant", "site", "supplier", "drone", "report", "part")
+SNAPSHOT_KINDS = ("plant", "site", "supplier", "drone", "report", "part", "facility", "port", "chokepoint")
 TRACK_EVERY = 6  # keep every 6th drone reading
 CACHE_LIMIT = 48
 _LABEL = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -65,6 +68,8 @@ class TuringDependencies:
             raise ValueError(f"unsafe label/rule {label!r}/{rule!r}")
         if rule == "DELIVERED_TO":
             pattern = "MATCH (x)<-[:FOR_PART]-(po)-[:DELIVERED_TO]->(d)"
+        elif rule == "SUPPLIES":  # deep facilities: the buyers of a lost facility depend on it
+            pattern = "MATCH (x)-[:SUPPLIES]->(d)"
         else:
             pattern = f"MATCH (x)<-[:{rule}]-(d)"
         deps: list[cascade.Dependency] = []
@@ -97,6 +102,10 @@ class TuringBackend:
         if not ref.is_main and ref.branch not in self._change_ids(sw):
             raise NotFound(f"unknown branch {ref.branch}")
         return self._open(ref, sw)
+
+    def session(self, ref: Ref, sw: Stopwatch) -> Session:
+        """A session checked out on `ref` (validated). Public so read-only feature modules can query."""
+        return self._session(ref, sw)
 
     def _change_ids(self, sw: Stopwatch) -> set[str]:
         frame = self._open(Ref("main"), sw).q("CHANGE LIST")
@@ -158,7 +167,8 @@ class TuringBackend:
 
     def meta(self) -> MetaResponse:
         return MetaResponse(engine=ENGINE, graph=self.graph,
-                            layers=["plant", "site", "supplier", "drone", "crime", "cyber", "report"])
+                            layers=["plant", "site", "supplier", "drone", "crime", "cyber", "report", "facility", "port",
+                                    "chokepoint"])
 
     def nodes(self, ref: Ref, kinds: Sequence[str], bbox: BBox | None) -> NodesResponse:
         sw = Stopwatch(ENGINE)
@@ -175,7 +185,7 @@ class TuringBackend:
         props = {k: clean(v) for k, v in s.q(f"MATCH (n) WHERE n = {nid} RETURN {cols}").iloc[0].items()}
         groups = []
         for direction, pattern in (("out", "(n)-[e]->(m)"), ("in", "(n)<-[e]-(m)")):
-            frame = s.q(f"MATCH {pattern} WHERE n = {nid} RETURN edgeType(e) AS rel, m, labels(m) AS lbl"
+            frame = s.q(f"MATCH {pattern} WHERE n = {nid} RETURN type(e) AS rel, m, labels(m) AS lbl"
                         f"{s.project('m', NODE_PROPS)}")
             for rel, part in sorted(frame.groupby("rel"), key=lambda kv: str(kv[0])):
                 nodes = sorted(s.nodes_from(part, "m", label_col="lbl"), key=lambda n: -n.importance)
@@ -212,6 +222,22 @@ class TuringBackend:
         if "Strike" in s.labels:
             names = [str(n) for n in s.q("MATCH (k:Strike) RETURN k.name AS name")["name"]]
             return Branch(id=change_id, kind="strike", label=strike_label(names))
+        if "ResilienceBranch" in s.labels:  # Dover exercise branches (agents/resilience/lab.py)
+            frame = s.q(f"MATCH (m:ResilienceBranch) RETURN m{s.project('m', ('role', 'label', 'parent'))}")
+            row = frame.to_dict("records")[0] if len(frame) else {}
+            kind = "recovery" if clean(row.get("m_role")) == "recovery" else "disruption"
+            parent = clean(row.get("m_parent"))
+            return Branch(id=change_id, kind=kind, label=clean(row.get("m_label")) or f"Exercise {change_id}",
+                          description=f"replays disruption branch {parent}" if parent and parent != "main" else None)
+        if "AgentBranch" in s.labels:  # branches built by the LLM agents (threat / defence / scenario)
+            frame = s.q(f"MATCH (m:AgentBranch) RETURN m{s.project('m', ('role', 'label', 'parent'))}")
+            row = frame.to_dict("records")[0] if len(frame) else {}
+            role = clean(row.get("m_role")) or "change"
+            kind = role if role in ("threat", "defence", "scenario") else "change"
+            label = clean(row.get("m_label")) or f"{role.title()} {change_id}"
+            parent = clean(row.get("m_parent"))
+            return Branch(id=change_id, kind=kind, label=label,
+                          description=f"parent: {parent}" if parent and parent != "main" else None)
         return Branch(id=change_id, kind="change", label=f"Change {change_id}")
 
     def branches(self) -> BranchesResponse:
@@ -234,7 +260,7 @@ class TuringBackend:
         if "Report" not in s.labels:
             return ReportsResponse(branch=str(ref), until=until, reports=[], **sw.timed())
         frame = s.q(f"MATCH (r:Report) RETURN r{s.project('r', REPORT_PROPS)}")
-        links = s.q("MATCH (r:Report)-[e]->(m) RETURN r, edgeType(e) AS rel, m")
+        links = s.q("MATCH (r:Report)-[e]->(m) RETURN r, type(e) AS rel, m")
         mentions: dict[str, list[str]] = {}
         contradicts: dict[str, str] = {}
         for r, rel, m in links.itertuples(index=False):
@@ -310,7 +336,7 @@ class TuringBackend:
         if marker:
             s.q(f"CREATE (:Strike {{struck_id: '{int(struck.id)}', name: {string_literal(struck.name)}, "
                 f"created: '{_now()}'}})")
-        s.q(f"MATCH (n) WHERE n = {int(struck.id)} DELETE n")
+        s.q(f"MATCH (n) WHERE n = {int(struck.id)} DETACH DELETE n")
         s.q("COMMIT")
         powered = cascade.powered_ids(affected)
         still_fed: set[str] = set()
@@ -364,10 +390,12 @@ class TuringBackend:
                 raise
         return change
 
+    DISCARDABLE = ("strike", "threat", "defence", "scenario", "disruption", "recovery")
+
     def discard(self, branch_id: str) -> None:
         sw = Stopwatch(ENGINE)
         with self._write_lock:
             s = self._session(Ref(branch_id), sw)
-            if self._describe_change(branch_id, sw).kind != "strike":
-                raise Conflict("only strike branches can be discarded")
+            if self._describe_change(branch_id, sw).kind not in self.DISCARDABLE:
+                raise Conflict("only strike and agent branches can be discarded; hypotheses are read-only")
             s.q("CHANGE DELETE")

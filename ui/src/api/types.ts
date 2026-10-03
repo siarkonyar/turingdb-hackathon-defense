@@ -1,8 +1,28 @@
 // Mirrors api/models.py (the contract in docs/api.md). Null fields may be omitted by the server.
 
-export type Kind = "plant" | "site" | "supplier" | "drone" | "crime" | "report" | "part" | "other";
+export type Kind =
+  | "plant"
+  | "site"
+  | "supplier"
+  | "drone"
+  | "crime"
+  | "report"
+  | "part"
+  | "facility"
+  | "port"
+  | "chokepoint"
+  | "other";
 export type Status = "at_risk" | "lost" | "no_power";
-export type BranchKind = "main" | "hypothesis" | "strike" | "change";
+export type BranchKind =
+  | "main"
+  | "hypothesis"
+  | "strike"
+  | "change"
+  | "threat"
+  | "defence"
+  | "scenario"
+  | "disruption"
+  | "recovery";
 export type Engine = "turingdb" | "fixtures";
 
 export interface GraphNode {
@@ -153,4 +173,447 @@ export interface MetaResponse {
   engine: Engine;
   graph: string;
   layers: string[];
+}
+
+export interface ImpactDiff {
+  a: string;
+  b: string;
+  loss_a_pct: number;
+  loss_b_pct: number;
+  loss_delta_pct: number;
+  per_site: Record<string, { a: number; b: number }>;
+  sites_down_a: string[];
+  sites_down_b: string[];
+  critical_parts_a: number;
+  critical_parts_b: number;
+}
+
+export interface AgentStatus {
+  available: boolean;
+  model?: string;
+  graph?: string;
+  reason?: string;
+}
+
+export interface DeepSupply {
+  facilities_destroyed: number;
+  facilities_flagged: number;
+  facilities_downstream: number;
+  platforms_built_at_hit_facility: string[];
+  platforms_downstream_count: number;
+}
+
+export interface ScenarioResponse {
+  branch: string | null;
+  explanation?: string | null;
+  headline?: Record<string, unknown> | null;
+  impact_diff?: ImpactDiff | null;
+  deep_supply?: DeepSupply | null;
+  steps: string[];
+  model?: string | null;
+}
+
+// ---------------------------------------------------------------- agent jobs + the wargame (docs/api.md)
+
+export interface JobRef {
+  job_id: string;
+}
+
+export interface JobStep {
+  agent: string;
+  action: string;
+  thought: string;
+  args: Record<string, unknown>;
+  observation: string;
+}
+
+export type Side = "red" | "blue" | "inject";
+
+export interface MoveTarget {
+  id: string;
+  name: string;
+  kind: Kind;
+  lat: number;
+  lon: number;
+  status?: Status | null;
+}
+
+export interface Move {
+  round: number;
+  side: Side;
+  action: string;
+  args: Record<string, unknown>;
+  actions: { action: string; args: Record<string, unknown> }[];
+  branch_id: string;
+  parent_id: string;
+  label: string;
+  rationale: string;
+  loss_pct: number; // additional loss vs the base, percentage points
+  abs_loss_pct: number;
+  llm_ms: number;
+  db_ms: number;
+  latency_ms: number;
+  targets: MoveTarget[];
+  arcs: Arc[];
+  fallback: boolean;
+  breakdown?: { deep_pct?: number | null; legacy_pct?: number | null }; // absolute loss per layer
+  selection?: {
+    selector: "jev" | "existing_blue";
+    fallback: boolean;
+    confidence?: number | null;
+    selected_id?: string | null;
+    candidates: { id: string; action: string; args: Record<string, unknown> }[];
+  };
+  llm_calls?: number;
+  strategy?: Strategy;
+}
+
+export interface PlanPreview {
+  response?: string;
+  immediate_loss_pct?: number;
+  future_loss_pct?: number;
+  average_loss_pct?: number;
+  horizon_round?: number;
+  error?: string;
+}
+
+export interface Strategy {
+  budget_remaining: number;
+  budget_total: number;
+  round: number;
+  cost?: number;
+  cumulative_loss?: number;
+  ready_round?: number;
+  event_active?: boolean;
+  pending: { step: { action: string; args: Record<string, unknown> }; due: number; cost: number }[];
+  completed: string[];
+  missions: { item_id: string; name: string; capability_pct: number; threshold_pct: number }[];
+  planning?: PlanPreview | null;
+  alternatives?: { label: string; cost: number; ready_round: number; planning?: PlanPreview }[];
+}
+
+export interface MatchSummary {
+  match_id?: string;
+  status: string;
+  base_branch?: string;
+  head?: string;
+  rounds_played?: number;
+  base_loss_pct?: number;
+  final_loss_pct?: number;
+  llm_ms?: number;
+  db_ms?: number;
+  file?: string;
+  strategic?: boolean;
+  cumulative_loss?: number;
+  average_loss_pct?: number;
+  objective_met?: boolean;
+}
+
+export interface SavedMatch {
+  file: string;
+  id: string;
+  created: string | null;
+  base_branch: string;
+  rounds: number;
+  status: string;
+  moves: number;
+  final_loss_pct: number | null;
+  model: string | null;
+}
+
+/** One SSE event from /match/{id}/events (`type` is the SSE event name). */
+export type MatchEvent =
+  | { type: "job_started"; job_id: string }
+  | { type: "match_started"; match_id?: string; base_branch: string; rounds: number; base_loss_pct: number; model?: string | null; replay?: boolean }
+  | { type: "move_started"; round: number; side: Side; head: string; text?: string }
+  | ({ type: "move"; replay?: boolean } & Move)
+  | { type: "inject"; text: string; branch: string; move: Move }
+  | { type: "round_done"; round: number; head: string; loss_pct: number; abs_loss_pct: number }
+  | { type: "status"; state: "paused" | "running" }
+  | { type: "match_done"; status: string; summary?: MatchSummary }
+  | { type: "error"; message: string; replay_available?: boolean }
+  | { type: "done"; status: string };
+
+export interface RedBlueResult {
+  headline?: string;
+  baseline_pct?: number;
+  threat_branch?: string;
+  threat_loss_pct?: number;
+  defence_branch?: string;
+  defence_loss_pct?: number;
+  selection?: Move["selection"];
+}
+
+/** One SSE event from /agent/jobs/{id}/events. */
+export type JobEvent =
+  | { type: "job_started"; job_id: string; kind: string }
+  | ({ type: "step" } & JobStep)
+  | ({ type: "result" } & Record<string, unknown>)
+  | { type: "error"; message: string }
+  | { type: "done"; status: string };
+
+// ---------------------------------------------------------------- impact cascade (docs/api.md)
+
+// event: a Dover resilience exercise; its simultaneous initial failures are in CascadeResponse.origins.
+export type OriginKind = "chokepoint" | "port" | "facility" | "company" | "country" | "plant" | "item" | "event";
+
+export interface CascadeHit {
+  node: GraphNode;
+  degree: number;
+  severity: number;
+  parent_id?: string | null;
+  via: string;
+}
+
+export interface CascadeStage {
+  degree: number;
+  hits: CascadeHit[];
+  arcs: Arc[];
+  count: number;
+  mean_severity: number;
+}
+
+export interface ReachProbe {
+  cypher: string;
+  depth_limit: number;
+  reached: number;
+  ms?: number | null;
+}
+
+export interface PlatformExposure {
+  name: string;
+  archetype?: string | null;
+  severity: number;
+  facility_id: string;
+}
+
+export interface CascadeResponse extends Timed {
+  branch: string;
+  origin: GraphNode;
+  origin_kind: OriginKind;
+  min_severity: number;
+  stages: CascadeStage[];
+  max_degree: number;
+  graph_hops: number;
+  total_affected: number;
+  reach: ReachProbe;
+  platforms: PlatformExposure[];
+  connected?: boolean; // false: the origin has no link into the supply network
+  understood_as?: string | null; // the entity name the LLM read from the question, when it was needed
+  origins?: GraphNode[]; // several simultaneous initial failures (Dover exercises)
+  // supply_volume: share of inbound supply volume lost. service_loss: 1 - lowest DEPENDS_ON availability in the
+  // exercise window. Either way a degree is a dependency distance, never simulation time.
+  measure?: "supply_volume" | "service_loss";
+}
+
+export interface CascadeRequest {
+  origin_id: string;
+  branch?: string;
+  min_severity?: number;
+}
+
+export interface CascadeAskRequest {
+  question: string;
+  branch?: string;
+  min_severity?: number;
+}
+
+export interface OriginCandidate {
+  node: GraphNode;
+  origin_kind: OriginKind;
+  score: number;
+}
+
+export interface OriginsResponse {
+  query: string;
+  candidates: OriginCandidate[];
+}
+
+// ---------------------------------------------------------------- Dover resilience exercises (docs/api.md)
+
+export type ScenarioId = "scenario:strait_closure" | "scenario:kent_power" | "scenario:london_loss";
+
+export interface ExerciseInfo {
+  scenario_id: ScenarioId;
+  title: string;
+  prompt: string;
+  kind: "closure" | "power_outage" | "regional_loss";
+  hours: number;
+}
+
+export interface ExercisesResponse {
+  exercises: ExerciseInfo[];
+}
+
+export interface RunStarted {
+  job_id: string;
+  scenario_id: ScenarioId;
+}
+
+/** A free-text question either starts a run for the event it describes, or gets a plain reply. */
+export interface AskResponse {
+  job_id?: string;
+  scenario_id?: ScenarioId;
+  title?: string;
+  hours?: number;
+  reply?: string;
+}
+
+export interface ExerciseMetrics {
+  essential_fulfilment: number;
+  overall_fulfilment: number;
+  demands_below_minimum: number;
+  capabilities_below_minimum: number;
+  capabilities_total: number;
+  cargo_scheduled_t: number;
+  cargo_on_time_t: number;
+  cargo_delayed_t: number;
+  cargo_unmet_t: number;
+  affected_facilities: number;
+  affected_at_end: number;
+  essential_recovery_h?: number | null;
+  cost_units: number;
+}
+
+export interface ExerciseConsumption {
+  stock_released_t: number;
+  reserves_drawn: number;
+  reserves_exhausted: number;
+  first_exhausted_h?: number | null;
+  generators: number;
+  generator_fuel_t: number;
+  aircraft_sorties: number;
+  route_tonnes: Record<string, number>;
+  provider_spare_t_day: number;
+  programme_people: number;
+}
+
+export interface ExerciseTimePoint {
+  hour: number;
+  essential: number;
+  overall: number;
+  capabilities_ok: number;
+}
+
+export interface DependencyPathView {
+  names: string[];
+  via: (string | null)[];
+  severity: number;
+}
+
+export interface ExerciseBranch {
+  branch: string;
+  role: "disruption" | "recovery";
+  plan_id?: string | null;
+  parent: string;
+  verified: boolean;
+}
+
+export interface DisruptionView {
+  scenario_id: ScenarioId;
+  title: string;
+  hours: number;
+  branch: ExerciseBranch;
+  cascade: CascadeResponse;
+  metrics: ExerciseMetrics;
+  timeline: ExerciseTimePoint[];
+  paths: DependencyPathView[];
+  unavailable: string[];
+}
+
+export interface CandidateView {
+  plan_id: string;
+  title: string;
+  summary: string;
+  actions: number;
+  rank: number;
+  chosen: boolean;
+  metrics: ExerciseMetrics;
+  consumption: ExerciseConsumption;
+}
+
+export interface DecisionView {
+  mode: "agent" | "fallback";
+  plan_id: string;
+  rationale: string;
+  model?: string | null;
+  calls: number;
+  reason?: string | null;
+}
+
+export interface ActionGroupView {
+  key: string;
+  label: string;
+  actions: number;
+  ready_h: number;
+  capacity: string;
+  essential_gain: number;
+  overall_gain: number;
+  cargo_gain_t: number;
+}
+
+export type RecoveryState = "lost" | "relocated" | "restored" | "improved" | "residual";
+
+export interface StatePoint {
+  node: GraphNode;
+  state: RecoveryState;
+  before: number;
+  after: number;
+  receiver_id?: string | null;
+}
+
+export type RecoveryLinkKind = "route" | "power" | "stock" | "relocation" | "export";
+
+export interface RecoveryLink {
+  kind: RecoveryLinkKind;
+  source: [number, number];
+  target: [number, number];
+  source_id: string;
+  target_id: string;
+  label: string;
+  group: string; // ActionGroupView.key: the recovery step that introduces this link
+}
+
+export interface RecoveryView {
+  scenario_id: ScenarioId;
+  title: string;
+  hours: number;
+  disruption_branch: string;
+  branch: ExerciseBranch;
+  decision: DecisionView;
+  candidates: CandidateView[];
+  before: ExerciseMetrics;
+  after: ExerciseMetrics;
+  before_timeline: ExerciseTimePoint[];
+  after_timeline: ExerciseTimePoint[];
+  consumption: ExerciseConsumption;
+  groups: ActionGroupView[];
+  limitations: string[];
+  counts: Partial<Record<RecoveryState, number>>;
+  services_relocated: number;
+  programmes_relocated: number;
+  points: StatePoint[];
+  links: RecoveryLink[];
+}
+
+export interface AgentStepEvent {
+  thought: string;
+  action: string;
+  args: Record<string, unknown>;
+}
+
+export type ExerciseEvent =
+  | { id: number; type: "job_started"; data: Record<string, unknown> }
+  | { id: number; type: "phase"; data: { phase: string; message: string } }
+  | { id: number; type: "disruption"; data: DisruptionView }
+  | { id: number; type: "agent_step"; data: AgentStepEvent }
+  | { id: number; type: "recovery"; data: RecoveryView }
+  | { id: number; type: "error"; data: { message: string } }
+  | { id: number; type: "done"; data: { status: string } };
+
+export interface ExerciseJob {
+  job_id: string;
+  status: string;
+  events: ExerciseEvent[];
+  next: number;
 }

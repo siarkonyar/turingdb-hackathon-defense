@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 
+import { useDoverProfile } from "../hooks/useDoverProfile";
 import type { Branch } from "../api/types";
 import { formatPercent } from "../lib/format";
 import { discardBranch, switchBranch } from "../state/actions";
@@ -10,6 +11,11 @@ const KIND_LABEL: Record<Branch["kind"], string> = {
   hypothesis: "Hypothesis",
   strike: "Strike",
   change: "Change",
+  threat: "Threat",
+  defence: "Defence",
+  scenario: "Scenario",
+  disruption: "Disruption",
+  recovery: "Recovery",
 };
 
 function Confidence({ value }: { value: number | null | undefined }) {
@@ -32,12 +38,12 @@ function Row({ branch, active }: { branch: Branch; active: boolean }) {
         {branch.kind === "hypothesis" ? <Confidence value={branch.confidence} /> : null}
         {branch.kind !== "main" ? <span className="brow__id mono">#{branch.id}</span> : null}
       </button>
-      {branch.kind === "strike" ? (
+      {["strike", "threat", "defence", "scenario", "disruption", "recovery"].includes(branch.kind) ? (
         <button
           type="button"
           className="iconbtn brow__discard"
           aria-label={`Discard ${branch.label}`}
-          title="Discard this strike branch (TuringDB CHANGE DELETE)"
+          title="Discard this branch (TuringDB CHANGE DELETE)"
           onClick={() => void discardBranch(branch.id)}
         >
           ×
@@ -48,6 +54,7 @@ function Row({ branch, active }: { branch: Branch; active: boolean }) {
 }
 
 export function BranchSwitcher() {
+  const dover = useDoverProfile();
   const branches = useOps((s) => s.branches);
   const activeId = useOps((s) => s.activeBranch);
   const active = useOps(activeBranchInfo);
@@ -66,6 +73,11 @@ export function BranchSwitcher() {
   const groups: { title: string; items: Branch[] }[] = [
     { title: "Baseline", items: branches.filter((b) => b.kind === "main") },
     { title: "Hypotheses", items: branches.filter((b) => b.kind === "hypothesis") },
+    { title: "Threat strategies", items: branches.filter((b) => b.kind === "threat") },
+    { title: "Defence strategies", items: branches.filter((b) => b.kind === "defence") },
+    { title: "Scenario simulations", items: branches.filter((b) => b.kind === "scenario") },
+    { title: "Exercise disruptions", items: branches.filter((b) => b.kind === "disruption") },
+    { title: "Exercise recoveries", items: branches.filter((b) => b.kind === "recovery") },
     { title: "Strike simulations", items: branches.filter((b) => b.kind === "strike") },
     { title: "Other changes", items: branches.filter((b) => b.kind === "change") },
   ].filter((g) => g.items.length);
@@ -98,7 +110,9 @@ export function BranchSwitcher() {
               </ul>
             </div>
           ))}
-          <p className="branches__hint">Right-click an asset on the map to simulate its loss on a new branch.</p>
+          <p className="branches__hint">{dover
+            ? "Switch between the baseline and saved scenarios to compare their effects."
+            : "Right-click an asset on the map to simulate its loss on a new branch."}</p>
         </div>
       ) : null}
     </div>

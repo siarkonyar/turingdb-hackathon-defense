@@ -32,8 +32,16 @@ serves the production bundle. `npm test` runs the unit tests and `npm run typech
 | Click a node | The drawer shows its properties and neighbours grouped by relationship. Click a neighbour to fly to it. |
 | Bottom bar, branch switcher | Hypothesis branches with confidence and strike branches. Switching re-colours the map from `GET /diff main→branch`. |
 | **Diff** | Pick any two branches or commits to list what appeared, disappeared or changed. |
-| Time slider / ▶ | Replays commits, reports (each pulses once on arrival) and drone tracks (`TripsLayer`). |
 | Left rail | Layer toggles, plus the basemap switch. |
+
+## Focused Dover demo
+
+Run `.venv/bin/python scripts/run_dover_demo.py` from the repository root. The map on port 5174
+shows only power plants, facilities, ports and the strait. Its indicators show affected facilities,
+revealed cascade degree and query latency. The footer keeps branch comparison, Impact and Diff.
+The historical timeline is removed. Empty worldwide layers, old agents/wargame controls,
+manual strike actions and an unavailable basemap switch are omitted from this profile.
+Node details and dependency exploration remain available. Full dataset handoff: [docs/dover.md](../docs/dover.md).
 
 ## Basemaps (no API keys)
 

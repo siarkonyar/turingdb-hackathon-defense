@@ -97,9 +97,9 @@ c.query("""
 
 # who a phone number called (call detail records)
 c.query("""
-  MATCH (call:PhoneCall)-[:CALLER]->(:Phone)<-[:HAS_PHONE]-(from:Person),
-        (call)-[:CALLED]->(:Phone)<-[:HAS_PHONE]-(to:Person)
-  RETURN from.surname, to.surname, call.call_type, call.call_date, call.call_duration LIMIT 20
+  MATCH (pc:PhoneCall)-[:CALLER]->(:Phone)<-[:HAS_PHONE]-(caller:Person),
+        (pc)-[:CALLED]->(:Phone)<-[:HAS_PHONE]-(callee:Person)
+  RETURN caller.surname, callee.surname, pc.call_type, pc.call_date, pc.call_duration LIMIT 20
 """)
 ```
 

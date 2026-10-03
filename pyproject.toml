@@ -1,12 +1,15 @@
 [project]
 name = "turingdb-hackathon-defense"
 version = "0.1.0"
-description = "EDTH x TuringDB defence graph datasets and the fused 'theatre' operating picture"
+description = "EDTH x TuringDB defence graph datasets, the fused 'theatre' operating picture and its LLM agents"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.142.2",
+    "httpx>=0.28.1",
+    "pandas>=2.3.3",
+    "pyarrow>=25.0.1",
     "tabulate>=0.10.0",
-    "turingdb==1.37",
+    "turingdb==3.0",
     "uvicorn[standard]>=0.54.0",
 ]
 

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 
+import { useDoverProfile } from "../hooks/useDoverProfile";
 import type { GraphNode, NeighbourGroup } from "../api/types";
 import { formatCoord, formatIso, formatMw, formatValue, humanRel } from "../lib/format";
 import { glyphForNode } from "../lib/glyphs";
@@ -54,6 +55,7 @@ function Group({ group }: { group: NeighbourGroup }) {
 }
 
 export function NodeDrawer() {
+  const dover = useDoverProfile();
   const drawer = useOps((s) => s.drawer);
   const fallback = useOps((s) => (s.drawer ? s.nodeIndex.get(s.drawer.nodeId) : undefined));
   const status = useOps((s) => (s.drawer ? activeOverlay(s).entries.get(s.drawer.nodeId)?.status : undefined));
@@ -90,7 +92,7 @@ export function NodeDrawer() {
         </div>
       ) : null}
       {node ? <div className="drawer__coord mono">{formatCoord(node.lat, node.lon)}</div> : null}
-      {node && canStrike(node) && status !== "lost" ? (
+      {!dover && node && canStrike(node) && status !== "lost" ? (
         <button type="button" className="btn btn--danger" disabled={busy !== null} onClick={() => void simulateLoss(node)}>
           <Glyph name="lost" size={13} /> Simulate loss
         </button>

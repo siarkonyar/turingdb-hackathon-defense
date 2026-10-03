@@ -5,6 +5,9 @@
     TURINGDB_GRAPH   theatre
     OPSMAP_CORS      comma-separated origins allowed to call the API (default: the Vite dev server)
     OPSMAP_FIXTURES  directory holding the mock fixtures (default: api/mock/fixtures)
+
+Any of these may also come from a gitignored `.env` file at the repo root (see .env.example); real
+environment variables win over it.
 """
 
 from __future__ import annotations
@@ -12,6 +15,8 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
+
+from api.env import load_env
 
 API_DIR = Path(__file__).resolve().parent
 MOCK_FIXTURES_DIR = API_DIR / "mock" / "fixtures"
@@ -30,6 +35,7 @@ class Settings:
 
 
 def load_settings() -> Settings:
+    load_env()
     backend = os.environ.get("OPSMAP_BACKEND", "mock").strip().lower()
     if backend not in BACKENDS:
         raise ValueError(f"OPSMAP_BACKEND must be one of {BACKENDS}, got {backend!r}")

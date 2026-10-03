@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 
+import { useDoverProfile } from "../hooks/useDoverProfile";
 import type { GlyphName } from "../lib/glyphs";
 import { pmtilesAvailable } from "../map/basemap";
 import { toggleLayer } from "../state/actions";
@@ -11,6 +12,9 @@ const ITEMS: { key: LayerKey; label: string; glyph: GlyphName }[] = [
   { key: "plant", label: "Plants", glyph: "plant-other" },
   { key: "site", label: "Sites", glyph: "site" },
   { key: "supplier", label: "Suppliers", glyph: "supplier" },
+  { key: "facility", label: "Facilities", glyph: "facility" },
+  { key: "port", label: "Ports", glyph: "port" },
+  { key: "chokepoint", label: "Chokepoints", glyph: "port" },
   { key: "drone", label: "Drones", glyph: "drone" },
   { key: "crime", label: "Crime leads", glyph: "crime" },
   { key: "cyber", label: "Cyber", glyph: "cyber" },
@@ -29,6 +33,7 @@ function Brand() {
 }
 
 export function LayerRail() {
+  const dover = useDoverProfile();
   const layers = useOps((s) => s.layers);
   const basemap = useOps((s) => s.basemap);
   const fallback = useOps((s) => s.basemapFallback);
@@ -37,6 +42,9 @@ export function LayerRail() {
       plant: s.base.plant.length,
       site: s.base.site.length,
       supplier: s.base.supplier.length,
+      facility: s.base.facility.length,
+      port: s.base.port.length,
+      chokepoint: s.base.chokepoint.length,
       drone: s.base.drone.length,
       crime: s.base.crime.length,
       cyber: s.base.site.length + s.base.supplier.length,
@@ -52,7 +60,7 @@ export function LayerRail() {
     <nav className="rail glass" aria-label="Layers">
       <Brand />
       <ul className="rail__list">
-        {ITEMS.map((item) => (
+        {ITEMS.filter((item) => !dover || ["plant", "facility", "port", "chokepoint"].includes(item.key)).map((item) => (
           <li key={item.key}>
             <button
               type="button"
@@ -67,7 +75,7 @@ export function LayerRail() {
           </li>
         ))}
       </ul>
-      <button
+      {!dover || offlineReady || basemap === "pmtiles" ? <button
         type="button"
         className="rail__basemap"
         disabled={!offlineReady && basemap === "carto"}
@@ -80,7 +88,7 @@ export function LayerRail() {
       >
         <span className="rail__label">{fallback ? "Fallback" : basemap === "carto" ? "Online" : "Offline"}</span>
         <span className="rail__sub mono">{fallback ? "Outlines" : basemap === "carto" ? "CARTO" : "PMTiles"}</span>
-      </button>
+      </button> : null}
     </nav>
   );
 }
