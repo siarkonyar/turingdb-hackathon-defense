@@ -102,15 +102,26 @@ All of them change only the branch.
 
 ## HTTP API
 
-Mounted only on the live backend (`OPSMAP_BACKEND=turingdb`):
+Mounted only on the live backend (`OPSMAP_BACKEND=turingdb`). Every agent action is a background job that
+streams its progress over server-sent events; nothing blocks the HTTP server. Full contract: `docs/api.md`.
 
 | Endpoint | Purpose |
 |---|---|
 | `GET /agent/status` | Featherless availability + selected model |
-| `POST /agent/scenario` `{question}` | run the scenario agent; returns branch, explanation, impact diff |
-| `POST /agent/threat` | run the threat agent; returns the branches it explored |
-| `POST /agent/defence` `{threat_branch}` | run the defence agent against a threat branch |
-| `POST /agent/redblue` | the full threat -> defence pipeline with the comparison |
+| `POST /agent/scenario` `{question}` | scenario agent job -> `{job_id}`; stream `/agent/jobs/{id}/events` |
+| `POST /agent/threat`, `/agent/defence`, `/agent/redblue` | the one-shot agents, same job pattern |
+| `POST /match` `{base_branch, rounds}` | turn-based red-vs-blue wargame -> `{match_id}`; stream `/match/{id}/events` |
+| `POST /match/{id}/inject` `{text}` | operator event, applied before the next round |
+| `POST /match/replay` `{file}` · `GET /matches` | replay a saved match with no LLM calls |
+
+## The wargame (`agents/match.py`)
+
+Each round red plays ONE disruption and blue ONE countermeasure, each a branch stacked on the current head
+(a fresh change from main that replays the head's lineage, because 1.37 cannot stack changes). A move is
+one decision: the options are in the prompt, so it is usually a single LLM call, with at most 3 calls
+(a format retry or one read query) and a flagged fallback. Loss is measured against the base branch.
+Injects run the scenario agent on the head. Matches are saved to `matches/<id>.json` and replayable
+without the LLM (`uv run python -m agents.match --replay demo`).
 
 ## Tests
 
