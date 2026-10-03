@@ -11,7 +11,7 @@ import logging
 import math
 from typing import Callable
 
-from api.backends.turing_session import Session, string_literal
+from api.backends.turing_session import Session, id_clauses, string_literal
 
 from agents.branches import BranchLab, BranchRecord
 
@@ -186,26 +186,30 @@ def scenario_wipe_node(lab: BranchLab, s: Session, *, label: str, key_prop: str,
 
 
 def scenario_propagate(lab: BranchLab, s: Session) -> str:
-    """Mark downstream effects on the branch so the map overlay shows them: a facility with no surviving
-    POWERED_BY feed becomes 'no_power'; a part supplier still powered but with no logistics route becomes
-    'at_risk'. The two sets are computed explicitly so a node never ends up both."""
-    no_power: list[int] = []
-    at_risk: list[int] = []
+    """Mark downstream effects on the branch so the map overlay and KPIs show them: a facility with no
+    surviving POWERED_BY feed becomes 'no_power'; a part supplier still powered but with no logistics route
+    becomes 'at_risk'; a part with no working supplier left becomes 'at_risk' (the impact model's rule, see
+    agents/impact.py). The sets are disjoint, so a node never ends up with two statuses."""
     # Only Sites and PART suppliers (source=supply_chain) are modelled as drawing power; logistics
     # suppliers never have a POWERED_BY feed, so they must not be flagged for lacking one.
     site_ids = {str(x) for x in s.q("MATCH (x:Site) RETURN x")["x"]}
     powered_sites = {str(x) for x in s.q("MATCH (x:Site)-[:POWERED_BY]->(p:PowerPlant) RETURN x")["x"]}
-    no_power += [int(x) for x in site_ids - powered_sites]
     part_sup = {str(x) for x in s.q("MATCH (x:Supplier) WHERE x.source = 'supply_chain' RETURN x")["x"]}
     powered_sup = {str(x) for x in s.q("MATCH (x:Supplier)-[:POWERED_BY]->(p:PowerPlant) RETURN x")["x"]}
     routed = {str(x) for x in s.q("MATCH (x:Supplier)-[:SOURCES_FROM]->(l:Supplier) RETURN x")["x"]}
-    no_power += [int(x) for x in part_sup - powered_sup]
-    at_risk += [int(x) for x in part_sup if x in powered_sup and x not in routed]
+    working = part_sup & powered_sup & routed
+    supplied = s.q("MATCH (p:Part)-[:SUPPLIED_BY]->(x:Supplier) RETURN p, x")
+    available = {str(p_) for p_, x in supplied.itertuples(index=False) if str(x) in working}
+    parts = {str(x) for x in s.q("MATCH (p:Part) RETURN p")["p"]}
+    no_power = sorted((site_ids - powered_sites) | (part_sup - powered_sup))
+    at_risk = sorted({x for x in part_sup if x in powered_sup and x not in routed} | (parts - available))
     for status, ids in (("no_power", no_power), ("at_risk", at_risk)):
-        for nid in ids:
-            s.q(f"MATCH (n) WHERE n = {nid} SET n.ops_status = '{status}'")
+        for clause in id_clauses("n", ids):  # chunked OR-of-ids writes, not one query per node
+            s.q(f"MATCH (n) WHERE {clause} SET n.ops_status = '{status}'")
     s.q("COMMIT")
-    return f"propagated downstream impact: {len(no_power)} without power, {len(at_risk)} at risk"
+    unavailable = len(parts - available)
+    return (f"propagated downstream impact: {len(no_power)} without power, {len(at_risk) - unavailable} "
+            f"suppliers at risk, {unavailable} parts unavailable")
 
 
 # ---------------------------------------------------------------------- dispatch + replay
