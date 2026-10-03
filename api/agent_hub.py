@@ -109,6 +109,8 @@ class AgentHub:
 def step_event(agent: str, step: Step) -> dict:
     """A compact, UI-sized view of one agent step."""
     return {"agent": agent, "action": step.action, "thought": step.thought[:300],
+            "selection": (step.observation.get("selection", step.observation)
+                          if step.action == "blue_selection" and isinstance(step.observation, dict) else None),
             "args": {k: _short(v) for k, v in (step.args or {}).items()}, "observation": _trim(step.observation, 400)}
 
 

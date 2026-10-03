@@ -42,6 +42,7 @@ class LLMUnavailable(LLMError):
 @dataclass
 class Usage:
     calls: int = 0
+    requests: int = 0  # actual chat HTTP attempts, including retries
     prompt_tokens: int = 0
     completion_tokens: int = 0
     seconds: float = 0.0
@@ -96,8 +97,10 @@ class FeatherlessLLM:
     # ------------------------------------------------------------------ calls
 
     def chat(self, messages: list[dict[str, str]], *, agent: str = "agent", temperature: float = 0.2,
-             max_tokens: int = 1200) -> str:
+             max_tokens: int = 1200, bounded: bool = False) -> str:
         with self._lock:
+            if bounded:
+                return self._post(self.model, messages, temperature, max_tokens, agent, bounded=True)
             return self._chat_locked(messages, agent, temperature, max_tokens)
 
     def _chat_locked(self, messages: list[dict[str, str]], agent: str, temperature: float, max_tokens: int) -> str:
@@ -116,18 +119,20 @@ class FeatherlessLLM:
         raise LLMUnavailable(f"no usable Featherless model (tried {tried}): {last_error}")
 
     def _post(self, model: str, messages: list[dict[str, str]], temperature: float, max_tokens: int,
-              agent: str) -> str:
+              agent: str, *, bounded: bool = False) -> str:
         payload = {"model": model, "messages": messages, "temperature": temperature, "max_tokens": max_tokens}
         delay = 2.0
         waited_429 = 0.0
         attempt = 0
-        while attempt < MAX_RETRIES:
+        max_attempts = 1 if bounded else MAX_RETRIES
+        while attempt < max_attempts:
             attempt += 1
             started = time.perf_counter()
+            self.usage.requests += 1
             try:
-                resp = self._http.post(f"{self._base}/chat/completions", json=payload)
+                resp = self._http.post(f"{self._base}/chat/completions", json=payload, **({"timeout": 30.0} if bounded else {}))
             except httpx.HTTPError as exc:
-                if attempt == MAX_RETRIES:
+                if attempt == max_attempts:
                     raise LLMUnavailable(f"cannot reach Featherless: {exc}") from exc
                 time.sleep(delay)
                 delay = min(delay * 2, MAX_DELAY_S)
@@ -136,14 +141,14 @@ class FeatherlessLLM:
                 raise LLMUnavailable(f"Featherless refused the API key (HTTP {resp.status_code})")
             if resp.status_code in (400, 403, 404) and _mentions_model(resp.text):
                 raise _ModelRefused(f"HTTP {resp.status_code}: {resp.text[:200]}")
-            if resp.status_code == 429 and waited_429 < RATE_LIMIT_PATIENCE_S:
+            if resp.status_code == 429 and not bounded and waited_429 < RATE_LIMIT_PATIENCE_S:
                 pause = _retry_after(resp) or min(RATE_LIMIT_MAX_DELAY_S, 2.0 * 2 ** min(attempt, 4))
                 log.info("Featherless concurrency limit (429), waiting %.0fs", pause)
                 time.sleep(pause)
                 waited_429 += pause
                 attempt -= 1  # rate-limit waits do not use up the error retries
                 continue
-            if resp.status_code in RETRY_STATUS and resp.status_code != 429 and attempt < MAX_RETRIES:
+            if resp.status_code in RETRY_STATUS and resp.status_code != 429 and attempt < max_attempts:
                 log.info("Featherless HTTP %s, retrying in %.0fs", resp.status_code, delay)
                 time.sleep(delay)
                 delay = min(delay * 2, MAX_DELAY_S)

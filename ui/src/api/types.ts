@@ -246,6 +246,14 @@ export interface Move {
   targets: MoveTarget[];
   arcs: Arc[];
   fallback: boolean;
+  selection?: {
+    selector: "jev" | "existing_blue";
+    fallback: boolean;
+    confidence?: number | null;
+    selected_id?: string | null;
+    candidates: { id: string; action: string; args: Record<string, unknown> }[];
+  };
+  llm_calls?: number;
   breakdown?: { deep_pct?: number | null; legacy_pct?: number | null }; // absolute loss per layer
 }
 
@@ -294,6 +302,7 @@ export interface RedBlueResult {
   threat_loss_pct?: number;
   defence_branch?: string;
   defence_loss_pct?: number;
+  selection?: Move["selection"];
 }
 
 /** One SSE event from /agent/jobs/{id}/events. */

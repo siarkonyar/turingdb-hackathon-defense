@@ -17,6 +17,13 @@ function MoveCard({ move }: { move: Move }) {
       <div className="mcard__why" title={move.rationale}>
         {move.fallback ? <span className="chip chip--quiet">default</span> : null} {move.rationale}
       </div>
+      {move.selection && (move.selection.candidates?.length || move.selection.fallback) ? (
+        <div className="mcard__why">
+          {move.selection.selector === "jev" ? "Jev selected" : "Blue selected"}
+          {move.selection.candidates.length ? ` from ${move.selection.candidates.length} alternatives` : ""}
+          {move.selection.fallback ? " · used existing decision flow" : ""}.
+        </div>
+      ) : null}
       <div className="mcard__loss mono">
         <span className={move.loss_pct > 0 ? "is-worse" : move.loss_pct < 0 ? "is-better" : undefined}>
           {signedPct(move.loss_pct)} vs base

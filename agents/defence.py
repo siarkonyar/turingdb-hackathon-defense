@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 
 from agents.branches import BranchLab
-from agents.engine import Agent, StepListener, Tool, Trace
+from agents.engine import Agent, Step, StepListener, Tool, Trace
 from agents.llm import FeatherlessLLM
 from agents.tools import build_branch, diff_tool, impact_tool, query_tool, schema_tool
 
@@ -82,9 +82,72 @@ def build_defence_agent(lab: BranchLab, llm: FeatherlessLLM, threat_branch: str,
     return Agent("defence", llm, SYSTEM, tools, max_steps=max_steps)
 
 
-def run_defence(lab: BranchLab, llm: FeatherlessLLM, threat_branch: str, max_steps: int = 16,
+def _run_existing(lab: BranchLab, llm: FeatherlessLLM, threat_branch: str, max_steps: int = 16,
                 on_step: StepListener | None = None) -> Trace:
     lab.ensure_ready()
     agent = build_defence_agent(lab, llm, threat_branch, max_steps)
     return agent.run(f"Develop countermeasures for threat branch {threat_branch} and report the loss "
                      "reduction, proven with a diff.", on_step)
+
+
+def run_defence(lab: BranchLab, llm: FeatherlessLLM, threat_branch: str, max_steps: int = 16,
+                on_step: StepListener | None = None) -> Trace:
+    from agents.blue_selection import BlueSelector
+    from agents.match import _TimedModel
+    from agents.tools import build_stacked
+    import time
+
+    selector = BlueSelector()
+    if not selector.settings.enabled:
+        trace = _run_existing(lab, llm, threat_branch, max_steps, on_step)
+        trace.result = {**(trace.result or {}), "selection": {
+            "selector": "existing_blue", "fallback": False, "candidates": [], "jev_calls": 0}}
+        return trace
+    lab.ensure_ready()
+    started = time.perf_counter()
+    timed = _TimedModel(llm)
+    before = lab.evaluate_branch(threat_branch)
+    state = {"parts_unavailable": before.parts_unavailable[:40],
+             "critical_parts_unavailable": before.critical_parts_unavailable[:40],
+             "suppliers_down": before.suppliers_down[:20], "sites_down": before.sites_down,
+             "attack": lab.spec_of(threat_branch).get("actions", []),
+             "budget": "unspecified; standalone dataset has no intervention costs or deadlines"}
+
+    def validate(step):
+        built = build_stacked(lab, "defence", "Blue candidate preview", threat_branch, [step])
+        if "error" in built:
+            return None
+        branch = str(built["change_id"])
+        try:
+            after = lab.evaluate_branch(branch)
+            return {"loss_pct": round(100 * after.loss, 1),
+                    "critical_parts_restored": sorted(set(before.critical_parts_unavailable) -
+                                                       set(after.critical_parts_unavailable)),
+                    "parts_restored_count": len(set(before.parts_unavailable) - set(after.parts_unavailable)),
+                    "sites_restored": sorted(set(before.sites_down) - set(after.sites_down))}
+        finally:
+            lab.discard(branch)
+
+    step, audit = selector.select(timed, state, validate)
+    built = build_stacked(lab, "defence", "Priority-selected Blue defence", threat_branch, [step]) if step else None
+    if built and "error" not in built:
+        branch = str(built["change_id"])
+        audit["impact"] = {"loss_before_pct": round(100 * before.loss, 1), "loss_after_pct": built["loss_pct"]}
+        explanation = selector.explain(timed, audit, audit["impact"])
+        result = {"defence_branch": branch, **audit["impact"], "countermeasures": [step],
+                  "explanation": explanation, "selection": audit}
+        trace = Trace("defence", [Step(explanation, "blue_selection", {}, result)], result, timed.model)
+    else:
+        if step:
+            audit.update(selector="existing_blue", fallback=True, reason="execution_rejected")
+        trace = _run_existing(lab, timed, threat_branch, max_steps, on_step)
+        trace.result = {**(trace.result or {}), "selection": audit}
+        chosen = trace.result.get("defence_branch")
+        if chosen and lab.record(str(chosen)):
+            audit["impact"] = {"loss_before_pct": round(100 * before.loss, 1),
+                               "loss_after_pct": round(100 * lab.evaluate_branch(str(chosen)).loss, 1)}
+        trace.steps.append(Step("Existing Blue flow selected the defence.", "blue_selection", {}, audit))
+    audit.update(total_ms=round((time.perf_counter() - started) * 1000, 1), total_llm_calls=timed.calls, total_llm_requests=timed.requests)
+    if on_step:
+        on_step("defence", trace.steps[-1])
+    return trace

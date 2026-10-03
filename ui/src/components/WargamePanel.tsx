@@ -168,6 +168,12 @@ function OneShot({ disabled }: { disabled: boolean }) {
         </p>
       ) : null}
       {o.result?.headline ? <p className="scenario__explain">{o.result.headline}</p> : null}
+      {o.result?.selection && (o.result.selection.candidates.length || o.result.selection.fallback) ? (
+        <p className="scenario__explain">
+          {o.result.selection.selector === "jev" ? "Jev selected the defence" : "Blue selected the defence"}
+          {o.result.selection.fallback ? " using the existing decision flow" : ""}.
+        </p>
+      ) : null}
       {o.error ? <p className="scenario__err mono">{o.error}</p> : null}
     </details>
   );

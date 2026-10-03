@@ -214,3 +214,10 @@ uv run pytest tests/agents -q
   and split scores. Map stacking and feed sizing were fixed so effects stay behind controls and long names fit.
 - Invalid model choices retry in the CLI as well as the API: `MoveRejected` lives in `match_errors.py` to
   avoid separate exception identities when `agents.match` runs as `__main__`.
+
+
+### Optional Featherless Simple Jev Blue
+
+Set `BLUE_JEV_ENABLED=1` in the server environment or `.env` to opt in for standalone defence
+and classic/strategic wargames. Red keeps its original decision flow. See [Jev integration](jev.md)
+for the verified API contract, configuration, bounds, telemetry and validation limitations.

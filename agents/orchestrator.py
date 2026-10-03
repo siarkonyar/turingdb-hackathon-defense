@@ -69,6 +69,7 @@ class RedBlueResult:
     defence_trace: Trace
     impact_diff: dict
     graph_diff: dict
+    selection: dict = field(default_factory=dict)
 
     def as_dict(self) -> dict:
         return {
@@ -76,7 +77,7 @@ class RedBlueResult:
             "threat_loss_pct": self.threat_loss_pct, "defence_branch": self.defence_branch,
             "defence_loss_pct": self.defence_loss_pct, "reduction_pct": self.reduction_pct,
             "headline": self.headline, "impact_diff": self.impact_diff, "graph_diff": self.graph_diff,
-            "threat_trace": self.threat_trace.as_dict(), "defence_trace": self.defence_trace.as_dict(),
+            "threat_trace": self.threat_trace.as_dict(), "defence_trace": self.defence_trace.as_dict(), "selection": self.selection,
         }
 
 
@@ -135,8 +136,18 @@ def run_red_blue(lab: Lab, threat_steps: int = 16, defence_steps: int = 16,
         crec = lab.branches.record(str(chosen))
         if crec.role == "defence" and crec.loss is not None and crec.loss <= best.loss + 1e-9:
             best = crec
+    # Priority selection may deliberately favour critical coverage over aggregate loss.
+    selection = (defence_trace.result or {}).get("selection", {})
+    if selection.get("selector") == "jev" and chosen:
+        selected = lab.branches.record(str(chosen))
+        if selected and selected.role == "defence" and selected.parent == worst:
+            best = selected
     defence_branch = best.change_id
     defence_loss = lab.branches.evaluate_branch(defence_branch).loss
+    if selection:
+        selection["executed_branch"] = defence_branch
+        selection["impact"] = {"loss_before_pct": round(100 * threat_loss, 1),
+                               "loss_after_pct": round(100 * defence_loss, 1)}
 
     impact_diff = lab.branches.diff_impacts(worst, defence_branch)
     graph_diff = lab.branches.diff_graph(worst, defence_branch)
@@ -152,7 +163,7 @@ def run_red_blue(lab: Lab, threat_steps: int = 16, defence_steps: int = 16,
         threat_loss_pct=round(100 * threat_loss, 1), defence_branch=defence_branch,
         defence_loss_pct=round(100 * defence_loss, 1), reduction_pct=round(reduction, 1),
         headline=headline, threat_trace=threat_trace, defence_trace=defence_trace,
-        impact_diff=impact_diff, graph_diff=graph_diff)
+        impact_diff=impact_diff, graph_diff=graph_diff, selection=selection)
 
 
 def run_scenario_question(lab: Lab, question: str, steps: int = 18, on_step: StepListener | None = None) -> dict:

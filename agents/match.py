@@ -19,7 +19,7 @@ import re
 import threading
 import time
 import uuid
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Protocol
@@ -91,6 +91,9 @@ class Move:
     targets: list[dict] = field(default_factory=list)  # {id, name, kind, lat, lon} for the map
     arcs: list[dict] = field(default_factory=list)  # {source, target, source_id, target_id, hop, rel}
     fallback: bool = False  # the model gave no valid move; a deterministic default was played
+    selection: dict = field(default_factory=dict)
+    llm_calls: int = 0
+    llm_requests: int = 0
     breakdown: dict = field(default_factory=dict)  # {deep_pct, legacy_pct}: absolute loss per layer
 
     def as_dict(self) -> dict:
@@ -101,7 +104,12 @@ class _TimedModel:
     """Wraps a chat model and accumulates the wall time of its calls."""
 
     def __init__(self, llm: ChatModel) -> None:
-        self.llm, self.ms = llm, 0.0
+        self.llm, self.ms, self.calls = llm, 0.0, 0
+        self.initial_requests = getattr(getattr(llm, "usage", None), "requests", 0)
+
+    @property
+    def requests(self) -> int:
+        return getattr(getattr(self.llm, "usage", None), "requests", self.calls) - self.initial_requests
 
     @property
     def model(self) -> str:
@@ -109,6 +117,7 @@ class _TimedModel:
 
     def chat(self, messages: list[dict[str, str]], **kwargs: Any) -> str:
         started = time.perf_counter()
+        self.calls += 1
         try:
             return self.llm.chat(messages, **kwargs)
         finally:
@@ -153,6 +162,7 @@ class Match:
         self._running.set()
         self._stop = threading.Event()
         self._started = time.perf_counter()
+        self._ended: float | None = None
         self.base_loss = 0.0
         self.base_actions: list[dict] = []
 
@@ -237,18 +247,87 @@ class Match:
         move = self._finalise("inject", after_round, first["action"], first.get("args", {}), result.actions,
                               result.branch_id, f"Event: {text}", result.summary, timed.ms if timed else 0.0,
                               started, fallback=False)
+        move = replace(move, llm_calls=timed.calls if timed else 0,
+                       llm_requests=timed.requests if timed else 0)
         self._record(move)
         self._emit("inject", {"text": text, "branch": move.branch_id, "move": move.as_dict()})
 
     def _play(self, side: str, rnd: int) -> Move:
+        from agents.blue_selection import BlueSelector
+
+        selector = BlueSelector()
+        timed = _TimedModel(self.llm) if self.llm is not None else None
         started = time.perf_counter()
+        audit = ({"selector": "existing_blue", "fallback": False, "candidates": [], "jev_calls": 0}
+                 if side == "blue" else {})
+        opts = None
+        if side == "blue" and selector.settings.enabled and timed:
+            if getattr(self, "strategic", False):
+                self.board.banned = [m.action for m in reversed(self.moves) if m.side == "red"][:2]
+            opts = self.board.options(side, self.head)
+            offered = opts.get("deep_candidates") or [c for c in
+                [opts.get("fallback"), *opts.get("alternates", [])] if c]
+            if not (len(offered) == 1 and offered[0]["action"] == "wait"):
+                state = {"round": rnd, "rounds": self.rounds, "history": self._history(),
+                         "damage": opts.get("damage") or opts.get("parts_layer", {}).get("damage"),
+                         "exercise": opts.get("exercise")}
+
+                def validate(step):
+                    branch = None
+                    try:
+                        label = describe_action(step["action"], step["args"], opts)
+                        branch = (self.board.play(side, label, self.head, step)[0] if getattr(self, "strategic", False) else
+                                  self.board.stack(side, label, self.head, [step]))
+                        source = next((c for c in offered if c["action"] == step["action"]
+                                       and c.get("args", {}) == step["args"]), {})
+                        before_imp = self.board.lab.evaluate_branch(self.head)
+                        after_imp = self.board.lab.evaluate_branch(branch)
+                        return {"loss_pct": _pct(self.board.loss(branch)),
+                                "critical_parts_restored": sorted(set(before_imp.critical_parts_unavailable) -
+                                                                   set(after_imp.critical_parts_unavailable)),
+                                **({"priority_programmes": self.board.missions(branch)} if getattr(self, "strategic", False) else {}),
+                                **{k: source[k] for k in ("cost", "ready_round", "name") if k in source}}
+                    except MoveRejected:
+                        return None
+                    finally:
+                        if branch:
+                            self.board.lab.discard(branch)
+                            self.board._deep_cache.pop(branch, None)
+
+                step, audit = selector.select(timed, state, validate, offered)
+                if step:
+                    label = describe_action(step["action"], step["args"], opts)
+                    try:
+                        branch, edits = (self.board.play(side, label, self.head, step) if getattr(self, "strategic", False) else
+                                         (self.board.stack(side, label, self.head, [step]), [step]))
+                    except MoveRejected:
+                        audit.update(selector="existing_blue", fallback=True, reason="execution_rejected")
+                    else:
+                        outcome = {"loss_before_pct": _pct(self.board.loss(self.head)),
+                                   "loss_after_pct": _pct(self.board.loss(branch))}
+                        audit["impact"] = outcome
+                        why = selector.explain(timed, audit, outcome)
+                        move = self._finalise(side, rnd, step["action"], step["args"], edits, branch,
+                                              label, why, timed.ms, started, False)
+                        return replace(move, selection=audit, llm_calls=timed.calls, llm_requests=timed.requests,
+                                       db_ms=round(max(0, move.db_ms - audit["request_ms"]), 1))
+        move = self._play_existing(side, rnd, opts=opts, timed=timed, started=started)
+        if audit:
+            audit["impact"] = {"loss_before_pct": _pct(self.board.loss(move.parent_id)),
+                               "loss_after_pct": move.abs_loss_pct}
+            audit["executed"] = {"action": move.action, "args": move.args}
+        return replace(move, selection=audit, llm_calls=timed.calls if timed else 0,
+                       llm_requests=timed.requests if timed else 0,
+                       db_ms=round(max(0, move.db_ms - audit.get("request_ms", 0)), 1))
+
+    def _play_existing(self, side: str, rnd: int, *, opts=None, timed=None, started=None) -> Move:
+        started = started or time.perf_counter()
         banned = self._last_action(side) if side == "red" else None  # red must vary its disruption kind
         allowed = tuple(a for a in (RED_ACTIONS if side == "red" else BLUE_ACTIONS) if a != banned)
-        opts = _without(self.board.options(side, self.head), banned)
+        opts = _without(opts if opts is not None else self.board.options(side, self.head), banned)
         messages = [{"role": "system", "content": f"{system_prompt(side)}\n\n{PROTOCOL}"},
                     {"role": "user", "content": task_prompt(side, rnd, self.rounds, self._history(),
                                                             self._losses(self.head), opts)}]
-        timed = _TimedModel(self.llm) if self.llm is not None else None
         for _ in range(MOVE_STEPS if timed else 0):
             reply = timed.chat(messages, agent=side, temperature=0.3, max_tokens=MOVE_MAX_TOKENS)
             messages.append({"role": "assistant", "content": reply})
@@ -318,6 +397,7 @@ class Match:
                  move.label, move.branch_id, move.loss_pct, move.llm_ms, move.db_ms)
 
     def _finish(self, status: str) -> dict:
+        self._ended = time.perf_counter()
         self._set_state(status, emit=False)
         summary = self.summary()
         self._emit("match_done", {"status": status, "summary": summary})
@@ -344,6 +424,11 @@ class Match:
                 "blue_moves": sum(m.side == "blue" for m in self.moves),
                 "injects": sum(m.side == "inject" for m in self.moves),
                 "fallbacks": sum(m.fallback for m in self.moves),
+                "llm_calls": sum(m.llm_calls for m in self.moves),
+                "llm_requests": sum(m.llm_requests for m in self.moves),
+                "jev_calls": sum(m.selection.get("jev_calls", 0) for m in self.moves),
+                "jev_ms": round(sum(m.selection.get("request_ms", 0) for m in self.moves), 1),
+                "total_ms": round(((self._ended or time.perf_counter()) - self._started) * 1000, 1),
                 "llm_ms": round(sum(m.llm_ms for m in self.moves), 1),
                 "db_ms": round(sum(m.db_ms for m in self.moves), 1), "file": self.path.stem}
 

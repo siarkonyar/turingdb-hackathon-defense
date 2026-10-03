@@ -269,3 +269,42 @@ capability loss + 25% original parts loss (legacy-only fallback without the deep
   the online CARTO basemap fails TLS in this sandbox, so screenshots show the built-in outline fallback.
 - Defence often prefers one bulk measure; if a "three distinct countermeasures" story is wanted, constrain it
   in `defence.py`'s prompt or budget.
+
+
+## Featherless Simple Jev Blue handoff (3 October 2026)
+
+- `agents/jev.py` is a separate authenticated `/v1/classifier` client using `httpx` and the existing
+  `FEATHERLESS_API_KEY`. Production only: the operator explicitly declined keyless demo switching.
+- Default classifier: `featherless-ai/gemma-4-26B-A4B-classifier`. Authenticated repository smoke passed:
+  selected the critical-part backup candidate, 1,758.2 ms. Qwen3.8-27B, Qwen3.6-35B-A3B and Qwen3.5-4B
+  returned HTTP 400 in tested requests; Gemma returned 200 with the same key. Do not describe this as
+  a general connection failure or claim Qwen works because it appears in the model catalog.
+- `agents/blue_selection.py` shares Blue proposal/selection across standalone defence and wargames.
+  LLM proposes at most five alternatives; Python validates them in temporary branches and discards
+  previews; Jev selects a locally stored candidate ID; Python executes and measures; the LLM explains.
+  Jev does not calculate loss or produce explanation text. Preserve one Blue action per turn.
+- `BLUE_JEV_ENABLED=1` opts in; default remains off. `BLUE_JEV_MODEL`, `BLUE_JEV_TIMEOUT`,
+  `BLUE_JEV_MIN_CONFIDENCE` and `BLUE_JEV_PRIORITIES` are documented in `.env.example` and `docs/jev.md`.
+  Default threshold 0 accepts valid choices; probabilities are conditional on options, not correctness.
+  Invalid selection, timeouts and service errors use existing Blue. Never silently change model/service.
+- Bounds: one proposal chat HTTP attempt (30-second network-phase timeout), at most five graph previews,
+  one classifier request (15-second network-phase timeout by default), one explanation chat attempt.
+  Existing ordinary chat retries remain unchanged. No strict total wall-clock deadline is claimed.
+- `agents/defence.py`, `agents/orchestrator.py` and `agents/match.py` integrate the selector. Existing
+  guards, action contracts, branch stacking, lineage and propagation remain; never submit to main.
+  Match/job telemetry stores candidates, selection, probabilities, durations, fallback, measured impact
+  and logical/HTTP chat counts. MoveFeed and the one-shot panel show concise selection summaries.
+- Offline tests: `tests/agents/test_blue_selection.py`, bounded call coverage in `test_llm.py`.
+  `tests/agents/test_jev_live.py` uses deterministic provider doubles with real TuringDB for cleanup,
+  replay, unchanged main and optional strategic budget/one-action rules. Two graph tests passed in
+  the working tree; the strategic extension remains separate pre-existing uncommitted work.
+- Latest working-tree focused validation: 152 Python passed / 7 skipped; UI 28 passed, typecheck/build passed.
+  Serial real-Qwen comparison started at 4.4% supply loss: both existing Blue and opt-in fallback ended
+  at 0.0% with one countermeasure. Existing: 6 chat calls, 155.36 s; fallback: 7 chat calls + 1 classifier
+  attempt (756.4 ms), 100.61 s. This is no Jev improvement claim. Full live Gemma hybrid-match quality
+  remains unmeasured. Runtime comparison files under `logs/jev-validation` must not be committed.
+- Connection check: `.venv/bin/python -m agents.jev --smoke`. Never print keys/provider bodies.
+  Official current production API: https://featherless.ai/docs/api-reference-classifier.
+
+- Jev-only commit snapshot independently verified against HEAD without the uncommitted strategic
+  extension: 134 Python passed / 9 skipped and UI typecheck passed. Runtime artifacts are excluded.
