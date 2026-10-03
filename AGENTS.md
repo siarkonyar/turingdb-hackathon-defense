@@ -385,3 +385,15 @@ original model; these rules apply to the strategic turn-based match.
 
 - Jev-only commit snapshot independently verified against HEAD without the uncommitted strategic
   extension: 134 Python passed / 9 skipped and UI typecheck passed. Runtime artifacts are excluded.
+
+## Impact cascade (Plan A)
+
+- Files: `api/deep_cascade.py` (pure engine), `api/deep_cascade_live.py` (`DeepCascade`: TuringDB reads, cache
+  per branch head, timed 12-hop reach query), `api/cascade_resolve.py` (Turkish/English aliases, no LLM),
+  `api/cascade_routes.py` (`/cascade/*`, live only); UI `state/cascade.ts`, `CascadePanel.tsx` ("Impact"),
+  `CascadeStepper.tsx`, `map/cascadeLayers.ts`, `lib/cascade.ts`; chokepoints are now a node kind and map layer.
+- Weighting: severity = share of a facility's inbound `SUPPLIES` volume lost; kept when >= 5%, BFS up to 12
+  degrees. Hormuz: 7 degrees / 8 hops / 340 facilities, reach query ~10-40 ms. Details: `docs/api.md`.
+- Read-only: never creates a branch, never writes main.
+- Plan B reuses `DeepCascade.compute`, `showCascade` and `<CascadeStepper />` (contract:
+  `docs/superpowers/plans/2026-10-03-cascade-contract.md`).

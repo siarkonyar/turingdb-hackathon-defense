@@ -263,6 +263,53 @@ uv run python -m agents.match --base 25 --rounds 3 --inject 2:"the Liverpool por
 uv run python -m agents.match --replay demo
 ```
 
+## Impact cascade (live backend only)
+
+"What breaks if X falls?" over the `supply_chain_deep` layer of `theatre`. Read-only: it never creates a branch
+and works on `main` or any existing branch ref. Mounted only when `OPSMAP_BACKEND=turingdb`.
+
+| Method + path | Body / query | Returns |
+|---|---|---|
+| `GET /cascade/origins?q=hurmuz&branch=main` | `q` 2..120 chars | `OriginsResponse {query, candidates: OriginCandidate[]}` (max 8) |
+| `POST /cascade` | `CascadeRequest {origin_id, branch="main", min_severity=0.05 (0.01..0.5)}` | `CascadeResponse`; 404 unknown node, 422 not a chokepoint/port/facility |
+| `POST /cascade/ask` | `CascadeAskRequest {question (2..400), branch, min_severity}` | `CascadeResponse`, or **422** `{detail, candidates}` when no place or several places match |
+
+`question` accepts Turkish and English place names ("Hürmüz Boğazı kapanırsa ne olur?", "Taiwan Strait
+blockade", "Busan limanı"); resolution is a deterministic alias table plus name-token matching
+(`api/cascade_resolve.py`), no LLM. An ambiguous question returns the candidates as chips; the UI then calls
+`POST /cascade` with the chosen `origin_id`.
+
+**Model.** Degree 0 is the origin (`status: "lost"`). Seeds (degree 1) for a chokepoint/port are the
+facilities that ship consignments through it (`TRANSITED` / `LOADED_AT`), with
+`severity = transiting consignments / all consignments shipped from that facility`. A facility origin's buyers
+are degree 1. Propagation follows `(a:Facility)-[:SUPPLIES {annual_volume}]->(b:Facility)` breadth-first:
+
+    severity(b) = min(1, Σ over affected suppliers a of severity(a) * volume(a,b) / inbound_volume(b))
+
+kept when `>= min_severity` (`MIN_SEVERITY = 0.05`), at most `MAX_DEGREE = 12` degrees. Each facility is
+reported once, at its first degree; `parent_id` is its biggest contributor. Severity is the share of a
+facility's inbound supply volume lost: an explainable proxy, not a calibrated forecast.
+
+`CascadeResponse` (plus `Timed` fields `latency_ms`, `roundtrip_ms`, `queries`):
+
+| Field | Meaning |
+|---|---|
+| `origin`, `origin_kind` | origin node (`lost`), `chokepoint` / `port` / `facility` |
+| `stages[]` | `{degree, hits[], arcs[], count, mean_severity}`; `stages[i].degree == i + 1`; hits sorted by severity |
+| `hits[]` | `{node (at_risk), degree, severity, parent_id, via: TRANSITED / LOADED_AT / SUPPLIES}` |
+| `arcs[]` | parent → hit, `hop == degree`, `rel == via` |
+| `max_degree`, `graph_hops` | degrees reached; edges walked (`max_degree + 1` for a chokepoint/port) |
+| `total_affected` | sum of stage counts |
+| `reach` | `{cypher, depth_limit: 12, reached, ms}`: the one deep `-[:SUPPLIES]->{1,12}` query, unweighted, timed by TuringDB |
+| `platforms[]` | `{name, archetype, severity, facility_id}`: weapon platforms whose final-assembly facility is affected |
+
+Measured on the live in-memory `theatre` (TuringDB 3.0, laptop, 3 October 2026):
+
+| Origin | Degrees (new facilities per degree) | Total | Graph hops | 12-hop reach query |
+|---|---|---|---|---|
+| Strait of Hormuz | 7 (7, 18, 110, 122, 68, 12, 3) | 340 | 8 | 2,262 facilities in 10–41 ms; whole answer 22–51 ms |
+| Taiwan Strait | 6 (1,082, 1,894, 769, 174, 54, 1) | 3,974 | 7 | 3,925 facilities in 1,061–1,155 ms; whole answer ~1,180 ms |
+
 ## Calling it from an agent
 
 ```python
