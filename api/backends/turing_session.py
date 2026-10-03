@@ -108,5 +108,13 @@ class Session:
                 continue
             seen.add(nid)
             props = {c[len(prefix):]: row[c] for c in prop_cols}
-            out.append(make_node(nid, str(row[label_col]) if label_col else (label or "Node"), props))
+            out.append(make_node(nid, first_label(row[label_col]) if label_col else (label or "Node"), props))
         return out
+
+
+def first_label(value) -> str:
+    """`labels(n)` is a list in TuringDB 3.0 (a string in 1.37); every theatre node has one label."""
+    if isinstance(value, (list, tuple)) or hasattr(value, "tolist"):
+        items = list(value.tolist() if hasattr(value, "tolist") else value)
+        return str(items[0]) if items else "Node"
+    return str(value)

@@ -149,7 +149,7 @@ class BranchLab:
         raise ValueError(f"no {label} with {key_prop} {key!r}")
 
     def delete_node(self, s: Session, node_id: int) -> None:
-        s.q(f"MATCH (n) WHERE n = {node_id} DELETE n")
+        s.q(f"MATCH (n) WHERE n = {node_id} DETACH DELETE n")
         s.q("COMMIT")
 
     def protect_node(self, s: Session, node_id: int, how: str) -> None:

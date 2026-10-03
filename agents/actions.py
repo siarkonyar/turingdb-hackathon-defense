@@ -172,7 +172,7 @@ def scenario_wipe_bbox(lab: BranchLab, s: Session, *, west: float, south: float,
                     f"AND n.longitude >= {west} AND n.longitude <= {east} RETURN n")
         ids = [int(x) for x in frame["n"]] if len(frame) else []
         for nid in ids:
-            s.q(f"MATCH (n) WHERE n = {nid} DELETE n")
+            s.q(f"MATCH (n) WHERE n = {nid} DETACH DELETE n")
             removed += 1
         if ids:
             s.q("COMMIT")
