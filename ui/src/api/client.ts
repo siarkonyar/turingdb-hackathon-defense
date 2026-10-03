@@ -1,11 +1,15 @@
 import type {
   AgentStatus,
   BranchesResponse,
+  CascadeAskRequest,
+  CascadeRequest,
+  CascadeResponse,
   JobRef,
   DiffResponse,
   MetaResponse,
   NeighboursResponse,
   NodesResponse,
+  OriginsResponse,
   ReportsResponse,
   SavedMatch,
   SimulateResponse,
@@ -18,6 +22,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     readonly status: number,
+    readonly body: unknown = null,
   ) {
     super(message);
     this.name = "ApiError";
@@ -41,19 +46,26 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
   if (!resp.ok) {
     let detail = resp.statusText;
+    let body: unknown = null;
     try {
-      const body = (await resp.json()) as { detail?: unknown };
-      if (typeof body.detail === "string") detail = body.detail;
+      body = await resp.json();
+      const d = (body as { detail?: unknown }).detail;
+      if (typeof d === "string") detail = d;
     } catch {
       // non-JSON error body: keep the status text
     }
-    throw new ApiError(detail || `HTTP ${resp.status}`, resp.status);
+    throw new ApiError(detail || `HTTP ${resp.status}`, resp.status, body);
   }
   if (resp.status === 204) return undefined as T;
   return (await resp.json()) as T;
 }
 
 export const api = {
+  cascadeOrigins: (q: string, branch = "main") =>
+    request<OriginsResponse>(`/cascade/origins${queryString({ q, branch })}`),
+  cascade: (req: CascadeRequest) => request<CascadeResponse>("/cascade", { method: "POST", body: JSON.stringify(req) }),
+  cascadeAsk: (req: CascadeAskRequest) =>
+    request<CascadeResponse>("/cascade/ask", { method: "POST", body: JSON.stringify(req) }),
   meta: () => request<MetaResponse>("/meta"),
   nodes: (types: string[], branch = "main", bbox?: string) =>
     request<NodesResponse>(`/nodes${queryString({ types: types.join(","), branch, bbox })}`),

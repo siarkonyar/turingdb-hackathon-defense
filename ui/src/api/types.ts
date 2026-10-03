@@ -10,6 +10,7 @@ export type Kind =
   | "part"
   | "facility"
   | "port"
+  | "chokepoint"
   | "other";
 export type Status = "at_risk" | "lost" | "no_power";
 export type BranchKind = "main" | "hypothesis" | "strike" | "change" | "threat" | "defence" | "scenario";
@@ -341,3 +342,73 @@ export type JobEvent =
   | ({ type: "result" } & Record<string, unknown>)
   | { type: "error"; message: string }
   | { type: "done"; status: string };
+
+// ---------------------------------------------------------------- impact cascade (docs/api.md)
+
+export type OriginKind = "chokepoint" | "port" | "facility";
+
+export interface CascadeHit {
+  node: GraphNode;
+  degree: number;
+  severity: number;
+  parent_id?: string | null;
+  via: string;
+}
+
+export interface CascadeStage {
+  degree: number;
+  hits: CascadeHit[];
+  arcs: Arc[];
+  count: number;
+  mean_severity: number;
+}
+
+export interface ReachProbe {
+  cypher: string;
+  depth_limit: number;
+  reached: number;
+  ms?: number | null;
+}
+
+export interface PlatformExposure {
+  name: string;
+  archetype?: string | null;
+  severity: number;
+  facility_id: string;
+}
+
+export interface CascadeResponse extends Timed {
+  branch: string;
+  origin: GraphNode;
+  origin_kind: OriginKind;
+  min_severity: number;
+  stages: CascadeStage[];
+  max_degree: number;
+  graph_hops: number;
+  total_affected: number;
+  reach: ReachProbe;
+  platforms: PlatformExposure[];
+}
+
+export interface CascadeRequest {
+  origin_id: string;
+  branch?: string;
+  min_severity?: number;
+}
+
+export interface CascadeAskRequest {
+  question: string;
+  branch?: string;
+  min_severity?: number;
+}
+
+export interface OriginCandidate {
+  node: GraphNode;
+  origin_kind: OriginKind;
+  score: number;
+}
+
+export interface OriginsResponse {
+  query: string;
+  candidates: OriginCandidate[];
+}

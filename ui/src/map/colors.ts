@@ -17,6 +17,7 @@ const NEUTRAL: Record<Kind, RGBA> = {
   supplier: [196, 204, 216, 240],
   facility: [168, 180, 196, 215],
   port: [208, 216, 228, 240],
+  chokepoint: [120, 200, 255, 255],
   drone: [214, 220, 229, 240],
   crime: [120, 130, 146, 150],
   report: [226, 232, 240, 235],
