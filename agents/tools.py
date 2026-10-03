@@ -95,3 +95,21 @@ def build_branch(lab: BranchLab, role: str, label: str, actions: list[dict], par
         "delta_pct": round(100 * (imp.loss - base), 1), "attacks": _attack_count(spec),
         "summary": imp.summary(),
     }
+
+
+PROPAGATE = {"action": "propagate", "args": {}}
+
+
+def lineage_actions(lab: BranchLab, parent: str) -> list[dict]:
+    """The edits that rebuild `parent` from main. TuringDB 1.37 cannot open a change on a change, so a
+    stacked branch replays these first. Status propagation is dropped: it is re-run once at the end."""
+    return [a for a in lab.spec_of(parent).get("actions", []) if a.get("action") != PROPAGATE["action"]]
+
+
+def build_stacked(lab: BranchLab, role: str, label: str, parent: str, new_actions: list[dict]) -> dict:
+    """A branch equal to `parent` plus `new_actions`, with ops_status propagated so the map shows the
+    downstream impact. Same result shape as build_branch (error dict on failure)."""
+    if not isinstance(new_actions, list) or not new_actions:
+        return {"error": "actions must be a non-empty list of {action, args} steps"}
+    actions = lineage_actions(lab, parent) + list(new_actions) + [PROPAGATE]
+    return build_branch(lab, role, label, actions, parent=parent)

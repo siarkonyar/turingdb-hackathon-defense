@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from agents.branches import BranchLab
 from agents.config import load_agent_settings
 from agents.defence import run_defence
-from agents.engine import Trace
+from agents.engine import StepListener, Trace
 from agents.llm import FeatherlessLLM, LLMUnavailable
 from agents.runtime import Graph, Supervisor
 from agents.scenario import run_scenario
@@ -29,9 +29,10 @@ log = logging.getLogger("agents.orchestrator")
 @dataclass
 class Lab:
     settings: object
-    llm: FeatherlessLLM
+    llm_or_none: FeatherlessLLM | None  # None when the key is unset: replay and branch work still run
     graph: Graph
     branches: BranchLab
+    llm_error: str | None = None
 
     @classmethod
     def create(cls) -> "Lab":
@@ -41,7 +42,18 @@ class Lab:
         graph = Graph(cfg.turingdb_host, cfg.graph, sup, timeout_s=cfg.query_timeout_s)
         branches = BranchLab(graph)
         branches.ensure_ready()
-        return cls(cfg, FeatherlessLLM(cfg), graph, branches)
+        try:
+            llm, error = FeatherlessLLM(cfg), None
+        except LLMUnavailable as exc:
+            llm, error = None, str(exc)
+            log.warning("LLM unavailable (%s); only replay and branch operations will work", exc)
+        return cls(cfg, llm, graph, branches, error)
+
+    @property
+    def llm(self) -> FeatherlessLLM:
+        if self.llm_or_none is None:
+            raise LLMUnavailable(self.llm_error or "FEATHERLESS_API_KEY is not set")
+        return self.llm_or_none
 
 
 @dataclass
@@ -102,13 +114,14 @@ def _summarise(countermeasures: list[str]) -> str:
     return ", ".join(parts)
 
 
-def run_red_blue(lab: Lab, threat_steps: int = 16, defence_steps: int = 16) -> RedBlueResult:
-    threat_trace = run_threat(lab.branches, lab.llm, max_steps=threat_steps)
+def run_red_blue(lab: Lab, threat_steps: int = 16, defence_steps: int = 16,
+                 on_step: StepListener | None = None) -> RedBlueResult:
+    threat_trace = run_threat(lab.branches, lab.llm, max_steps=threat_steps, on_step=on_step)
     worst = _pick_worst(lab.branches, threat_trace)
     threat_loss = lab.branches.evaluate_branch(worst).loss
     log.info("threat worst branch %s at %.1f%% loss", worst, 100 * threat_loss)
 
-    defence_trace = run_defence(lab.branches, lab.llm, worst, max_steps=defence_steps)
+    defence_trace = run_defence(lab.branches, lab.llm, worst, max_steps=defence_steps, on_step=on_step)
     # Compare the defence branches and select the best (lowest projected loss) countermeasure set found -
     # the honest "result" of the exploration, not just whichever branch the agent named last.
     defences = [r for r in lab.branches.records() if r.role == "defence" and r.loss is not None
@@ -142,8 +155,8 @@ def run_red_blue(lab: Lab, threat_steps: int = 16, defence_steps: int = 16) -> R
         impact_diff=impact_diff, graph_diff=graph_diff)
 
 
-def run_scenario_question(lab: Lab, question: str, steps: int = 18) -> dict:
-    trace = run_scenario(lab.branches, lab.llm, question, max_steps=steps)
+def run_scenario_question(lab: Lab, question: str, steps: int = 18, on_step: StepListener | None = None) -> dict:
+    trace = run_scenario(lab.branches, lab.llm, question, max_steps=steps, on_step=on_step)
     result = trace.result or {}
     branch = result.get("branch")
     out = {"question": question, "result": result, "trace": trace.as_dict()}
@@ -164,10 +177,9 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     logging.getLogger("httpx").setLevel(logging.WARNING)
 
-    try:
-        lab = Lab.create()
-    except LLMUnavailable as exc:
-        raise SystemExit(f"Featherless unavailable: {exc}")
+    lab = Lab.create()
+    if lab.llm_or_none is None:
+        raise SystemExit(f"Featherless unavailable: {lab.llm_error}")
 
     if args.scenario:
         out = run_scenario_question(lab, args.scenario)

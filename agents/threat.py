@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 
 from agents.branches import BranchLab
-from agents.engine import Agent, Tool, Trace
+from agents.engine import Agent, StepListener, Tool, Trace
 from agents.llm import FeatherlessLLM
 from agents.tools import branches_tool, build_branch, impact_tool, query_tool, schema_tool
 
@@ -44,9 +44,9 @@ Attack steps available inside test_attack (args as shown):
 Prefer the fewest attacks that still cause large loss."""
 
 
-def scout_targets(lab: BranchLab) -> dict:
+def scout_targets(lab: BranchLab, branch: str = "main") -> dict:
     """Rank part suppliers by criticality-weighted demand and list the biggest plants — the leverage points."""
-    s = lab.graph.session("main")
+    s = lab.graph.session(branch)
     frame = s.q("MATCH (sup:Supplier)<-[:SUPPLIED_BY]-(p:Part) WHERE sup.source = 'supply_chain' "
                 "RETURN sup, sup.supplier_id AS sid, p.part_id AS part, p.criticality_class AS cc")
     weight = {"A": 5.0, "B": 2.0, "C": 1.0}
@@ -83,7 +83,9 @@ def build_threat_agent(lab: BranchLab, llm: FeatherlessLLM, max_steps: int = 16)
     return Agent("threat", llm, SYSTEM, tools, max_steps=max_steps)
 
 
-def run_threat(lab: BranchLab, llm: FeatherlessLLM, max_steps: int = 16) -> Trace:
+def run_threat(lab: BranchLab, llm: FeatherlessLLM, max_steps: int = 16,
+               on_step: StepListener | None = None) -> Trace:
     lab.ensure_ready()
     agent = build_threat_agent(lab, llm, max_steps)
-    return agent.run("Find the most damaging, most efficient disruption strategies and report the worst branch.")
+    return agent.run("Find the most damaging, most efficient disruption strategies and report the worst branch.",
+                     on_step)

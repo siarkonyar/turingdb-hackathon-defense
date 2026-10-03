@@ -16,6 +16,7 @@ from api.backends.turing_session import Session, string_literal
 from agents.branches import BranchLab, BranchRecord
 
 log = logging.getLogger("agents.actions")
+WIPE_LABELS = ["PowerPlant", "Site", "Supplier", "Drone", "Crime", "Person", "Location"]
 
 
 def _km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -165,17 +166,18 @@ def defend_air_defence(lab: BranchLab, s: Session, *, plant_gppd: str) -> str:
 def scenario_wipe_bbox(lab: BranchLab, s: Session, *, west: float, south: float, east: float, north: float,
                        labels: list[str] | None = None) -> str:
     """Destroy every located node inside a bounding box (a catastrophic-event footprint)."""
-    targets = labels or ["PowerPlant", "Site", "Supplier", "Drone", "Crime", "Person", "Location"]
+    targets = [t for t in (labels or WIPE_LABELS) if t in s.labels]
+    inside = (f"n.latitude >= {float(south)} AND n.latitude <= {float(north)} "
+              f"AND n.longitude >= {float(west)} AND n.longitude <= {float(east)}")
     removed = 0
     for label in targets:
-        frame = s.q(f"MATCH (n:{label}) WHERE n.latitude >= {south} AND n.latitude <= {north} "
-                    f"AND n.longitude >= {west} AND n.longitude <= {east} RETURN n")
-        ids = [int(x) for x in frame["n"]] if len(frame) else []
-        for nid in ids:
-            s.q(f"MATCH (n) WHERE n = {nid} DELETE n")
-            removed += 1
-        if ids:
-            s.q("COMMIT")
+        count = int(s.q(f"MATCH (n:{label}) WHERE {inside} RETURN count(n) AS c")["c"].iloc[0])
+        if count:
+            # one filtered DELETE per label: ~0.3 s for a city, vs ~23 s deleting 9k nodes one query each
+            s.q(f"MATCH (n:{label}) WHERE {inside} DELETE n")
+            removed += count
+    if removed:
+        s.q("COMMIT")
     return f"destroyed {removed} nodes inside bbox ({west},{south},{east},{north})"
 
 

@@ -12,16 +12,14 @@ import logging
 
 from api.refs import Ref
 
-from agents.actions import apply_action, scenario_propagate
+from agents.actions import WIPE_LABELS
 from agents.branches import BranchLab
-from agents.engine import Agent, Tool, Trace
-from agents.guard import UnsafeQuery, check_read_query
+from agents.engine import Agent, StepListener, Tool, Trace
 from agents.llm import FeatherlessLLM
-from agents.tools import diff_tool, impact_tool, query_tool, schema_tool
+from agents.tools import build_stacked, diff_tool, impact_tool, query_tool, schema_tool
 
 log = logging.getLogger("agents.scenario")
 
-WIPE_LABELS = ["PowerPlant", "Site", "Supplier", "Drone", "Crime", "Person", "Location"]
 
 SYSTEM = """You are the SCENARIO-SIMULATION agent. You answer natural-language questions about hypothetical
 disasters by simulating them in the TuringDB graph, then explaining the cascading effects on infrastructure
@@ -80,9 +78,9 @@ def preview_region(lab: BranchLab, west: float, south: float, east: float, north
     return {"bbox": [west, south, east, north], "counts": counts, "total": sum(counts.values())}
 
 
-def _affected_payload(lab: BranchLab, change_id: str) -> dict:
+def _affected_payload(lab: BranchLab, change_id: str, parent: str = "main") -> dict:
     """Map-ready view of the scenario branch: destroyed + downstream-affected located nodes, via /diff."""
-    resp = lab.graph.backend.diff(Ref("main"), Ref(str(change_id)))
+    resp = lab.graph.backend.diff(Ref("main") if parent == "main" else Ref(str(parent)), Ref(str(change_id)))
     destroyed = [{"id": n.id, "name": n.name, "kind": n.kind, "lat": n.lat, "lon": n.lon}
                  for n in resp.removed if n.lat is not None]
     affected = [{"id": c.node.id, "name": c.node.name, "kind": c.node.kind, "lat": c.node.lat,
@@ -92,21 +90,17 @@ def _affected_payload(lab: BranchLab, change_id: str) -> dict:
             "affected_count": len(affected), "diff_latency_ms": resp.latency_ms}
 
 
-def build_scenario_agent(lab: BranchLab, llm: FeatherlessLLM, max_steps: int = 18) -> Agent:
+def build_scenario_agent(lab: BranchLab, llm: FeatherlessLLM, max_steps: int = 18, parent: str = "main") -> Agent:
     def simulate_scenario(label: str, west: float, south: float, east: float, north: float,
                           labels: list[str] | None = None) -> dict:
-        spec = {"actions": [
-            {"action": "wipe_bbox", "args": {"west": west, "south": south, "east": east, "north": north,
-                                             "labels": labels}},
-            {"action": "propagate", "args": {}},
-        ], "question_region": [west, south, east, north]}
-        s, rec = lab.open_branch("scenario", label, spec)
-        for step in spec["actions"]:
-            apply_action(lab, s, step["action"], step.get("args", {}))
-        imp = lab.evaluate_branch(rec.change_id)
-        payload = _affected_payload(lab, rec.change_id)
-        return {"branch": rec.change_id, "label": label, "bbox": [west, south, east, north],
-                "supply_loss_pct": round(100 * imp.loss, 1), "sites_down": imp.sites_down, **payload}
+        wipe = {"action": "wipe_bbox", "args": {"west": west, "south": south, "east": east, "north": north,
+                                                "labels": labels}}
+        built = build_stacked(lab, "scenario", label, parent, [wipe])  # parent = main, or a wargame head
+        if "error" in built:
+            return built
+        payload = _affected_payload(lab, built["change_id"], parent)
+        return {"branch": built["change_id"], "parent": parent, "label": label, "bbox": [west, south, east, north],
+                "supply_loss_pct": built["loss_pct"], "sites_down": built["summary"]["sites_down"], **payload}
 
     tools = [
         query_tool(lab), schema_tool(lab),
@@ -125,7 +119,9 @@ def build_scenario_agent(lab: BranchLab, llm: FeatherlessLLM, max_steps: int = 1
     return Agent("scenario", llm, SYSTEM, tools, max_steps=max_steps)
 
 
-def run_scenario(lab: BranchLab, llm: FeatherlessLLM, question: str, max_steps: int = 18) -> Trace:
+def run_scenario(lab: BranchLab, llm: FeatherlessLLM, question: str, max_steps: int = 18,
+                 on_step: StepListener | None = None, parent: str = "main") -> Trace:
+    """Simulate `question` on a new branch cut from `parent` (main, or a wargame head for an inject)."""
     lab.ensure_ready()
-    agent = build_scenario_agent(lab, llm, max_steps)
-    return agent.run(question)
+    agent = build_scenario_agent(lab, llm, max_steps, parent=parent)
+    return agent.run(question, on_step)

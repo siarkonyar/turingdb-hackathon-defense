@@ -89,6 +89,31 @@ class BranchLab:
     def record(self, change_id: str) -> BranchRecord | None:
         return self._ledger.get(str(change_id))
 
+    def spec_of(self, change_id: str) -> dict:
+        """A branch's replayable spec: from the ledger, else from its (:AgentBranch) marker in TuringDB
+        (a branch built by an earlier process). Raises ValueError for unknown or non-agent changes."""
+        change_id = str(change_id)
+        if change_id == "main":
+            return {"actions": []}
+        rec = self._ledger.get(change_id)
+        if rec is not None:
+            return rec.spec
+        if change_id not in self.graph.change_ids():
+            raise ValueError(f"unknown branch {change_id}")
+        s = self.graph.session(change_id)
+        if MARKER not in s.labels:
+            raise ValueError(f"branch {change_id} was not built by an agent; its edits cannot be replayed")
+        frame = s.q(f"MATCH (m:{MARKER}) RETURN m.role AS role, m.label AS label, m.parent AS parent, "
+                    "m.spec AS spec")
+        if frame.empty:
+            raise ValueError(f"branch {change_id} has no {MARKER} marker")
+        role, label, parent, spec = frame.iloc[0]
+        parsed = json.loads(str(spec))
+        with self._lock:  # adopt it so later reads skip TuringDB
+            self._ledger[change_id] = BranchRecord(change_id=change_id, role=str(role), label=str(label),
+                                                   parent=str(parent), spec=parsed)
+        return parsed
+
     # ------------------------------------------------------------------ building a branch
 
     def open_branch(self, role: str, label: str, spec: dict, parent: str = "main") -> tuple[Session, BranchRecord]:
