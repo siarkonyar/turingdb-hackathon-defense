@@ -4,17 +4,24 @@ import { create } from "zustand";
 
 import type {
   AgentStatus,
+  Arc,
   Branch,
   DiffResponse,
   Engine,
   GraphNode,
   ImpactDiff,
+  JobStep,
   MetaResponse,
+  MoveTarget,
   NeighboursResponse,
+  RedBlueResult,
   Report,
+  SavedMatch,
+  Side,
   SimulateResponse,
   Track,
 } from "../api/types";
+import { EMPTY_MATCH, type MatchView } from "../lib/match";
 import { DEFAULT_BASEMAP, type BasemapKind } from "../map/basemap";
 import { EMPTY_OVERLAY, type Overlay } from "../lib/overlay";
 
@@ -78,8 +85,39 @@ export interface ScenarioState {
   branch: string | null;
   explanation: string | null;
   steps: string[];
+  thought: string | null; // the agent's latest reasoning, streamed live
   impact: ImpactDiff | null;
   status: AgentStatus | null;
+}
+
+export interface OneShotState {
+  running: boolean;
+  steps: JobStep[];
+  result: RedBlueResult | null;
+  error: string | null;
+}
+
+export interface WargameState {
+  open: boolean;
+  status: AgentStatus | null; // LLM availability (GET /agent/status)
+  base: string;
+  rounds: number;
+  view: MatchView;
+  follow: boolean; // the map follows the match head
+  saved: SavedMatch[];
+  replayFile: string;
+  injectText: string;
+  injectNote: string | null;
+  treePick: string | null; // first node of a shift-click diff pair
+  oneShot: OneShotState;
+}
+
+/** A move's map choreography: red flashes + cascade arcs, blue pulses, amber for injected events. */
+export interface MatchFx {
+  side: Side;
+  targets: MoveTarget[];
+  arcs: Arc[];
+  startedAt: number; // performance.now()
 }
 
 export interface OpsState {
@@ -99,6 +137,8 @@ export interface OpsState {
   diff: DiffState | null;
   diffOpen: boolean;
   scenario: ScenarioState;
+  wargame: WargameState;
+  matchFx: MatchFx | null;
   branchMenuOpen: boolean;
   drawer: Drawer | null;
   contextMenu: { x: number; y: number; node: GraphNode } | null;
@@ -140,9 +180,25 @@ export const initialState: OpsState = {
     branch: null,
     explanation: null,
     steps: [],
+    thought: null,
     impact: null,
     status: null,
   },
+  wargame: {
+    open: false,
+    status: null,
+    base: "main",
+    rounds: 3,
+    view: EMPTY_MATCH,
+    follow: true,
+    saved: [],
+    replayFile: "",
+    injectText: "the Liverpool port is closed",
+    injectNote: null,
+    treePick: null,
+    oneShot: { running: false, steps: [], result: null, error: null },
+  },
+  matchFx: null,
   branchMenuOpen: false,
   drawer: null,
   contextMenu: null,

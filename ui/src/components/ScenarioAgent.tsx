@@ -1,7 +1,8 @@
 import { askScenario, setScenarioOpen, setScenarioQuestion } from "../state/actions";
 import { useOps } from "../state/store";
+import { ScenarioPrompt } from "./ScenarioPrompt";
 
-/** Natural-language scenario simulation: question -> agent -> TuringDB branch -> map. */
+/** Natural-language scenario simulation: question -> agent job (live steps) -> TuringDB branch -> map. */
 export function ScenarioAgent() {
   const sc = useOps((s) => s.scenario);
   if (!sc.open) return null;
@@ -18,30 +19,36 @@ export function ScenarioAgent() {
       </header>
       <p className="scenario__hint">
         Ask a what-if in plain English. The agent interprets it, runs Cypher against TuringDB, simulates the
-        event in its own branch, and the map shows the affected graph.
+        event in its own branch, and the map shows the affected graph. Use the branch as a Wargame base.
       </p>
-      <textarea
-        className="scenario__input"
-        rows={3}
+      <ScenarioPrompt
+        label="Scenario question"
         value={sc.question}
-        disabled={sc.loading}
-        onChange={(e) => setScenarioQuestion(e.target.value)}
-        placeholder="A catastrophic event has destroyed everything across Manchester…"
-      />
-      <div className="scenario__actions">
-        <button type="button" className="btn" disabled={sc.loading || !!unavailable} onClick={() => void askScenario()}>
-          {sc.loading ? "Simulating…" : "Simulate"}
-        </button>
+        onChange={setScenarioQuestion}
+        onSubmit={() => void askScenario()}
+        busy={sc.loading}
+        disabled={!!unavailable}
+        submitLabel="Simulate"
+        busyLabel="Simulating…"
+        placeholder="Everything in Manchester is destroyed…"
+      >
         {sc.status?.model ? <span className="scenario__model mono">{sc.status.model}</span> : null}
-      </div>
-      {unavailable ? (
-        <p className="scenario__err mono">Agent unavailable: {sc.status?.reason}</p>
-      ) : null}
+      </ScenarioPrompt>
+      {unavailable ? <p className="scenario__err mono">Agent unavailable: {sc.status?.reason}</p> : null}
       {sc.loading ? (
-        <p className="scenario__status">
-          <span className="spinner" aria-hidden /> The agent is querying TuringDB and building a branch — this
-          can take up to a minute.
-        </p>
+        <div className="scenario__status" role="status">
+          <span className="spinner" aria-hidden />
+          <span>
+            {sc.steps.length ? (
+              <>
+                step {sc.steps.length}: <span className="mono">{sc.steps[sc.steps.length - 1]}</span>
+                {sc.thought ? <span className="scenario__thought"> — {sc.thought}</span> : null}
+              </>
+            ) : (
+              "Starting the scenario agent…"
+            )}
+          </span>
+        </div>
       ) : null}
       {sc.error ? <p className="scenario__err mono">{sc.error}</p> : null}
       {sc.explanation ? (

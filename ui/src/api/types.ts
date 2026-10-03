@@ -183,3 +183,103 @@ export interface ScenarioResponse {
   steps: string[];
   model?: string | null;
 }
+
+// ---------------------------------------------------------------- agent jobs + the wargame (docs/api.md)
+
+export interface JobRef {
+  job_id: string;
+}
+
+export interface JobStep {
+  agent: string;
+  action: string;
+  thought: string;
+  args: Record<string, unknown>;
+  observation: string;
+}
+
+export type Side = "red" | "blue" | "inject";
+
+export interface MoveTarget {
+  id: string;
+  name: string;
+  kind: Kind;
+  lat: number;
+  lon: number;
+  status?: Status | null;
+}
+
+export interface Move {
+  round: number;
+  side: Side;
+  action: string;
+  args: Record<string, unknown>;
+  actions: { action: string; args: Record<string, unknown> }[];
+  branch_id: string;
+  parent_id: string;
+  label: string;
+  rationale: string;
+  loss_pct: number; // additional loss vs the base, percentage points
+  abs_loss_pct: number;
+  llm_ms: number;
+  db_ms: number;
+  latency_ms: number;
+  targets: MoveTarget[];
+  arcs: Arc[];
+  fallback: boolean;
+}
+
+export interface MatchSummary {
+  match_id?: string;
+  status: string;
+  base_branch?: string;
+  head?: string;
+  rounds_played?: number;
+  base_loss_pct?: number;
+  final_loss_pct?: number;
+  llm_ms?: number;
+  db_ms?: number;
+  file?: string;
+}
+
+export interface SavedMatch {
+  file: string;
+  id: string;
+  created: string | null;
+  base_branch: string;
+  rounds: number;
+  status: string;
+  moves: number;
+  final_loss_pct: number | null;
+  model: string | null;
+}
+
+/** One SSE event from /match/{id}/events (`type` is the SSE event name). */
+export type MatchEvent =
+  | { type: "job_started"; job_id: string }
+  | { type: "match_started"; match_id?: string; base_branch: string; rounds: number; base_loss_pct: number; model?: string | null; replay?: boolean }
+  | { type: "move_started"; round: number; side: Side; head: string; text?: string }
+  | ({ type: "move"; replay?: boolean } & Move)
+  | { type: "inject"; text: string; branch: string; move: Move }
+  | { type: "round_done"; round: number; head: string; loss_pct: number; abs_loss_pct: number }
+  | { type: "status"; state: "paused" | "running" }
+  | { type: "match_done"; status: string; summary?: MatchSummary }
+  | { type: "error"; message: string; replay_available?: boolean }
+  | { type: "done"; status: string };
+
+export interface RedBlueResult {
+  headline?: string;
+  baseline_pct?: number;
+  threat_branch?: string;
+  threat_loss_pct?: number;
+  defence_branch?: string;
+  defence_loss_pct?: number;
+}
+
+/** One SSE event from /agent/jobs/{id}/events. */
+export type JobEvent =
+  | { type: "job_started"; job_id: string; kind: string }
+  | ({ type: "step" } & JobStep)
+  | ({ type: "result" } & Record<string, unknown>)
+  | { type: "error"; message: string }
+  | { type: "done"; status: string };

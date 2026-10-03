@@ -18,6 +18,7 @@ import { activeOverlay, setOps, useOps } from "../state/store";
 import { FALLBACK_STYLE, loadBasemap, outlineStyle } from "./basemap";
 import { buildIconAtlas } from "./iconAtlas";
 import { buildDroneLayers, buildPulseLayer, buildStaticLayers, buildStrikeLayers, pickedNode } from "./layers";
+import { buildMatchFxLayers, matchFxActive } from "./matchLayers";
 
 setWorkerUrl(import.meta.env.PROD ? maplibreWorkerUrl : "/vendor/maplibre/maplibre-gl-worker.mjs");
 
@@ -126,7 +127,9 @@ export function MapView() {
       const elapsed = strike ? now - strike.startedAt : 0;
       const strikeMoving = Boolean(strikePlan) && elapsed < (strikePlan?.durationMs ?? 0) + SHOCKWAVE_TAIL_MS;
       const pulsing = s.pulses.some((p) => now - p.at < PULSE_DURATION_MS);
-      const key = [staticRef.current.version, s.time, strikeMoving ? now : "still", pulsing ? now : "", s.layers.drone].join("|");
+      const fxMoving = matchFxActive(s.matchFx, now);
+      const key = [staticRef.current.version, s.time, strikeMoving ? now : "still", pulsing ? now : "", fxMoving ? now : "",
+        s.layers.drone].join("|");
       if (key === lastKey) return;
       lastKey = key;
 
@@ -150,6 +153,7 @@ export function MapView() {
       }
       const pulse = buildPulseLayer(s.pulses, now, PULSE_DURATION_MS);
       if (pulse) out.push(pulse);
+      if (fxMoving && s.matchFx) out.push(...buildMatchFxLayers(s.matchFx, now, reduced));
       deck.setProps({ layers: out });
     };
     raf = requestAnimationFrame(loop);
