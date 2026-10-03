@@ -31,7 +31,7 @@ export const REPORT_OFFSET: [number, number] = [13, -13];
 
 export interface StaticInput {
   plants: GraphNode[];
-  facilities: GraphNode[]; // sites + suppliers
+  facilities: GraphNode[]; // sites + suppliers + deep facilities + ports
   sites: GraphNode[];
   crimes: GraphNode[];
   reports: Report[]; // already cut at the slider time
@@ -136,7 +136,7 @@ export function buildStaticLayers(input: StaticInput): Layer[] {
     );
   }
 
-  const facilities = input.facilities.filter((n) => (n.kind === "site" ? layers.site : layers.supplier));
+  const facilities = input.facilities.filter((n) => layers[n.kind as LayerKey] ?? false);
   out.push(
     new IconLayer<GraphNode>({
       id: "facilities",
@@ -145,7 +145,8 @@ export function buildStaticLayers(input: StaticInput): Layer[] {
       iconMapping: atlas.mapping,
       getIcon: (n) => iconFor(n, statusOf(overlay, n.id)),
       getPosition: pos,
-      getSize: (n) => glyphSize(n.importance, 16, 28),
+      // deep facilities cluster at city centroids: draw them small so a city reads as a cluster, not a blob
+      getSize: (n) => (n.kind === "facility" ? 9 : n.kind === "port" ? 14 : glyphSize(n.importance, 16, 28)),
       sizeUnits: "pixels",
       getColor: color,
       pickable: true,

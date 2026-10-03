@@ -41,8 +41,10 @@ KIND_QUERIES: dict[str, tuple[tuple[str, ...], str, str | None]] = {
     "crime": (("Crime", "Location", "Site"), "MATCH (n:Crime)-[:OCCURRED_AT]->(l:Location)-[:NEAR]->(s:Site)", None),
     "report": (("Report",), "MATCH (n:Report)", None),
     "part": (("Part",), "MATCH (n:Part)", None),
+    "facility": (("Facility",), "MATCH (n:Facility)", None),  # supply_chain_deep
+    "port": (("Port",), "MATCH (n:Port)", None),
 }
-SNAPSHOT_KINDS = ("plant", "site", "supplier", "drone", "report", "part")
+SNAPSHOT_KINDS = ("plant", "site", "supplier", "drone", "report", "part", "facility", "port")
 TRACK_EVERY = 6  # keep every 6th drone reading
 CACHE_LIMIT = 48
 _LABEL = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -65,6 +67,8 @@ class TuringDependencies:
             raise ValueError(f"unsafe label/rule {label!r}/{rule!r}")
         if rule == "DELIVERED_TO":
             pattern = "MATCH (x)<-[:FOR_PART]-(po)-[:DELIVERED_TO]->(d)"
+        elif rule == "SUPPLIES":  # deep facilities: the buyers of a lost facility depend on it
+            pattern = "MATCH (x)-[:SUPPLIES]->(d)"
         else:
             pattern = f"MATCH (x)<-[:{rule}]-(d)"
         deps: list[cascade.Dependency] = []
@@ -158,7 +162,7 @@ class TuringBackend:
 
     def meta(self) -> MetaResponse:
         return MetaResponse(engine=ENGINE, graph=self.graph,
-                            layers=["plant", "site", "supplier", "drone", "crime", "cyber", "report"])
+                            layers=["plant", "site", "supplier", "drone", "crime", "cyber", "report", "facility", "port"])
 
     def nodes(self, ref: Ref, kinds: Sequence[str], bbox: BBox | None) -> NodesResponse:
         sw = Stopwatch(ENGINE)

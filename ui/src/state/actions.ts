@@ -11,8 +11,8 @@ import { setOps, useOps, type BaseKind, type LayerKey, type Toast } from "./stor
 const TOAST_MS = 4200;
 const PULSE_MS = 1600;
 const FLY_ZOOM = 9;
-const BASE_KINDS: BaseKind[] = ["site", "supplier", "drone", "crime", "plant"];
-const STRIKABLE = new Set(["plant", "site", "supplier", "drone"]);
+const BASE_KINDS: BaseKind[] = ["site", "supplier", "facility", "port", "drone", "crime", "plant"];
+const STRIKABLE = new Set(["plant", "site", "supplier", "facility", "drone"]);
 
 let toastSeq = 0;
 let flySeq = 0;
@@ -228,7 +228,7 @@ export function setScenarioQuestion(question: string): void {
 export async function askScenario(): Promise<void> {
   const question = useOps.getState().scenario.question.trim();
   if (!question) return;
-  patchScenario({ loading: true, error: null, explanation: null, branch: null, steps: [], thought: null, impact: null });
+  patchScenario({ loading: true, error: null, explanation: null, branch: null, steps: [], thought: null, impact: null, deep: null });
   try {
     const { job_id } = await api.agentScenario(question);
     follow<JobEvent>(
@@ -259,6 +259,7 @@ async function onScenarioEvent(ev: JobEvent): Promise<void> {
       explanation: resp.explanation ?? null,
       steps: resp.steps ?? useOps.getState().scenario.steps,
       impact: resp.impact_diff ?? null,
+      deep: resp.deep_supply ?? null,
     });
     if (resp.branch) {
       await refreshBranches();

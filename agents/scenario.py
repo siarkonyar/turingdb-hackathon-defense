@@ -9,6 +9,7 @@ high-level and impact-focused — hypothetical disasters and cascading effects, 
 from __future__ import annotations
 
 import logging
+from collections import Counter
 
 from api.refs import Ref
 
@@ -20,11 +21,18 @@ from agents.tools import build_stacked, diff_tool, impact_tool, query_tool, sche
 
 log = logging.getLogger("agents.scenario")
 
+LIST_CAP = 25  # items per list in a tool observation (counts stay complete)
 
 SYSTEM = """You are the SCENARIO-SIMULATION agent. You answer natural-language questions about hypothetical
 disasters by simulating them in the TuringDB graph, then explaining the cascading effects on infrastructure
 and dependencies. This is impact analysis of hypothetical events — never operational instructions or
 real-world targeting.
+
+The graph holds two supply layers: the original one (Sites, part Suppliers, Parts) and the deep defence
+supply network (Facility mine -> refinery -> ... -> final assembly plant, linked by SUPPLIES; Platform /
+Component / Material items; Port, Chokepoint, Company). Consider BOTH, plus power plants, drones and the
+local population data (Locations, Crimes, People), when explaining effects. Deep facilities draw power from
+nearby plants (POWERED_BY), so a regional event can hit a facility directly or by cutting its power.
 
 Place names (towns, cities) are NOT stored as a searchable field, so do not try `MATCH (:Place ...)` or
 filter on a `name`/`city` property — those will fail. Instead call `places` to get the named locations with
@@ -32,8 +40,8 @@ coordinates and match the question's place to one of them.
 
 Workflow:
 1. Understand the scenario (what is destroyed, where).
-2. Call `places` to turn the named place into coordinates. Then use `query` (Cypher) if you want to inspect
-   the specific entities (plants, drones, suppliers) around there.
+2. Call `places` with {"name": "<place>"} to turn the named place into coordinates (it lists sites, suppliers, deep-facility cities
+   and ports). Then use `query` (Cypher) if you want to inspect the specific entities around there.
 3. Use `preview_region` to confirm a bounding box contains infrastructure (plants/sites/drones) before
    committing. Centre an ~10-15 km box (about 0.1-0.15 degrees) on the matched coordinates.
 4. Call `simulate_scenario` with the bounding box (and optional labels). It opens a NEW branch, destroys
@@ -41,12 +49,13 @@ Workflow:
    diff plus the affected located nodes for the map.
 5. Read the diff and the downstream query results. Optionally `query` the branch to trace further effects.
 6. `finish` with: branch (change_id), a clear `explanation` of the effects grounded in the diff, and the
-   `headline` numbers (nodes destroyed, facilities affected). The map reads your branch automatically.
+   `headline` numbers (nodes destroyed, facilities affected, platforms affected). Use the `deep_supply`
+   section of the simulation result to explain the knock-on effects in the deep supply network. The map reads your branch automatically.
 
 Coordinates are WGS84 lat/lon. A ~10 km box is about 0.09 degrees of latitude."""
 
 
-def places(lab: BranchLab) -> dict:
+def places(lab: BranchLab, name: str | None = None) -> dict:
     """Named places in the graph with coordinates (Site.place, part-Supplier.place) — the anchors for a
     region question. Place names are NOT a queryable index, so this is how to turn 'Manchester' into a bbox."""
     s = lab.graph.session("main")
@@ -60,6 +69,19 @@ def places(lab: BranchLab) -> dict:
     for place, lat, lon in sup.dropna().itertuples(index=False):
         out.append({"place": str(place), "kind": "Supplier", "lat": round(float(lat), 4),
                     "lon": round(float(lon), 4)})
+    fac = s.q("MATCH (n:Facility) RETURN n.city AS city, n.country_code AS cc, avg(n.latitude) AS lat, "
+              "avg(n.longitude) AS lon, count(n) AS facilities")
+    for city, cc, lat, lon, n in fac.dropna().itertuples(index=False):
+        out.append({"place": f"{city} ({cc})", "kind": "deep Facility city", "facilities": int(n),
+                    "lat": round(float(lat), 4), "lon": round(float(lon), 4)})
+    ports = s.q("MATCH (n:Port) RETURN n.name AS place, n.latitude AS lat, n.longitude AS lon")
+    for place, lat, lon in ports.dropna().itertuples(index=False):
+        out.append({"place": str(place), "kind": "Port", "lat": round(float(lat), 4), "lon": round(float(lon), 4)})
+    if name:  # case-insensitive substring filter keeps the observation small
+        want = name.strip().lower()
+        hits = [p for p in out if want in p["place"].lower()]
+        out = hits or [{"note": f"no place matches {name!r}; call places without a name for the full list "
+                                "(or use known coordinates)"}]
     return {"places": out, "note": "match the question's place to one of these (e.g. 'Manchester' -> the "
             "Site whose place contains Manchester); use its lat/lon as the centre of your bounding box"}
 
@@ -79,15 +101,46 @@ def preview_region(lab: BranchLab, west: float, south: float, east: float, north
 
 
 def _affected_payload(lab: BranchLab, change_id: str, parent: str = "main") -> dict:
-    """Map-ready view of the scenario branch: destroyed + downstream-affected located nodes, via /diff."""
+    """Map-ready view of the scenario branch: destroyed + downstream-affected located nodes, via /diff.
+    Lists are capped for the model; the counts by kind are complete."""
     resp = lab.graph.backend.diff(Ref("main") if parent == "main" else Ref(str(parent)), Ref(str(change_id)))
-    destroyed = [{"id": n.id, "name": n.name, "kind": n.kind, "lat": n.lat, "lon": n.lon}
-                 for n in resp.removed if n.lat is not None]
-    affected = [{"id": c.node.id, "name": c.node.name, "kind": c.node.kind, "lat": c.node.lat,
-                 "lon": c.node.lon, "status": c.node.status} for c in resp.changed
-                if c.node.lat is not None and "status" in c.fields]
-    return {"destroyed": destroyed, "affected": affected, "destroyed_count": len(resp.removed),
-            "affected_count": len(affected), "diff_latency_ms": resp.latency_ms}
+    destroyed = [n for n in resp.removed if n.lat is not None]
+    affected = [c.node for c in resp.changed if c.node.lat is not None and "status" in c.fields]
+    by_kind = lambda nodes: dict(Counter(n.kind for n in nodes))  # noqa: E731
+    return {"destroyed_by_kind": by_kind(destroyed), "affected_by_kind": by_kind(affected),
+            "destroyed": [{"name": n.name, "kind": n.kind} for n in destroyed[:LIST_CAP]],
+            "affected": [{"name": n.name, "kind": n.kind, "status": n.status} for n in affected[:LIST_CAP]],
+            "destroyed_count": len(resp.removed), "affected_count": len(affected),
+            "diff_latency_ms": resp.latency_ms}
+
+
+def deep_supply(lab: BranchLab, change_id: str) -> dict:
+    """Knock-on effects in the supply_chain_deep network: facilities destroyed or flagged on the branch, every
+    facility downstream of them on main (SUPPLIES, any depth), and the platforms built at an affected site."""
+    main, br = lab.graph.session("main"), lab.graph.session(str(change_id))
+    if "Facility" not in main.labels:
+        return {}
+    keys = dict(main.q("MATCH (f:Facility) RETURN f, f.facility_id AS k").astype(str).itertuples(index=False))
+    alive = {str(x) for x in br.q("MATCH (f:Facility) RETURN f")["f"]}
+    flagged = {str(x) for x in br.q("MATCH (f:Facility) WHERE f.ops_status IS NOT NULL RETURN f")["f"]} \
+        if "ops_status" in br.property_types else set()
+    destroyed = set(keys) - alive
+    hit = destroyed | flagged
+    buyers: dict[str, set[str]] = {}
+    for a, b in main.q("MATCH (a:Facility)-[:SUPPLIES]->(b:Facility) RETURN a, b").astype(str).itertuples(index=False):
+        buyers.setdefault(a, set()).add(b)
+    downstream, frontier = set(), set(hit)
+    while frontier:  # breadth-first over the supplier network, any number of tiers
+        frontier = {b for f in frontier for b in buyers.get(f, ())} - downstream - hit
+        downstream |= frontier
+    plats = main.q("MATCH (p:Platform)-[:PRODUCED_AT]->(f:Facility) RETURN p.name AS name, f").astype(str)
+    direct = sorted({n for n, f in plats.itertuples(index=False) if f in hit})
+    exposed = sorted({n for n, f in plats.itertuples(index=False) if f in downstream})
+    return {"facilities_destroyed": len(destroyed), "facilities_flagged": len(flagged),
+            "facilities_downstream": len(downstream),
+            "example_destroyed": sorted(keys[f] for f in destroyed)[:10],
+            "platforms_built_at_hit_facility": direct, "platforms_downstream": exposed[:LIST_CAP],
+            "platforms_downstream_count": len(exposed)}
 
 
 def build_scenario_agent(lab: BranchLab, llm: FeatherlessLLM, max_steps: int = 18, parent: str = "main") -> Agent:
@@ -100,12 +153,15 @@ def build_scenario_agent(lab: BranchLab, llm: FeatherlessLLM, max_steps: int = 1
             return built
         payload = _affected_payload(lab, built["change_id"], parent)
         return {"branch": built["change_id"], "parent": parent, "label": label, "bbox": [west, south, east, north],
-                "supply_loss_pct": built["loss_pct"], "sites_down": built["summary"]["sites_down"], **payload}
+                "original_layer_supply_loss_pct": built["loss_pct"], "sites_down": built["summary"]["sites_down"],
+                "deep_supply": deep_supply(lab, built["change_id"]), **payload}
 
     tools = [
         query_tool(lab), schema_tool(lab),
-        Tool("places", "Named places (towns/cities) in the graph with coordinates — use this to turn a "
-             "place name in the question into a bounding box.", lambda: places(lab)),
+        Tool("places", "Named places (sites, supplier towns, deep-facility cities, ports) with coordinates — "
+             "use this to turn a place name in the question into a bounding box.",
+             lambda name=None: places(lab, name),
+             {"name": "optional place name to search for, e.g. 'Manchester' (recommended)"}),
         Tool("preview_region", "Count nodes by label inside a bounding box (read-only), before simulating.",
              lambda west, south, east, north: preview_region(lab, west, south, east, north),
              {"west": "min lon", "south": "min lat", "east": "max lon", "north": "max lat"}),

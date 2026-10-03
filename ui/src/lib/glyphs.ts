@@ -22,6 +22,8 @@ export type GlyphName =
   | "plant-other"
   | "site"
   | "supplier"
+  | "facility"
+  | "port"
   | "drone"
   | "report"
   | "crime"
@@ -95,6 +97,11 @@ export const GLYPHS: Record<GlyphName, GlyphPart[]> = {
     { d: regular(6, 4.5), mode: "fill" },
   ],
   supplier: [{ d: regular(3, 9, 0), mode: "stroke" }],
+  facility: [{ d: "M6.5 6.5h11v11h-11Z", mode: "stroke" }],
+  port: [
+    { d: "M12 4v15M7.5 8h9", mode: "stroke" },
+    { d: "M5.5 13.5a6.5 6 0 0 0 13 0", mode: "stroke" },
+  ],
   drone: [{ d: "M12 3L19 19L12 15L5 19Z", mode: "fill" }],
   report: [
     { d: "M6.5 4.5h7.5l4 4v11h-11.5Z", mode: "stroke" },
@@ -134,6 +141,8 @@ export function glyphForNode(node: Pick<GraphNode, "kind" | "fuel">): GlyphName 
       return glyphForFuel(node.fuel);
     case "site":
     case "supplier":
+    case "facility":
+    case "port":
     case "drone":
     case "report":
     case "crime":

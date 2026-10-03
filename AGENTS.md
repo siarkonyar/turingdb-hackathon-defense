@@ -59,9 +59,8 @@ uv run pytest tests/agents/test_agents_live.py -q                      # real Fe
 npm --prefix ui run typecheck && npm --prefix ui test && npm --prefix ui run build
 ```
 
-Last known state (turingdb 3.0, theatre with the deep layer): 135 passed for api + fusion + agents-offline +
-branch-lab. The live agent tests and UI checks last passed before the 3.0 move (4/4; UI 16 tests, typecheck,
-build) and were not re-run after it. Live tests skip themselves when the server or key is missing.
+Last known state (turingdb 3.0, theatre with the deep layer, facility/port kinds): api + fusion + agents-offline
++ branch-lab all green; live agent tests 4/4 (real Featherless); UI 16 tests, typecheck and build OK. Live tests skip themselves when the server or key is missing.
 
 ## TuringDB 3.0 - things that will bite you
 
@@ -101,8 +100,18 @@ Fused by `fusion/assemble.py` + `fusion/links.py::add_deep_powered_by`:
 - `Facility -[:POWERED_BY {synthetic, distance_km}]-> PowerPlant`: 3 nearest within 50 km (12,406 edges;
   102 remote facilities have none).
 - Fusion runs without the deep source too (unit-test fixtures).
-- **Not yet used by the agents or the map**: the agents' impact model and actions still run on the original
-  synthetic supply_chain layer (Sites / Parts / Suppliers), and the OpsMap API has no `facility`/`port` kind.
+- **Map**: `facility` and `port` are API node kinds (`api/models.py` Kind, `api/nodes.py`, `KIND_QUERIES`,
+  `SNAPSHOT_KINDS`) and UI layers ("Facilities", "Ports" in the rail; drawn small because facilities cluster at
+  city centroids). Strikes cascade into the deep layer: plant -> Facility via `POWERED_BY`, and a lost
+  Facility puts its buyers at risk via `SUPPLIES` (`api/cascade.py` RULES; `TuringDependencies` special-cases
+  `SUPPLIES` as an outgoing edge).
+- **Scenario agent** considers the deep layer: `places(name=...)` also lists deep-facility cities and ports,
+  `wipe_bbox` destroys Facility/Port too (`actions.WIPE_DEFAULT`), `propagate` flags facilities that lost power
+  (`no_power`) or lost a supplier (`at_risk`), and `simulate_scenario` returns a `deep_supply` section
+  (facilities destroyed/flagged/downstream, platforms exposed) that the UI panel shows. The old-layer loss is
+  reported as `original_layer_supply_loss_pct`. Live-tested: Istanbul -> 34 destroyed, 96 flagged, 2,519
+  downstream; Manchester has no deep facilities.
+- **Threat/defence agents stay on the original synthetic supply layer** (their impact model and actions).
   Retargeting the *threat* agent onto the deep network (real chokepoints/countries) was deliberately not done.
 
 ## The agents system (`agents/`)
@@ -153,6 +162,17 @@ queryable, so this is how "Manchester" -> SITE01 Trafford Park 53.47,-2.31), `qu
 `simulate_scenario` (wipe + propagate in a new branch, returns diff payload), `diff`, `impact`. Manchester
 result: ~27 located nodes destroyed (6 plants, 20 drones, SITE01), 13.8% supply loss.
 
+**Wargame / stacking (added by the repo owner, merged in).** `agents/match.py` (+ `match_board.py`,
+`match_prompts.py`) runs a turn-based red-vs-blue match: each round red makes one disruption and blue one
+countermeasure, each a branch stacked on the current head; operators can inject events (the scenario agent
+runs on the head); matches are saved to `matches/<id>.json` and can be replayed. Stacking without
+change-on-change: `tools.build_stacked` replays `lineage_actions(parent)` + the new actions + `propagate` into a
+fresh change. The scenario agent's `simulate_scenario` takes a `parent` (main or a wargame head).
+`api/jobs.py` + `api/agent_hub.py` run agent calls as background jobs streamed over SSE
+(`/agent/jobs/<id>/events`, `/match/...`); `api/env.py` loads a gitignored `.env` (`OPSMAP_BACKEND`,
+`FEATHERLESS_API_KEY`) without overriding real env vars. UI: Wargame panel (`WargamePanel.tsx`, `state/wargame.ts`,
+`LossChart`, `MoveFeed`, `BranchTree`, `map/matchLayers.ts`).
+
 ## OpsMap integration
 
 - `api/backends/turing.py::_describe_change` recognises `AgentBranch` -> `Branch.kind` threat|defence|scenario
@@ -173,7 +193,10 @@ result: ~27 located nodes destroyed (6 plants, 20 drones, SITE01), 13.8% supply 
 - `FEATHERLESS_API_KEY` is an environment secret. Never print, log or hardcode it. `api.featherless.ai` had to
   be allowed in the environment's network policy (done); if a 403 `connect_rejected` comes back, it is the
   policy again, not the key.
-- Featherless: first call to a model can take ~60 s (cold start), warm calls ~2-6 s. `meta-llama/*` models are
+- Featherless: first call to a model can take ~60 s (cold start), warm calls ~2-6 s.
+- The Featherless plan allows 4 concurrency units = ONE 72B request at a time. A second concurrent caller
+  (another session, a local run, a parallel test) gets HTTP 429 "Concurrency limit exceeded"; `llm.py` retries
+  with backoff capped at 30 s for ~3.5 min. Do not run agent tests in parallel with a live agent run. `meta-llama/*` models are
   gated (403) for this account; `llm.py` falls through to the next model automatically.
 - Background processes: shell `&`/`nohup` do not survive between tool calls here; use the Bash tool's
   `run_in_background`. Background jobs are killed at their timeout (the uvicorn server was killed that way).
@@ -193,6 +216,8 @@ result: ~27 located nodes destroyed (6 plants, 20 drones, SITE01), 13.8% supply 
 - A stray half-written `agents/lab.py` once appeared (from an interrupted turn) and was deleted; if it shows
   up again, it is junk - nothing imports it.
 - `Session.q` wraps every SDK error in `QueryFailed` (502); the message's last line has the TuringDB reason.
+- 3.0 rejects expressions nested deeper than 256 levels, so `id_clauses` chunks at `ID_CHUNK = 200`. Keep OR
+  chains: `n IN [...]` works but scans (~2 s for 3,000 ids vs ~40 ms for OR chunks).
 
 ## Conventions
 
@@ -207,11 +232,9 @@ result: ~27 located nodes destroyed (6 plants, 20 drones, SITE01), 13.8% supply 
 ## Open items / ideas
 
 - Re-run `tests/agents/test_agents_live.py` and the UI checks on 3.0.
-- Show deep facilities / ports on the map (needs a `facility`/`port` Kind in api/models.py, nodes.py,
-  KIND_QUERIES, SNAPSHOT_KINDS and the UI glyph/colour/layer maps).
-- Optionally let the scenario agent's disaster wipe include deep `Facility`/`Port` nodes.
 
-- UI Scenario panel not yet eyeballed in a browser (only typecheck/build/unit tests).
+- UI eyeballed with Playwright screenshots (facility/port layers, scenario branch overlay, Scenario panel);
+  the online CARTO basemap fails TLS in this sandbox, so screenshots show the built-in outline fallback.
 - Agent endpoints are synchronous and can take minutes; a job queue + progress polling would improve UX.
 - Defence often prefers one bulk measure; if a "three distinct countermeasures" story is wanted, constrain it
   in `defence.py`'s prompt or budget.

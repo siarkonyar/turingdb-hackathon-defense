@@ -79,6 +79,7 @@ class AgentHub:
         result = out.get("result", {})
         return {"branch": out.get("branch"), "explanation": result.get("explanation"),
                 "headline": result.get("headline"), "impact_diff": out.get("impact_diff"),
+                "deep_supply": out.get("deep_supply"),
                 "steps": [s["action"] for s in out["trace"]["steps"]], "model": out["trace"].get("model")}
 
     def threat(self, steps: int, on_step: StepFn) -> dict:

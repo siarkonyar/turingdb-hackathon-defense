@@ -7,7 +7,8 @@ starts and heals the TuringDB server, so no operator has to shut anything down o
 
 - **Threat** - finds the disruptions that cost the supply chain the most for the fewest attacks.
 - **Defence** - analyses the worst threat branch and tests countermeasures that cut the projected loss.
-- **Scenario** - answers a natural-language disaster question by simulating it in a branch and driving the map.
+- **Scenario** - answers a natural-language disaster question by simulating it in a branch and driving the map. It
+  considers every layer, including the deep supply network (facilities, ports, the platforms they feed).
 
 The model calls go to **Featherless AI** using the `FEATHERLESS_API_KEY` environment secret (never hardcoded,
 never logged). The default model is `Qwen/Qwen2.5-72B-Instruct` with an automatic fallback down a preference

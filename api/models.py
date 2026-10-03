@@ -7,12 +7,12 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-Kind = Literal["plant", "site", "supplier", "drone", "crime", "report", "part", "other"]
+Kind = Literal["plant", "site", "supplier", "drone", "crime", "report", "part", "facility", "port", "other"]
 Status = Literal["at_risk", "lost", "no_power"]
 BranchKind = Literal["main", "hypothesis", "strike", "change", "threat", "defence", "scenario"]
 Engine = Literal["turingdb", "fixtures"]
 
-LOCATED_KINDS: tuple[str, ...] = ("plant", "site", "supplier", "drone", "crime", "report")
+LOCATED_KINDS: tuple[str, ...] = ("plant", "site", "supplier", "drone", "crime", "report", "facility", "port")
 
 
 class Frozen(BaseModel):
