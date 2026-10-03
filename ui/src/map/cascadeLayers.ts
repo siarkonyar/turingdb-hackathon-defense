@@ -108,15 +108,16 @@ function pastLayers(stages: CascadeStage[]): Layer[] {
   ]);
 }
 
-function centroid(hits: CascadeHit[]): { lon: number; lat: number } {
-  const n = Math.max(1, hits.length);
-  return {
-    lon: hits.reduce((a, h) => a + (h.node.lon as number), 0) / n,
-    lat: hits.reduce((a, h) => a + (h.node.lat as number), 0) / n,
-  };
+/** The worst-hit node farthest from the origin: on screen (the focus fits the stage) and clear of the origin
+ * label. The text runs from it towards the origin so it is not cut at the map edge. */
+function titleAnchor(hits: CascadeHit[], origin: GraphNode): { lon: number; lat: number; anchor: "start" | "end" } {
+  const d = (h: CascadeHit) => Math.hypot((h.node.lon as number) - (origin.lon ?? 0), (h.node.lat as number) - (origin.lat ?? 0));
+  const far = hits.reduce((best, h) => (d(h) > d(best) ? h : best));
+  const lon = far.node.lon as number;
+  return { lon, lat: far.node.lat as number, anchor: lon < (origin.lon ?? 0) ? "start" : "end" };
 }
 
-function currentLayers(st: CascadeStage, elapsedMs: number, reduced: boolean): Layer[] {
+function currentLayers(st: CascadeStage, origin: GraphNode, elapsedMs: number, reduced: boolean): Layer[] {
   const color = degreeColor(st.degree);
   const arrived = reduced || elapsedMs >= ARC_DRAW_MS * 0.85;
   const pop = reduced ? 1 : Math.min(1, Math.max(0, (elapsedMs - ARC_DRAW_MS * 0.6) / (ARC_DRAW_MS * 0.5)));
@@ -158,12 +159,13 @@ function currentLayers(st: CascadeStage, elapsedMs: number, reduced: boolean): L
         getColor: color,
         getPixelOffset: [0, -14],
       }),
-      label(`cascade-stage-title-${st.degree}`, [centroid(hits)], {
+      label(`cascade-stage-title-${st.degree}`, [titleAnchor(topHits({ ...st, hits }), origin)], {
         getPosition: (d: { lon: number; lat: number }) => [d.lon, d.lat],
+        getTextAnchor: (d: { anchor: "start" | "end" }) => d.anchor,
         getText: () => `${ordinal(st.degree).toUpperCase()} DEGREE · ${st.count.toLocaleString("en-GB")} ${st.count === 1 ? "FACILITY" : "FACILITIES"}`,
         getSize: 16,
         getColor: color,
-        getPixelOffset: [0, 34],
+        getPixelOffset: [0, -32],
       }),
     );
   }
@@ -175,7 +177,7 @@ export function buildCascadeLayers(i: CascadeLayerInput): Layer[] {
   const past = visibleStages(i.result, i.step).filter((s) => s !== cur);
   return [
     ...pastLayers(past),
-    ...(cur ? currentLayers(cur, i.elapsedMs, i.reducedMotion) : []),
+    ...(cur ? currentLayers(cur, i.result.origin, i.elapsedMs, i.reducedMotion) : []),
     ...originLayers(i.result, i.now, i.reducedMotion),
   ];
 }

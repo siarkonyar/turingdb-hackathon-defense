@@ -6,7 +6,7 @@ import type { RGBA } from "../map/colors";
 
 export const MAX_LABELS_PER_DEGREE = 8;
 const ORIGIN_ZOOM = 4;
-const MIN_ZOOM = 1.8;
+const MIN_ZOOM = 1.5; // MapView minZoom: the whole world just fits a desktop viewport
 const MAX_ZOOM = 6;
 
 /** Hot (degree 1, nearest the shock) to cool (far tail). Distinct hues so "which degree" reads at a glance. */
@@ -104,13 +104,37 @@ export interface Focus {
   zoom: number;
 }
 
+const FIT_WIDTH_PX = 760; // map area left of MapView's right fly padding (which already clears the panel)
+const FIT_HEIGHT_PX = 520;
+const FLY_PAD_RIGHT_PX = 420; // MapView DRAWER_PAD: flyTo centres in the area left of it
+const TILE_PX = 512;
+const MAX_MERCATOR_LAT = 85;
+
+const mercatorY = (lat: number) => {
+  const phi = (Math.max(-MAX_MERCATOR_LAT, Math.min(MAX_MERCATOR_LAT, lat)) * Math.PI) / 180;
+  return Math.log(Math.tan(Math.PI / 4 + phi / 2));
+};
+const mercatorLat = (y: number) => (Math.atan(Math.sinh(y)) * 180) / Math.PI;
+
+/** Centre and zoom that fit the current degree's nodes (plus the origin at degree 1) in Web Mercator. */
 export function cascadeFocus(result: CascadeResponse, step: number): Focus {
   const st = currentStage(result, step);
-  const pts = (st?.hits ?? []).map((h) => h.node).filter((n) => n.lon != null && n.lat != null);
-  if (!pts.length) return { lon: result.origin.lon ?? 0, lat: result.origin.lat ?? 0, zoom: ORIGIN_ZOOM };
+  const nodes = (st?.hits ?? []).map((h) => h.node);
+  if (st?.degree === 1) nodes.push(result.origin);
+  const pts = nodes.filter((n) => n.lon != null && n.lat != null);
+  if (!st || !pts.length) return { lon: result.origin.lon ?? 0, lat: result.origin.lat ?? 0, zoom: ORIGIN_ZOOM };
   const lons = pts.map((n) => n.lon as number);
   const lats = pts.map((n) => n.lat as number);
-  const span = Math.max(Math.max(...lons) - Math.min(...lons), Math.max(...lats) - Math.min(...lats), 1);
-  const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.log2(360 / span) - 0.5));
-  return { lon: lons.reduce((a, b) => a + b, 0) / lons.length, lat: lats.reduce((a, b) => a + b, 0) / lats.length, zoom };
+  const [west, east, south, north] = [Math.min(...lons), Math.max(...lons), Math.min(...lats), Math.max(...lats)];
+  const lonSpan = Math.max(east - west, 1);
+  const ySpan = Math.max(mercatorY(north) - mercatorY(south), 0.02);
+  const fit = Math.min(
+    Math.log2((FIT_WIDTH_PX * 360) / (TILE_PX * lonSpan)),
+    Math.log2((FIT_HEIGHT_PX * 2 * Math.PI) / (TILE_PX * ySpan)),
+  );
+  const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, fit));
+  // A stage wider than the screen: undo the right fly padding so the whole world is centred on screen
+  // (the far east then sits under the translucent panel instead of the far west being cut off).
+  const unpad = fit < MIN_ZOOM ? (FLY_PAD_RIGHT_PX / 2) * (360 / (TILE_PX * 2 ** zoom)) : 0;
+  return { lon: (west + east) / 2 - unpad, lat: mercatorLat((mercatorY(south) + mercatorY(north)) / 2), zoom };
 }

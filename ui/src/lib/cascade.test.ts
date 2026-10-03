@@ -99,8 +99,8 @@ describe("cascadeFocus", () => {
     expect(cascadeFocus(hormuz, 0)).toEqual({ lon: 56.4, lat: 26.5, zoom: 4 });
     const f = cascadeFocus(hormuz, 1);
     expect(f.lon).toBeCloseTo(15);
-    expect(f.lat).toBeCloseTo(45);
-    expect(f.zoom).toBeGreaterThanOrEqual(1.8);
+    expect(f.lat).toBeCloseTo(45, 0); // Mercator midpoint of 40..50 is 45.3
+    expect(f.zoom).toBeGreaterThanOrEqual(1);
     expect(f.zoom).toBeLessThanOrEqual(6);
   });
 });
