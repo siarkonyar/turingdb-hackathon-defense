@@ -41,3 +41,22 @@ def test_prose_only_raises():
 def test_picks_object_with_action_among_many():
     reply = '{"note": "not this"} then {"thought":"go","action":"query","args":{"cypher":"MATCH (n) RETURN n"}}'
     assert parse_action(reply)["action"] == "query"
+
+
+def test_concurrency_limit_429_is_waited_out_not_fatal(monkeypatch):
+    """A 429 'concurrency limit' (another caller of the same key mid-request) is retried patiently."""
+    import httpx
+
+    from agents import llm as llm_mod
+    from agents.config import AgentSettings
+
+    replies = [httpx.Response(429, json={"error": "Concurrency limit exceeded"}, headers={"retry-after": "1"})] * 7
+    replies.append(httpx.Response(200, json={"choices": [{"message": {"content": '{"action": "finish"}'}}]}))
+    calls = iter(replies)
+    sleeps: list[float] = []
+    monkeypatch.setattr(llm_mod.time, "sleep", sleeps.append)
+
+    client = llm_mod.FeatherlessLLM(AgentSettings("k", "http://x", "m", "", "", 1, False, None))
+    client._http = httpx.Client(transport=httpx.MockTransport(lambda req: next(calls)))
+    assert client.chat([{"role": "user", "content": "hi"}]) == '{"action": "finish"}'
+    assert sleeps == [1.0] * 7  # more 429s than the 5 error retries, honouring Retry-After

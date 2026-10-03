@@ -24,6 +24,10 @@ _THINK = re.compile(r"<think>.*?</think>", re.S)
 _FENCE = re.compile(r"```(?:json)?\s*(.*?)```", re.S)
 RETRY_STATUS = {429, 500, 502, 503, 504}
 MAX_RETRIES = 5
+# 429 = the plan's concurrency limit (a 72B request takes the whole plan): another caller of the same key
+# is mid-request, so wait it out instead of failing the match; Retry-After is honoured when sent.
+RATE_LIMIT_PATIENCE_S = 150.0
+RATE_LIMIT_MAX_DELAY_S = 20.0
 
 
 class LLMError(RuntimeError):
@@ -114,12 +118,15 @@ class FeatherlessLLM:
               agent: str) -> str:
         payload = {"model": model, "messages": messages, "temperature": temperature, "max_tokens": max_tokens}
         delay = 2.0
-        for attempt in range(MAX_RETRIES):
+        waited_429 = 0.0
+        attempt = 0
+        while attempt < MAX_RETRIES:
+            attempt += 1
             started = time.perf_counter()
             try:
                 resp = self._http.post(f"{self._base}/chat/completions", json=payload)
             except httpx.HTTPError as exc:
-                if attempt == MAX_RETRIES - 1:
+                if attempt == MAX_RETRIES:
                     raise LLMUnavailable(f"cannot reach Featherless: {exc}") from exc
                 time.sleep(delay)
                 delay *= 2
@@ -128,7 +135,14 @@ class FeatherlessLLM:
                 raise LLMUnavailable(f"Featherless refused the API key (HTTP {resp.status_code})")
             if resp.status_code in (400, 403, 404) and _mentions_model(resp.text):
                 raise _ModelRefused(f"HTTP {resp.status_code}: {resp.text[:200]}")
-            if resp.status_code in RETRY_STATUS and attempt < MAX_RETRIES - 1:
+            if resp.status_code == 429 and waited_429 < RATE_LIMIT_PATIENCE_S:
+                pause = _retry_after(resp) or min(RATE_LIMIT_MAX_DELAY_S, 2.0 * 2 ** min(attempt, 4))
+                log.info("Featherless concurrency limit (429), waiting %.0fs", pause)
+                time.sleep(pause)
+                waited_429 += pause
+                attempt -= 1  # rate-limit waits do not use up the error retries
+                continue
+            if resp.status_code in RETRY_STATUS and resp.status_code != 429 and attempt < MAX_RETRIES:
                 log.info("Featherless HTTP %s, retrying in %.0fs", resp.status_code, delay)
                 time.sleep(delay)
                 delay *= 2
@@ -151,6 +165,13 @@ class FeatherlessLLM:
 
 class _ModelRefused(LLMError):
     pass
+
+
+def _retry_after(resp: httpx.Response) -> float | None:
+    try:
+        return min(RATE_LIMIT_MAX_DELAY_S, max(0.5, float(resp.headers.get("retry-after", ""))))
+    except ValueError:
+        return None
 
 
 def _mentions_model(text: str) -> bool:

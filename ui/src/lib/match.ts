@@ -133,3 +133,12 @@ export function latencyText(m: Pick<Move, "llm_ms" | "db_ms">): string {
 export function signedPct(x: number): string {
   return `${x > 0 ? "+" : x < 0 ? "−" : "±"}${Math.abs(x).toFixed(1)}%`;
 }
+
+/** The round an event injected now is applied before (the engine drains injects at round boundaries);
+ *  null when it lands after the last round. */
+export function injectLandsBefore(view: MatchView): number | null {
+  const pending = view.pending && view.pending.side !== "inject" ? view.pending.round : null;
+  const played = view.moves.filter((m) => m.side !== "inject").at(-1)?.round ?? 0;
+  const next = (pending ?? played) + 1;
+  return view.rounds && next > view.rounds ? null : next;
+}
