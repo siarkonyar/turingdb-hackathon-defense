@@ -1,12 +1,13 @@
 import type {
   AgentStatus,
   BranchesResponse,
+  JobRef,
   DiffResponse,
   MetaResponse,
   NeighboursResponse,
   NodesResponse,
   ReportsResponse,
-  ScenarioResponse,
+  SavedMatch,
   SimulateResponse,
   TracksResponse,
 } from "./types";
@@ -70,9 +71,30 @@ export const api = {
     request<ReportsResponse>(`/reports${queryString({ until, branch })}`),
   tracks: (branch = "main") => request<TracksResponse>(`/tracks${queryString({ branch })}`),
   agentStatus: () => request<AgentStatus>("/agent/status"),
-  agentScenario: (question: string, maxSteps = 16) =>
-    request<ScenarioResponse>("/agent/scenario", {
+  // agent actions are background jobs: POST returns an id, progress streams over SSE (see eventsUrl)
+  agentScenario: (question: string, maxSteps = 12) =>
+    request<JobRef>("/agent/scenario", { method: "POST", body: JSON.stringify({ question, max_steps: maxSteps }) }),
+  agentRedBlue: (threatSteps = 10, defenceSteps = 10) =>
+    request<JobRef>("/agent/redblue", {
       method: "POST",
-      body: JSON.stringify({ question, max_steps: maxSteps }),
+      body: JSON.stringify({ threat_steps: threatSteps, defence_steps: defenceSteps }),
     }),
+  startMatch: (baseBranch: string, rounds: number) =>
+    request<{ match_id: string }>("/match", { method: "POST", body: JSON.stringify({ base_branch: baseBranch, rounds }) }),
+  injectMatch: (matchId: string, text: string) =>
+    request<{ queued: number }>(`/match/${encodeURIComponent(matchId)}/inject`, {
+      method: "POST",
+      body: JSON.stringify({ text }),
+    }),
+  controlMatch: (matchId: string, action: "pause" | "resume" | "stop") =>
+    request<unknown>(`/match/${encodeURIComponent(matchId)}/${action}`, { method: "POST" }),
+  replayMatch: (file: string, speed = 1) =>
+    request<{ match_id: string }>("/match/replay", { method: "POST", body: JSON.stringify({ file, speed }) }),
+  matches: () => request<{ matches: SavedMatch[] }>("/matches"),
 };
+
+/** SSE endpoint of a job or match (EventSource cannot send headers; it reconnects with Last-Event-ID). */
+export function eventsUrl(kind: "job" | "match", id: string): string {
+  const path = kind === "job" ? `/agent/jobs/${encodeURIComponent(id)}` : `/match/${encodeURIComponent(id)}`;
+  return `${BASE}${path}/events`;
+}

@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 
 from agents.branches import BranchLab
-from agents.engine import Agent, Tool, Trace
+from agents.engine import Agent, StepListener, Tool, Trace
 from agents.llm import FeatherlessLLM
 from agents.tools import build_branch, diff_tool, impact_tool, query_tool, schema_tool
 
@@ -82,8 +82,9 @@ def build_defence_agent(lab: BranchLab, llm: FeatherlessLLM, threat_branch: str,
     return Agent("defence", llm, SYSTEM, tools, max_steps=max_steps)
 
 
-def run_defence(lab: BranchLab, llm: FeatherlessLLM, threat_branch: str, max_steps: int = 16) -> Trace:
+def run_defence(lab: BranchLab, llm: FeatherlessLLM, threat_branch: str, max_steps: int = 16,
+                on_step: StepListener | None = None) -> Trace:
     lab.ensure_ready()
     agent = build_defence_agent(lab, llm, threat_branch, max_steps)
     return agent.run(f"Develop countermeasures for threat branch {threat_branch} and report the loss "
-                     "reduction, proven with a diff.")
+                     "reduction, proven with a diff.", on_step)

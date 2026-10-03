@@ -33,6 +33,9 @@ class Step:
     observation: Any
 
 
+StepListener = Callable[[str, Step], None]  # (agent name, step) -> None
+
+
 @dataclass
 class Trace:
     agent: str
@@ -78,8 +81,10 @@ class Agent:
             lines.append(f"- {t.name}({args}) — {t.description}")
         return "\n".join(lines)
 
-    def run(self, task: str) -> Trace:
+    def run(self, task: str, on_step: StepListener | None = None) -> Trace:
+        """Run the loop; `on_step` (if given) sees every step as it happens (live progress for the UI)."""
         trace = Trace(agent=self.name)
+        notify = on_step or (lambda _agent, _step: None)
         messages = [
             {"role": "system", "content": f"{self.system}\n\nTOOLS:\n{self._tool_docs()}\n\n{PROTOCOL}"},
             {"role": "user", "content": task},
@@ -101,6 +106,7 @@ class Agent:
             if name == "finish":
                 trace.result = args
                 trace.steps.append(Step(thought, name, args, "done"))
+                notify(self.name, trace.steps[-1])
                 return trace
             tool = self.tools.get(name)
             if tool is None:
@@ -113,6 +119,7 @@ class Agent:
                 except Exception as exc:  # tool failures are observations the model can recover from
                     obs = {"error": f"{type(exc).__name__}: {exc}"}
             trace.steps.append(Step(thought, name, args, obs))
+            notify(self.name, trace.steps[-1])
             messages.append({"role": "assistant", "content": reply})
             messages.append({"role": "user", "content": "OBSERVATION:\n" + json.dumps(obs, default=str)[:3000]})
             log.info("[%s] step %d: %s -> %s", self.name, step_no, name, _trim(obs, 160))

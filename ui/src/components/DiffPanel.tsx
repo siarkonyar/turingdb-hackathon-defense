@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { Branch, GraphNode } from "../api/types";
 import { formatIso } from "../lib/format";
@@ -48,6 +48,12 @@ export function DiffPanel() {
   const options = useMemo(() => refOptions(branches), [branches]);
   const [a, setA] = useState("main");
   const [b, setB] = useState<string | null>(null);
+  // a diff started elsewhere (e.g. shift-clicking two wargame branches) shows its refs here
+  useEffect(() => {
+    if (!diff) return;
+    setA(diff.a);
+    setB(diff.b);
+  }, [diff?.a, diff?.b]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!open) return null;
 
   const bValue = b ?? (activeBranch !== "main" ? activeBranch : (options[options.length - 1]?.value ?? "main"));

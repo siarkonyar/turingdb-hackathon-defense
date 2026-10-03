@@ -4,13 +4,33 @@
     {
       "name": "opsmap-api",
       "runtimeExecutable": "uv",
-      "runtimeArgs": ["run", "uvicorn", "api.main:app", "--port", "8000"],
+      "runtimeArgs": [
+        "run",
+        "uvicorn",
+        "api.main:app",
+        "--port",
+        "8000"
+      ],
+      "port": 8000
+    },
+    {
+      "name": "opsmap-api-live",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "OPSMAP_BACKEND=turingdb exec uv run uvicorn api.main:app --port 8000"
+      ],
       "port": 8000
     },
     {
       "name": "opsmap-ui",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "ui", "run", "dev"],
+      "runtimeArgs": [
+        "--prefix",
+        "ui",
+        "run",
+        "dev"
+      ],
       "port": 5173
     }
   ]

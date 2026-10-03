@@ -16,6 +16,12 @@ OPSMAP_BACKEND=turingdb uv run uvicorn api.main:app --port 8000  # live `theatre
 | `TURINGDB_GRAPH` | `theatre` | Graph to serve (live backend) |
 | `OPSMAP_CORS` | Vite dev/preview origins | Comma-separated allowed origins |
 | `OPSMAP_FIXTURES` | `api/mock/fixtures` | Fixture directory (mock backend) |
+| `OPSMAP_MATCHES_DIR` | `matches/` | Where wargame matches are saved and replayed from (live backend) |
+| `FEATHERLESS_API_KEY` | unset | LLM key for the agents. Without it, everything except replay reports `LLM unavailable` |
+
+Every variable can also be set in a gitignored `.env` at the repo root (copy `.env.example`); real environment
+variables win. With `OPSMAP_BACKEND=turingdb` and `FEATHERLESS_API_KEY` in `.env`, a plain
+`uv run uvicorn api.main:app` serves the live graph with the agents and the wargame.
 
 Both backends return identical shapes, so a client cannot tell them apart except through `engine`.
 
@@ -156,6 +162,105 @@ The API keeps every 6th reading.
 ### `GET /meta`, `GET /health`
 
 `/meta` returns `{engine, graph, layers}`. `/health` returns `{"status": "ok"}`.
+
+## Agents and the wargame (live backend only)
+
+Mounted when `OPSMAP_BACKEND=turingdb`. Every agent action is a **background job**: the `POST` returns at
+once (`202`) with an id, the work runs on a worker thread (LLM calls and TuringDB branch builds never block
+the HTTP server), and progress arrives as **server-sent events**. Agent branches show up in `/branches`
+and `/diff` like any other change, so the map can follow them.
+
+### SSE streams
+
+`GET /agent/jobs/{job_id}/events` and `GET /match/{match_id}/events` return `text/event-stream`. Each event
+has an `id` (0, 1, 2, ...), an `event:` name and a JSON `data:` object that repeats the name as `type`. A
+client that reconnects with `Last-Event-ID: n` resumes at event `n+1`, so it never receives duplicates. A
+late subscriber first gets every past event, then follows live. Every stream starts with `job_started`,
+ends with `done {status: done|stopped|error}` and then closes. An idle stream sends a `: heartbeat`
+comment every 15 s.
+
+```
+id: 3
+event: move
+data: {"type": "move", "round": 1, "side": "red", "label": "Strike supplier SUP012", ...}
+```
+
+### One-shot agents
+
+| Endpoint | Body | Job events |
+|---|---|---|
+| `GET /agent/status` | | `{available, model?, reason?, graph}` (not a job) |
+| `POST /agent/scenario` | `{question, max_steps=16}` | `step*`, `result {branch, explanation, headline, impact_diff, steps, model}` |
+| `POST /agent/threat` | `{threat_steps=16}` | `step*`, `result {result, steps, model, branches}` |
+| `POST /agent/defence` | `{threat_branch, max_steps=16}` | `step*`, `result {result, steps, model}` |
+| `POST /agent/redblue` | `{threat_steps=16, defence_steps=16}` | `step*` (both agents), `result {headline, threat_branch, defence_branch, ...}` |
+| `GET /agent/jobs/{id}` | | `{id, kind, status, events, result}` |
+
+Each returns `{job_id}`. A `step` is `{agent, action, thought, args, observation}`, one per tool call, as it
+happens. A failure is an `error {message}` event, followed by `done {status: "error"}`.
+
+### Matches (turn-based red vs blue)
+
+A match starts on a **base branch** (`main` or a scenario branch). Each round, red plays ONE disruption as a
+branch stacked on the current head, then blue plays ONE countermeasure stacked on red's branch. The head
+moves forward each time. TuringDB 1.37 cannot open a change on top of a change, so a stacked branch is cut
+from `main` and replays its parent's recorded edits first (the lineage). Loss is measured **against the
+base**, so after a scenario the numbers mean "additional damage on top of the scenario".
+
+| Endpoint | Body | Returns |
+|---|---|---|
+| `POST /match` | `{base_branch="main", rounds=3}` (1-6) | `202 {match_id}`; the match runs in the background |
+| `GET /match/{id}/events` | | SSE, see below |
+| `GET /match/{id}` | | `{id, kind, status, head, moves: Move[]}` |
+| `POST /match/{id}/inject` | `{text}` | `202 {queued}`; the event is applied before the next round |
+| `POST /match/{id}/pause` · `/resume` · `/stop` | | `200`; takes effect between moves (`409` once finished) |
+| `POST /match/replay` | `{file, speed=1.0}` | `202 {match_id}`; stream it with `/match/{id}/events` |
+| `GET /matches` | | `{matches: [{file, id, created, base_branch, rounds, status, moves, final_loss_pct, model}]}` |
+
+Match events, in order:
+
+| Event | Data |
+|---|---|
+| `match_started` | `{match_id, base_branch, rounds, base_loss_pct, model}` |
+| `move_started` | `{round, side: red\|blue\|inject, head}` before every move |
+| `move` | a `Move` (below) |
+| `inject` | `{text, branch, move: Move}`: an operator event became the head (`side: "inject"`) |
+| `round_done` | `{round, head, loss_pct, abs_loss_pct}` |
+| `status` | `{state: paused\|running}` |
+| `match_done` | `{status: done\|stopped\|error, summary}` |
+| `error` | `{message, replay_available}` (e.g. the LLM is unavailable) |
+
+```json
+{"round": 1, "side": "red", "action": "strike_supplier", "args": {"supplier_id": "SUP012"},
+ "actions": [{"action": "strike_supplier", "args": {"supplier_id": "SUP012"}}],
+ "branch_id": "37", "parent_id": "36", "label": "Strike supplier SUP012",
+ "rationale": "SUP012 carries the most class-A demand", "loss_pct": 3.7, "abs_loss_pct": 17.5,
+ "llm_ms": 2140.2, "db_ms": 1785.0, "latency_ms": 3925.2, "fallback": false,
+ "targets": [{"id": "47937", "name": "Supplier: SUP012", "kind": "supplier", "lat": 51.2, "lon": 6.8}],
+ "arcs": [{"source": [6.8, 51.2], "target": [7.1, 50.9], "source_id": "47937", "target_id": "51002",
+           "hop": 1, "rel": "DEPENDS_ON"}]}
+```
+
+- `loss_pct` is additional projected loss vs the base (percentage points); `abs_loss_pct` is the absolute
+  loss of the branch.
+- `llm_ms` is model time and `db_ms` is the rest of the move (TuringDB branch build, evaluation, diff).
+- `targets`/`arcs` drive the map: for red, the destroyed nodes and arcs to the newly affected ones; for
+  blue, the protected/re-powered asset and the nodes it restored.
+- `fallback: true` means the model gave no valid move within its budget (one decision, at most 3 model
+  calls) and the top-ranked default was played.
+
+Every match is saved to `matches/<id>.json` as it runs: `{id, created, base_branch, base_actions,
+base_loss_pct, rounds, status, model, moves, events: [{type, t, at, data}], summary}`, where `t` is seconds
+since the start. **Replay** plays it back with that timing and **no LLM calls**: it rebuilds every branch from
+the recorded edits (so TuringDB must be up), emits the same events with the new branch ids and
+`replay: true`. Use it as the demo fallback when the LLM is down (`speed` > 1 plays faster).
+
+The CLI wraps the same functions:
+
+```bash
+uv run python -m agents.match --base 25 --rounds 3 --inject 2:"the Liverpool port is closed" --save-as demo
+uv run python -m agents.match --replay demo
+```
 
 ## Calling it from an agent
 

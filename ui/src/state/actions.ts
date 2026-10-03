@@ -1,7 +1,8 @@
 // Async actions: every API call goes through here so latency, errors and toasts are uniform.
 
-import { api, ApiError } from "../api/client";
-import type { GraphNode, Timed } from "../api/types";
+import { api, ApiError, eventsUrl } from "../api/client";
+import { follow, JOB_EVENTS } from "../api/sse";
+import type { GraphNode, JobEvent, ScenarioResponse, Timed } from "../api/types";
 import { EMPTY_OVERLAY, mergeSimulation, overlayFromDiff } from "../lib/overlay";
 import { prefersReducedMotion } from "../lib/motion";
 import { newlyArrived, timelineDomain } from "../lib/time";
@@ -22,12 +23,12 @@ export function toast(text: string, tone: Toast["tone"] = "info"): void {
   window.setTimeout(() => setOps((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })), TOAST_MS);
 }
 
-function message(err: unknown): string {
+export function message(err: unknown): string {
   if (err instanceof ApiError) return err.message;
   return err instanceof Error ? err.message : String(err);
 }
 
-function recordLatency(op: string, timed: Timed): void {
+export function recordLatency(op: string, timed: Timed): void {
   setOps({
     latency: {
       op,
@@ -227,14 +228,36 @@ export function setScenarioQuestion(question: string): void {
 export async function askScenario(): Promise<void> {
   const question = useOps.getState().scenario.question.trim();
   if (!question) return;
-  patchScenario({ loading: true, error: null, explanation: null, branch: null, steps: [], impact: null, deep: null });
+  patchScenario({ loading: true, error: null, explanation: null, branch: null, steps: [], thought: null, impact: null, deep: null });
   try {
-    const resp = await api.agentScenario(question);
+    const { job_id } = await api.agentScenario(question);
+    follow<JobEvent>(
+      eventsUrl("job", job_id),
+      JOB_EVENTS,
+      (ev) => void onScenarioEvent(ev),
+      (why) => patchScenario({ loading: false, error: why }),
+    );
+  } catch (err) {
+    patchScenario({ loading: false, error: message(err) });
+    toast(`Scenario failed: ${message(err)}`, "error");
+  }
+}
+
+async function onScenarioEvent(ev: JobEvent): Promise<void> {
+  if (ev.type === "step") {
+    setOps((s) => ({ scenario: { ...s.scenario, steps: [...s.scenario.steps, ev.action], thought: ev.thought || s.scenario.thought } }));
+  } else if (ev.type === "error") {
+    patchScenario({ loading: false, error: ev.message });
+    toast(`Scenario failed: ${ev.message}`, "error");
+  } else if (ev.type === "done") {
+    if (useOps.getState().scenario.loading) patchScenario({ loading: false });
+  } else if (ev.type === "result") {
+    const resp = ev as unknown as ScenarioResponse;
     patchScenario({
       loading: false,
       branch: resp.branch,
       explanation: resp.explanation ?? null,
-      steps: resp.steps ?? [],
+      steps: resp.steps ?? useOps.getState().scenario.steps,
       impact: resp.impact_diff ?? null,
       deep: resp.deep_supply ?? null,
     });
@@ -245,9 +268,6 @@ export async function askScenario(): Promise<void> {
     } else {
       toast("The scenario agent produced no branch.", "warn");
     }
-  } catch (err) {
-    patchScenario({ loading: false, error: message(err) });
-    toast(`Scenario failed: ${message(err)}`, "error");
   }
 }
 

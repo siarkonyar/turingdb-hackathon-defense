@@ -23,7 +23,8 @@ log = logging.getLogger("agents.llm")
 _THINK = re.compile(r"<think>.*?</think>", re.S)
 _FENCE = re.compile(r"```(?:json)?\s*(.*?)```", re.S)
 RETRY_STATUS = {429, 500, 502, 503, 504}
-MAX_RETRIES = 5
+MAX_RETRIES = 9  # with the 30 s cap below: ~3.5 min of patience for a busy plan slot
+MAX_DELAY_S = 30.0
 
 
 class LLMError(RuntimeError):
@@ -122,7 +123,7 @@ class FeatherlessLLM:
                 if attempt == MAX_RETRIES - 1:
                     raise LLMUnavailable(f"cannot reach Featherless: {exc}") from exc
                 time.sleep(delay)
-                delay *= 2
+                delay = min(delay * 2, MAX_DELAY_S)
                 continue
             if resp.status_code in (401, 403) and "model" not in resp.text.lower():
                 raise LLMUnavailable(f"Featherless refused the API key (HTTP {resp.status_code})")
@@ -131,7 +132,7 @@ class FeatherlessLLM:
             if resp.status_code in RETRY_STATUS and attempt < MAX_RETRIES - 1:
                 log.info("Featherless HTTP %s, retrying in %.0fs", resp.status_code, delay)
                 time.sleep(delay)
-                delay *= 2
+                delay = min(delay * 2, MAX_DELAY_S)
                 continue
             if resp.status_code >= 400:
                 raise LLMError(f"Featherless HTTP {resp.status_code}: {resp.text[:300]}")

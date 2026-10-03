@@ -7,6 +7,9 @@ vector/
 *.sock
 .DS_Store
 
+# Local secrets (FEATHERLESS_API_KEY): see .env.example
+.env
+
 # Python / uv
 .venv/
 __pycache__/

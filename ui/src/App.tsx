@@ -7,6 +7,7 @@ import { KpiStrip } from "./components/KpiStrip";
 import { LayerRail } from "./components/LayerRail";
 import { NodeDrawer } from "./components/NodeDrawer";
 import { Toasts } from "./components/Toasts";
+import { WargamePanel } from "./components/WargamePanel";
 import { formatPercent } from "./lib/format";
 import { MapView } from "./map/MapView";
 import { bootstrap } from "./state/actions";
@@ -72,18 +73,20 @@ function Splash() {
 }
 
 export function App() {
+  const wargameOpen = useOps((s) => s.wargame.open);
   useEffect(() => {
     void bootstrap();
   }, []);
 
   return (
-    <div className="app">
+    <div className={`app${wargameOpen ? " app--wargame" : ""}`}>
       <MapView />
       <div className="vignette" aria-hidden />
       <LayerRail />
       <KpiStrip />
       <ContextBar />
       <NodeDrawer />
+      <WargamePanel />
       <BottomBar />
       <HoverCard />
       <ContextMenu />

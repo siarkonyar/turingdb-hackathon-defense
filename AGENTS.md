@@ -162,6 +162,17 @@ queryable, so this is how "Manchester" -> SITE01 Trafford Park 53.47,-2.31), `qu
 `simulate_scenario` (wipe + propagate in a new branch, returns diff payload), `diff`, `impact`. Manchester
 result: ~27 located nodes destroyed (6 plants, 20 drones, SITE01), 13.8% supply loss.
 
+**Wargame / stacking (added by the repo owner, merged in).** `agents/match.py` (+ `match_board.py`,
+`match_prompts.py`) runs a turn-based red-vs-blue match: each round red makes one disruption and blue one
+countermeasure, each a branch stacked on the current head; operators can inject events (the scenario agent
+runs on the head); matches are saved to `matches/<id>.json` and can be replayed. Stacking without
+change-on-change: `tools.build_stacked` replays `lineage_actions(parent)` + the new actions + `propagate` into a
+fresh change. The scenario agent's `simulate_scenario` takes a `parent` (main or a wargame head).
+`api/jobs.py` + `api/agent_hub.py` run agent calls as background jobs streamed over SSE
+(`/agent/jobs/<id>/events`, `/match/...`); `api/env.py` loads a gitignored `.env` (`OPSMAP_BACKEND`,
+`FEATHERLESS_API_KEY`) without overriding real env vars. UI: Wargame panel (`WargamePanel.tsx`, `state/wargame.ts`,
+`LossChart`, `MoveFeed`, `BranchTree`, `map/matchLayers.ts`).
+
 ## OpsMap integration
 
 - `api/backends/turing.py::_describe_change` recognises `AgentBranch` -> `Branch.kind` threat|defence|scenario
@@ -182,7 +193,10 @@ result: ~27 located nodes destroyed (6 plants, 20 drones, SITE01), 13.8% supply 
 - `FEATHERLESS_API_KEY` is an environment secret. Never print, log or hardcode it. `api.featherless.ai` had to
   be allowed in the environment's network policy (done); if a 403 `connect_rejected` comes back, it is the
   policy again, not the key.
-- Featherless: first call to a model can take ~60 s (cold start), warm calls ~2-6 s. `meta-llama/*` models are
+- Featherless: first call to a model can take ~60 s (cold start), warm calls ~2-6 s.
+- The Featherless plan allows 4 concurrency units = ONE 72B request at a time. A second concurrent caller
+  (another session, a local run, a parallel test) gets HTTP 429 "Concurrency limit exceeded"; `llm.py` retries
+  with backoff capped at 30 s for ~3.5 min. Do not run agent tests in parallel with a live agent run. `meta-llama/*` models are
   gated (403) for this account; `llm.py` falls through to the next model automatically.
 - Background processes: shell `&`/`nohup` do not survive between tool calls here; use the Bash tool's
   `run_in_background`. Background jobs are killed at their timeout (the uvicorn server was killed that way).

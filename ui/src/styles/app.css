@@ -1,4 +1,5 @@
-/* OpsMap: dark, calm, tactical. Colour carries meaning only: amber = selected / at risk, red = lost. */
+/* OpsMap: dark, calm, tactical. Colour carries meaning only: amber = selected / at risk, red = lost,
+   blue = defended (wargame countermeasures). */
 
 :root {
   --bg: #070b12;
@@ -13,6 +14,9 @@
   --amber-soft: rgba(245, 166, 35, 0.14);
   --red: #eb484c;
   --red-soft: rgba(235, 72, 76, 0.14);
+  --blue: #3d8bf0;
+  --blue-soft: rgba(61, 139, 240, 0.14);
+  --wargame-w: 404px;
   --radius: 12px;
   --radius-sm: 8px;
   --gap: 16px;
@@ -1281,4 +1285,487 @@ code {
   margin: 6px 0 0;
   font-size: 11.5px;
   color: var(--text-3);
+}
+
+.scenario__thought {
+  color: var(--text-2);
+}
+
+/* ---- Bottom bar actions --------------------------------------------------- */
+.bottombar__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---- Wargame panel -------------------------------------------------------- */
+.wg {
+  position: absolute;
+  top: var(--gap);
+  right: var(--gap);
+  bottom: calc(var(--bar-h) + var(--gap) * 2);
+  width: var(--wargame-w);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px 16px;
+  overflow-y: auto;
+  animation: drawer-in 260ms var(--ease);
+}
+
+.app--wargame .drawer {
+  right: calc(var(--gap) * 2 + var(--wargame-w));
+}
+
+.wg__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wg__head h3,
+.wg h4 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.wg__head h3 {
+  margin-right: auto;
+}
+
+.wg__alert {
+  margin: 0;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(235, 72, 76, 0.4);
+  background: var(--red-soft);
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.wg__setup {
+  display: grid;
+  grid-template-columns: 1fr 76px auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.wg__setup label {
+  display: grid;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.wg select {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--hairline-strong);
+  background: var(--panel-solid);
+  font-size: 13px;
+}
+
+.btn--go {
+  border-color: rgba(245, 166, 35, 0.5);
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+
+.btn--stop {
+  color: var(--red);
+  border-color: rgba(235, 72, 76, 0.4);
+}
+
+.wg__replay {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.wg__replay.is-emphasised .btn {
+  border-color: rgba(245, 166, 35, 0.55);
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+
+.wg__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wg__follow {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.wg__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--hairline);
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.wg__phase {
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--text);
+}
+
+.wg__phase--running::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  animation: live-blink 1.4s ease-in-out infinite;
+}
+
+.wg__phase--error {
+  color: var(--red);
+}
+
+.wg__model {
+  margin-left: auto;
+  color: var(--text-3);
+}
+
+@keyframes live-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.wg__note {
+  font-size: 11.5px;
+  color: var(--amber);
+}
+
+.wg__inject {
+  display: grid;
+  gap: 6px;
+}
+
+.wg__inject .scenario__actions {
+  margin-top: 2px;
+}
+
+.wg__oneshot {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--hairline);
+  font-size: 12.5px;
+}
+
+.wg__oneshot summary {
+  cursor: pointer;
+  color: var(--text-2);
+}
+
+/* loss chart */
+.lchart {
+  position: relative;
+  margin: 0;
+}
+
+.lchart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.lchart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  color: var(--text-2);
+}
+
+.lchart__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.lkey {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+}
+
+.lkey--red {
+  border-radius: 50%;
+  background: var(--red);
+}
+
+.lkey--blue {
+  border-radius: 2px;
+  background: var(--blue);
+}
+
+.lkey--inject {
+  transform: rotate(45deg) scale(0.85);
+  background: var(--amber);
+}
+
+.lkey--base {
+  width: 14px;
+  height: 0;
+  border-top: 2px dashed var(--text-3);
+}
+
+.lchart__grid {
+  stroke: var(--hairline);
+  stroke-width: 1;
+}
+
+.lchart__tick {
+  fill: var(--text-3);
+  font-family: var(--mono);
+  font-size: 9.5px;
+}
+
+.lchart__base {
+  stroke: var(--text-3);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+
+.lchart__line {
+  fill: none;
+  stroke: var(--text-2);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  opacity: 0.55;
+}
+
+.lchart__mark {
+  stroke: var(--panel-solid);
+  stroke-width: 2;
+}
+
+.lchart__mark--red {
+  fill: var(--red);
+}
+
+.lchart__mark--blue {
+  fill: var(--blue);
+}
+
+.lchart__mark--inject {
+  fill: var(--amber);
+}
+
+.lchart__hit {
+  fill: transparent;
+  cursor: default;
+}
+
+.lchart__tip {
+  position: absolute;
+  top: 18px;
+  transform: translateX(-50%);
+  max-width: 240px;
+  padding: 6px 9px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--hairline-strong);
+  background: var(--panel-solid);
+  font-size: 11.5px;
+  color: var(--text);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* branch tree */
+.btree__chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.btree__item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btree__edge {
+  color: var(--text-3);
+  font-size: 11px;
+}
+
+.btree__node {
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline-strong);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+
+.btree__node--red {
+  border-color: rgba(235, 72, 76, 0.5);
+  color: var(--red);
+}
+
+.btree__node--blue {
+  border-color: rgba(61, 139, 240, 0.55);
+  color: var(--blue);
+}
+
+.btree__node--inject {
+  border-color: rgba(245, 166, 35, 0.5);
+  color: var(--amber);
+}
+
+.btree__node.is-active {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+}
+
+.btree__node.is-picked {
+  outline: 1px dashed var(--amber);
+  outline-offset: 2px;
+}
+
+.btree__hint {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* move feed */
+.mfeed {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mcard {
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--hairline-strong);
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 12.5px;
+  animation: pop-in 180ms var(--ease);
+}
+
+.mcard--red {
+  border-left-color: var(--red);
+  background: linear-gradient(90deg, var(--red-soft), transparent 60%);
+}
+
+.mcard--blue {
+  border-left-color: var(--blue);
+  background: linear-gradient(90deg, var(--blue-soft), transparent 60%);
+}
+
+.mcard--inject {
+  border-left-color: var(--amber);
+  background: linear-gradient(90deg, var(--amber-soft), transparent 60%);
+}
+
+.mcard--pending {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-2);
+}
+
+.mcard__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+.mcard__tag {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.mcard--red .mcard__tag {
+  color: var(--red);
+}
+
+.mcard--blue .mcard__tag {
+  color: var(--blue);
+}
+
+.mcard--inject .mcard__tag {
+  color: var(--amber);
+}
+
+.mcard__label {
+  margin-top: 3px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.mcard__why {
+  margin-top: 2px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text-2);
+}
+
+.mcard__loss {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 5px;
+  font-size: 11.5px;
+}
+
+.mcard__loss .is-worse {
+  color: var(--red);
+}
+
+.mcard__loss .is-better {
+  color: var(--blue);
+}
+
+.mcard__abs {
+  color: var(--text-3);
+}
+
+@media (max-width: 1280px) {
+  :root {
+    --wargame-w: 360px;
+  }
+}
+
+/* bottom-bar popovers open beside the wargame panel, not over it */
+.app--wargame .diff,
+.app--wargame .scenario {
+  right: var(--wargame-w); /* bottombar's right edge already sits one gap in */
 }
