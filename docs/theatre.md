@@ -12,6 +12,14 @@ live on TuringDB changes (branches) on top of it.
 - **Engine:** pinned to `turingdb==1.37`. The bundled graphs were written by 1.37; `turingdb` 3.0
   (released 2026-10-02) refuses to load them ("File outdated").
 
+> **Update (turingdb 3.0 + `supply_chain_deep`).** The repo now pins `turingdb==3.0` and `theatre` fuses a
+> seventh source, `supply_chain_deep` (426,969 nodes / 1,621,798 edges after the report commits). Deep
+> facilities are geocoded from their city (`fusion/deep_geo.py`, jittered, `geo_synthetic`) and bridged to
+> their 3 nearest plants (`POWERED_BY`); the deep `Shipment` label is renamed `Consignment`; `Country` gains
+> HKG and VGB. `graphs/theatre/` is generated and not tracked in git (a 3.0 store file exceeds GitHub's
+> 100 MB limit). Counts, queries and the 1.37 caveats below predate this update; most of those caveats are
+> lifted in 3.0 (see AGENTS.md).
+
 The source graphs are only read, never written. Everything invented is marked: nodes/edges with
 `synthetic: true`, invented coordinates with `geo_synthetic: true`.
 

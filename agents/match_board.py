@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from api.backends.turing_session import first_label
 from api.models import Node
 from api.refs import Ref
 
@@ -185,7 +186,7 @@ class LabBoard:
         if frame.empty or frame["lat"].isna().any():
             return []
         row = frame.iloc[0]
-        lbl = row["lbl"][0] if isinstance(row["lbl"], list) and row["lbl"] else str(row["lbl"])
+        lbl = first_label(row["lbl"])  # a string in 1.37, a list in 3.0
         return [{"id": str(nid), "name": str(row["name"]), "kind": KIND.get(lbl, "other"),
                  "lat": float(row["lat"]), "lon": float(row["lon"]), "status": None}]
 

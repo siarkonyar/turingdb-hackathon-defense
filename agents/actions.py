@@ -173,8 +173,9 @@ def scenario_wipe_bbox(lab: BranchLab, s: Session, *, west: float, south: float,
     for label in targets:
         count = int(s.q(f"MATCH (n:{label}) WHERE {inside} RETURN count(n) AS c")["c"].iloc[0])
         if count:
-            # one filtered DELETE per label: ~0.3 s for a city, vs ~23 s deleting 9k nodes one query each
-            s.q(f"MATCH (n:{label}) WHERE {inside} DELETE n")
+            # one filtered delete per label: ~0.3 s for a city, vs ~23 s deleting 9k nodes one query each.
+            # DETACH: TuringDB 3.0 refuses to delete a node that still has edges.
+            s.q(f"MATCH (n:{label}) WHERE {inside} DETACH DELETE n")
             removed += count
     if removed:
         s.q("COMMIT")

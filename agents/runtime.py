@@ -11,6 +11,7 @@ import logging
 import os
 import signal
 import subprocess
+import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -69,8 +70,22 @@ class Supervisor:
             raise RuntimeError(f"TuringDB is not reachable at {self.host} and AGENT_AUTOSTART=0")
         with self._lock:
             if not self.reachable():
+                self._build_if_missing()
                 self._start()
         self._ensure_loaded()
+
+    def _build_if_missing(self) -> None:
+        """`theatre` is generated (its store exceeds GitHub's file limit), so build it on first use.
+        The build runs its own persistent server; stop it so agents get an in-memory one."""
+        if self.graph != "theatre" or (self.turing_dir / "graphs" / self.graph).exists():
+            return
+        log.warning("graphs/theatre missing: building it (about 2 minutes)")
+        subprocess.run([sys.executable, str(self.turing_dir / "fusion" / "build_theatre.py")],
+                       check=True, cwd=self.turing_dir, timeout=1800)
+        subprocess.run([*self._cli(), "stop", "-turing-dir", str(self.turing_dir)],
+                       check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+        for stale in ("turingdb.lock", "turingdb.sock"):
+            (self.turing_dir / stale).unlink(missing_ok=True)
 
     def _ensure_loaded(self) -> None:
         client = TuringDB(host=self.host)

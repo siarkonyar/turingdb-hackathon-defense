@@ -70,7 +70,7 @@ exactly the edits made in that branch.
 `BranchLab` opens a change, applies one hypothesis inside it, evaluates the impact, and **keeps** the branch.
 Each branch carries an `(:AgentBranch {role, label, parent, spec})` marker, so it is self-describing (the
 OpsMap API reads it to label the branch) and **replayable**: if the in-memory server is restarted after a
-runaway query, the lab rebuilds every branch from its spec. TuringDB 1.37 cannot open a change on top of a
+runaway query, the lab rebuilds every branch from its spec. TuringDB cannot open a change on top of a
 change, so a **defence branch is cut from `main` and replays the attack before adding its countermeasures** -
 an independent, diff-comparable state (`main + attack + countermeasures`).
 
@@ -92,9 +92,9 @@ All of them change only the branch.
 ## Safety rails
 
 - **Read guard** (`agents/guard.py`): agent-written Cypher must be a single linear-path read (the comma-join
-  and other shapes that hang TuringDB 1.37 are rejected with a message the model can act on), every result is
+  and other shapes that hung TuringDB 1.37 are rejected with a message the model can act on), every result is
   capped, and all writes are refused - writes only happen through the branch lab's typed actions.
-- **Query watchdog** (`agents/runtime.py`): 1.37 has no query cancel, so each agent query runs under a
+- **Query watchdog** (`agents/runtime.py`): TuringDB has no documented query cancel, so each agent query runs under a
   deadline; a runaway triggers an automatic server restart and branch replay.
 - **Scope**: the agents reason about graph dependencies and projected loss only. They do not produce
   operational attack instructions or identify real-world targets; the scenario agent analyses hypothetical

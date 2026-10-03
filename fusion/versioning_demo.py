@@ -74,7 +74,7 @@ def run_branch(client: TuringDB) -> tuple[Snapshot, Snapshot, int]:
     main = snapshot(client)
     change = client.new_change()
     client.checkout(change=change)
-    client.query(f"MATCH (p:PowerPlant {{gppd_idnr:'{TARGET_PLANT}'}}) DELETE p")
+    client.query(f"MATCH (p:PowerPlant {{gppd_idnr:'{TARGET_PLANT}'}}) DETACH DELETE p")
     client.query("COMMIT")  # make the delete visible inside the change
     branch = snapshot(client)
     client.query("CHANGE DELETE")  # discard the hypothesis branch
@@ -101,7 +101,7 @@ def report_markdown(history: pd.DataFrame, main: Snapshot, branch: Snapshot, cha
         "**1. Replay the history** (`client.set_commit(<hash>)` on each commit of `CALL db.history()`):", "",
         history.to_markdown(index=False), "",
         f"**2. Branch.** `client.new_change()` opened change `{change}`; inside it "
-        f"`MATCH (p:PowerPlant {{gppd_idnr:'{TARGET_PLANT}'}}) DELETE p` then `COMMIT` "
+        f"`MATCH (p:PowerPlant {{gppd_idnr:'{TARGET_PLANT}'}}) DETACH DELETE p` then `COMMIT` "
         f"(removes {plant_name} and its incident edges).", "",
         "| | main | branch |", "|---|--:|--:|",
         f"| nodes | {main.nodes:,} | {branch.nodes:,} |",

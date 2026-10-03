@@ -175,7 +175,7 @@ class TuringBackend:
         props = {k: clean(v) for k, v in s.q(f"MATCH (n) WHERE n = {nid} RETURN {cols}").iloc[0].items()}
         groups = []
         for direction, pattern in (("out", "(n)-[e]->(m)"), ("in", "(n)<-[e]-(m)")):
-            frame = s.q(f"MATCH {pattern} WHERE n = {nid} RETURN edgeType(e) AS rel, m, labels(m) AS lbl"
+            frame = s.q(f"MATCH {pattern} WHERE n = {nid} RETURN type(e) AS rel, m, labels(m) AS lbl"
                         f"{s.project('m', NODE_PROPS)}")
             for rel, part in sorted(frame.groupby("rel"), key=lambda kv: str(kv[0])):
                 nodes = sorted(s.nodes_from(part, "m", label_col="lbl"), key=lambda n: -n.importance)
@@ -243,7 +243,7 @@ class TuringBackend:
         if "Report" not in s.labels:
             return ReportsResponse(branch=str(ref), until=until, reports=[], **sw.timed())
         frame = s.q(f"MATCH (r:Report) RETURN r{s.project('r', REPORT_PROPS)}")
-        links = s.q("MATCH (r:Report)-[e]->(m) RETURN r, edgeType(e) AS rel, m")
+        links = s.q("MATCH (r:Report)-[e]->(m) RETURN r, type(e) AS rel, m")
         mentions: dict[str, list[str]] = {}
         contradicts: dict[str, str] = {}
         for r, rel, m in links.itertuples(index=False):
@@ -319,7 +319,7 @@ class TuringBackend:
         if marker:
             s.q(f"CREATE (:Strike {{struck_id: '{int(struck.id)}', name: {string_literal(struck.name)}, "
                 f"created: '{_now()}'}})")
-        s.q(f"MATCH (n) WHERE n = {int(struck.id)} DELETE n")
+        s.q(f"MATCH (n) WHERE n = {int(struck.id)} DETACH DELETE n")
         s.q("COMMIT")
         powered = cascade.powered_ids(affected)
         still_fed: set[str] = set()
