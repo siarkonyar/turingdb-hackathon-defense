@@ -126,6 +126,12 @@ def create_app(backend: Backend | None = None) -> FastAPI:
             register_agent_routes(app, settings)
         except Exception as exc:  # never let agent wiring break the core API
             log.warning("agent routes not mounted: %s", exc)
+        try:
+            from api.cascade_routes import register_cascade_routes
+
+            register_cascade_routes(app)
+        except Exception as exc:  # never let cascade wiring break the core API
+            log.warning("cascade routes not mounted: %s", exc)
 
     return app
 
