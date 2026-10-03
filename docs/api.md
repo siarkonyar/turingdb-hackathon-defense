@@ -270,12 +270,12 @@ and works on `main` or any existing branch ref. Mounted only when `OPSMAP_BACKEN
 
 | Method + path | Body / query | Returns |
 |---|---|---|
-| `GET /cascade/origins?q=hurmuz&branch=main` | `q` 2..120 chars | `OriginsResponse {query, candidates: OriginCandidate[]}` (max 8) |
+| `GET /cascade/origins?q=hormuz&branch=main` | `q` 2..120 chars | `OriginsResponse {query, candidates: OriginCandidate[]}` (max 8) |
 | `POST /cascade` | `CascadeRequest {origin_id, branch="main", min_severity=0.05 (0.01..0.5)}` | `CascadeResponse`; 404 unknown node, 422 not a chokepoint/port/facility |
 | `POST /cascade/ask` | `CascadeAskRequest {question (2..400), branch, min_severity}` | `CascadeResponse`, or **422** `{detail, candidates}` when no place or several places match |
 
-`question` accepts Turkish and English place names ("Hürmüz Boğazı kapanırsa ne olur?", "Taiwan Strait
-blockade", "Busan limanı"); resolution is a deterministic alias table plus name-token matching
+`question` is plain English naming a place ("What happens if the Strait of Hormuz closes?", "Taiwan Strait
+blockade", "Port of Busan closes"); resolution is a deterministic alias table plus name-token matching
 (`api/cascade_resolve.py`), no LLM. An ambiguous question returns the candidates as chips; the UI then calls
 `POST /cascade` with the chosen `origin_id`.
 

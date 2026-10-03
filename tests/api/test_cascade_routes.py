@@ -54,8 +54,8 @@ def test_routes_absent_on_mock_backend_without_registration(client):
 
 
 def test_origins_lists_ranked_candidates(cclient):
-    body = cclient.get("/cascade/origins", params={"q": "hürmüz"}).json()
-    assert body["query"] == "hürmüz" and body["candidates"][0]["node"]["name"] == "Strait of Hormuz"
+    body = cclient.get("/cascade/origins", params={"q": "hormuz"}).json()
+    assert body["query"] == "hormuz" and body["candidates"][0]["node"]["name"] == "Strait of Hormuz"
     assert body["candidates"][0]["origin_kind"] == "chokepoint"
 
 
@@ -77,8 +77,8 @@ def test_cascade_unknown_origin_is_404(cclient):
     assert cclient.post("/cascade", json={"origin_id": "404"}).status_code == 404
 
 
-def test_ask_resolves_turkish_question(cclient, fake):
-    r = cclient.post("/cascade/ask", json={"question": "Hürmüz Boğazı kapanırsa ne olur?"})
+def test_ask_resolves_plain_english_question(cclient, fake):
+    r = cclient.post("/cascade/ask", json={"question": "What happens if the Strait of Hormuz closes?"})
     assert r.status_code == 200 and fake.calls[-1][1] == "11"
 
 

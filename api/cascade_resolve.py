@@ -1,6 +1,7 @@
-"""Resolve a plain-language question ("Hürmüz Boğazı kapanırsa ne olur?") to a cascade origin, without an LLM.
+"""Resolve a plain-language question ("What happens if the Strait of Hormuz closes?") to a cascade origin,
+without an LLM.
 
-Deterministic on purpose: the demo must never depend on a model being warm. Turkish and English aliases cover
+Deterministic on purpose: the demo must never depend on a model being warm. Aliases cover
 the 15 chokepoints; ports and facilities match on their distinctive name words. Ambiguity is returned to the
 operator as candidates rather than guessed.
 """
@@ -18,30 +19,26 @@ MARGIN = 0.15
 MIN_TOKEN = 4
 KIND_ORDER: dict[str, int] = {"chokepoint": 0, "port": 1, "facility": 2}
 STOP = frozenset({"port", "of", "the", "strait", "straits", "canal", "sea", "co", "ltd", "inc", "jsc", "fze", "llc",
-                  "gmbh", "sa", "ag", "plc", "corp", "group", "mining", "materials", "components", "trading",
-                  "limani", "bogazi", "kanali"})
+                  "gmbh", "sa", "ag", "plc", "corp", "group", "mining", "materials", "components", "trading"})
 
 # normalized alias phrase -> canonical chokepoint name (as stored in the graph)
 ALIASES: dict[str, str] = {
-    "hormuz": "Strait of Hormuz", "hurmuz": "Strait of Hormuz",
-    "taiwan": "Taiwan Strait", "tayvan": "Taiwan Strait",
-    "malacca": "Strait of Malacca", "malakka": "Strait of Malacca", "malaka": "Strait of Malacca",
-    "bab el mandeb": "Bab-el-Mandeb", "babulmendep": "Bab-el-Mandeb", "bab ul mendeb": "Bab-el-Mandeb",
-    "bab el mendeb": "Bab-el-Mandeb", "kizildeniz": "Bab-el-Mandeb", "red sea": "Bab-el-Mandeb",
-    "suez": "Suez Canal", "suveys": "Suez Canal",
+    "hormuz": "Strait of Hormuz",
+    "taiwan": "Taiwan Strait",
+    "malacca": "Strait of Malacca",
+    "bab el mandeb": "Bab-el-Mandeb", "red sea": "Bab-el-Mandeb",
+    "suez": "Suez Canal",
     "panama": "Panama Canal",
-    "gibraltar": "Strait of Gibraltar", "cebelitarik": "Strait of Gibraltar",
-    "turkish straits": "Turkish Straits", "bosphorus": "Turkish Straits", "istanbul bogazi": "Turkish Straits",
-    "turk bogazlari": "Turkish Straits", "canakkale": "Turkish Straits", "dardanelles": "Turkish Straits",
-    "danish straits": "Danish Straits", "danimarka bogazlari": "Danish Straits",
-    "dover": "Dover Strait", "mans": "Dover Strait",
-    "korea strait": "Korea Strait", "kore bogazi": "Korea Strait",
+    "gibraltar": "Strait of Gibraltar",
+    "turkish straits": "Turkish Straits", "bosphorus": "Turkish Straits", "dardanelles": "Turkish Straits",
+    "danish straits": "Danish Straits",
+    "dover": "Dover Strait", "english channel": "Dover Strait",
+    "korea strait": "Korea Strait",
     "luzon": "Luzon Strait", "sunda": "Sunda Strait", "lombok": "Lombok Strait", "florida": "Florida Strait",
 }
 
 
 def normalize(text: str) -> str:
-    text = text.replace("ı", "i").replace("İ", "i")
     text = unicodedata.normalize("NFKD", text)
     text = "".join(ch for ch in text if not unicodedata.combining(ch)).lower()
     return re.sub(r"[^a-z0-9]+", " ", text).strip()

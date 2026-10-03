@@ -20,13 +20,14 @@ def names(cands):
     return [c.node.name for c in cands]
 
 
-def test_normalize_strips_turkish_diacritics_and_punctuation():
-    assert normalize("Hürmüz Boğazı kapanırsa NE olur?") == "hurmuz bogazi kapanirsa ne olur"
+def test_normalize_strips_diacritics_and_punctuation():
+    assert normalize("What if Hormuz CLOSES?") == "what if hormuz closes"
+    assert normalize("Côte d'Ivoire") == "cote d ivoire"
     assert normalize("Bab-el-Mandeb") == "bab el mandeb"
 
 
-def test_turkish_alias_resolves_hormuz_confidently():
-    cands = resolve("Hürmüz Boğazı çöktü, ne olacak şimdi?", CATALOG)
+def test_alias_resolves_hormuz_confidently():
+    cands = resolve("Hormuz is shut, what happens now?", CATALOG)
     assert names(cands)[0] == "Strait of Hormuz" and cands[0].score == 1.0
     assert pick(cands).node.name == "Strait of Hormuz"
 
@@ -34,11 +35,11 @@ def test_turkish_alias_resolves_hormuz_confidently():
 def test_english_full_name_and_short_name():
     assert pick(resolve("What if the Strait of Hormuz closes?", CATALOG)).node.name == "Strait of Hormuz"
     assert pick(resolve("taiwan blockade", CATALOG)).node.name == "Taiwan Strait"
-    assert pick(resolve("Kızıldeniz kapanırsa", CATALOG)).node.name == "Bab-el-Mandeb"
+    assert pick(resolve("Red Sea shipping stops", CATALOG)).node.name == "Bab-el-Mandeb"
 
 
 def test_port_by_city_word():
-    assert pick(resolve("Busan limanı kapanırsa", CATALOG)).node.name == "Port of Busan"
+    assert pick(resolve("Busan harbour closes", CATALOG)).node.name == "Port of Busan"
 
 
 def test_facility_by_name_tokens():

@@ -1,6 +1,6 @@
 """OpsMap routes for the deep-supply impact cascade (read-only; never creates a branch).
 
-    GET  /cascade/origins?q=     place search (chokepoints, ports, facilities), Turkish/English aliases
+    GET  /cascade/origins?q=     place search (chokepoints, ports, facilities), English place-name aliases
     POST /cascade                {origin_id, branch, min_severity} -> per-degree CascadeResponse
     POST /cascade/ask            {question, branch, min_severity} -> same, or 422 {detail, candidates}
 

@@ -260,7 +260,7 @@ export const initialState: OpsState = {
   flyTo: null,
   cascade: {
     open: false,
-    question: "Hürmüz Boğazı kapanırsa ne olur?",
+    question: "What happens if the Strait of Hormuz closes?",
     loading: false,
     error: null,
     candidates: [],

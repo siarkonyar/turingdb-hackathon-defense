@@ -3,7 +3,12 @@ import { useOps } from "../state/store";
 import { CascadeStepper } from "./CascadeStepper";
 import { ScenarioPrompt } from "./ScenarioPrompt";
 
-const EXAMPLES = ["Hürmüz Boğazı kapanırsa ne olur?", "Taiwan Strait blockade", "Port of Busan closes", "Kızıldeniz kapanırsa"];
+const EXAMPLES = [
+  "What happens if the Strait of Hormuz closes?",
+  "Taiwan Strait blockade",
+  "Port of Busan closes",
+  "Red Sea shipping stops",
+];
 
 /** "What breaks if X falls?" — one deep TuringDB query, revealed one impact degree at a time. */
 export function CascadePanel() {
@@ -22,7 +27,7 @@ export function CascadePanel() {
         </button>
       </header>
       <p className="scenario__hint">
-        Name a chokepoint, port or facility (Turkish or English). TuringDB walks the supply network in one deep
+        Name a chokepoint, port or facility. TuringDB walks the supply network in one deep
         query; the map then reveals who loses supply, one degree at a time. Severity = share of a facility's
         inbound supply volume lost; shown when at least 5%.
       </p>
@@ -35,7 +40,7 @@ export function CascadePanel() {
         submitLabel="Ask TuringDB"
         busyLabel="Querying…"
         rows={2}
-        placeholder="Hürmüz Boğazı kapanırsa ne olur?"
+        placeholder="What happens if the Strait of Hormuz closes?"
       />
       <div className="cascade__examples">
         {EXAMPLES.map((q) => (
