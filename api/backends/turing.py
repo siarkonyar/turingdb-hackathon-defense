@@ -222,6 +222,13 @@ class TuringBackend:
         if "Strike" in s.labels:
             names = [str(n) for n in s.q("MATCH (k:Strike) RETURN k.name AS name")["name"]]
             return Branch(id=change_id, kind="strike", label=strike_label(names))
+        if "ResilienceBranch" in s.labels:  # Dover exercise branches (agents/resilience/lab.py)
+            frame = s.q(f"MATCH (m:ResilienceBranch) RETURN m{s.project('m', ('role', 'label', 'parent'))}")
+            row = frame.to_dict("records")[0] if len(frame) else {}
+            kind = "recovery" if clean(row.get("m_role")) == "recovery" else "disruption"
+            parent = clean(row.get("m_parent"))
+            return Branch(id=change_id, kind=kind, label=clean(row.get("m_label")) or f"Exercise {change_id}",
+                          description=f"replays disruption branch {parent}" if parent and parent != "main" else None)
         if "AgentBranch" in s.labels:  # branches built by the LLM agents (threat / defence / scenario)
             frame = s.q(f"MATCH (m:AgentBranch) RETURN m{s.project('m', ('role', 'label', 'parent'))}")
             row = frame.to_dict("records")[0] if len(frame) else {}
@@ -383,7 +390,7 @@ class TuringBackend:
                 raise
         return change
 
-    DISCARDABLE = ("strike", "threat", "defence", "scenario")
+    DISCARDABLE = ("strike", "threat", "defence", "scenario", "disruption", "recovery")
 
     def discard(self, branch_id: str) -> None:
         sw = Stopwatch(ENGINE)

@@ -62,6 +62,11 @@ which is exactly what this repo ships.
 | `attack_scenarios` | Cyber attack knowledge base (scenarios → MITRE ATT&CK techniques, tools, categories) | 18,354 | 60,014 | [docs/attack_scenarios.md](docs/attack_scenarios.md) |
 | `theatre` | All seven fused into one operating picture (incl. `supply_chain_deep`), with synthetic sites, bridges and intel `Report` nodes. Generated: `uv run python fusion/build_theatre.py` | 426,969 | 1,621,798 | [docs/theatre.md](docs/theatre.md) |
 
+The isolated **London–Dover–Paris demo** is generated independently of those graphs:
+`.venv/bin/python scripts/run_dover_demo.py` (map on port 5174). It has 6,095 synthetic nodes,
+23,914 edges and 12-degree supply cascades. Schema, assumptions, scenarios and the future-agent
+contract are in [docs/dover.md](docs/dover.md). No worldwide data is imported into `dover`.
+
 ---
 
 ## Example use cases
@@ -200,7 +205,7 @@ Then start a Claude Code session and type `/turingdb` followed by what you want 
 ### 4. OpsMap - the operating picture
 
 `ui/` + `api/` put the `theatre` graph on a map: strike simulation with cascade arcs, branch
-diff, competing intel hypotheses and time replay, with TuringDB query latency on screen.
+diff and competing intel hypotheses, with TuringDB query latency on screen.
 
 ```bash
 uv run python fusion/build_theatre.py && uv run turingdb stop -turing-dir "$(pwd)"   # once (~2 min)

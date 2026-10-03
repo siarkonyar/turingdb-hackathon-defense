@@ -3,16 +3,24 @@ import { useOps } from "../state/store";
 import { CascadeStepper } from "./CascadeStepper";
 import { ScenarioPrompt } from "./ScenarioPrompt";
 
-const EXAMPLES = [
+const WORLD_EXAMPLES = [
   "What happens if the Strait of Hormuz closes?",
   "Taiwan Strait blockade",
   "Port of Busan closes",
   "Red Sea shipping stops",
 ];
 
+const DOVER_EXAMPLES = [
+  "What happens if Dover Strait closes?",
+  "Exercise Calais freight port closes",
+  "Exercise Ashford grid supply is lost",
+];
+
 /** "What breaks if X falls?" — one deep TuringDB query, revealed one impact degree at a time. */
 export function CascadePanel() {
   const c = useOps((s) => s.cascade);
+  const dover = useOps((s) => s.meta?.graph === "dover");
+  const examples = dover ? DOVER_EXAMPLES : WORLD_EXAMPLES;
   if (!c.open) return null;
   const close = () => {
     setCascadeOpen(false);
@@ -41,10 +49,10 @@ export function CascadePanel() {
         submitLabel="Ask"
         busyLabel="Thinking…"
         rows={2}
-        placeholder="What happens if the Strait of Hormuz closes?"
+        placeholder={examples[0]}
       />
       <div className="cascade__examples">
-        {EXAMPLES.map((q) => (
+        {examples.map((q) => (
           <button key={q} type="button" className="chip" onClick={() => setCascadeQuestion(q)}>
             {q}
           </button>

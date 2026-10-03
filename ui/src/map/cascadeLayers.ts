@@ -58,11 +58,35 @@ function label<T>(id: string, data: T[], extra: Record<string, unknown>): Layer 
   });
 }
 
+/** Every simultaneous initial failure of an exercise (degree 0), as small pulsing red dots. */
+function initialFailures(r: CascadeResponse, pulse: number): Layer[] {
+  const data = (r.origins ?? []).filter(located);
+  if (!data.length) return [];
+  return [
+    new ScatterplotLayer<GraphNode>({
+      id: "cascade-origins",
+      data,
+      getPosition: posOf,
+      getRadius: 4 + 2 * pulse,
+      radiusUnits: "pixels",
+      stroked: true,
+      getFillColor: withAlpha(RED, 0.85),
+      getLineColor: withAlpha(WHITE, 0.6 + 0.4 * pulse),
+      lineWidthMinPixels: 1,
+      pickable: true,
+      updateTriggers: { getRadius: pulse, getLineColor: pulse },
+    }),
+  ];
+}
+
 function originLayers(r: CascadeResponse, now: number, reduced: boolean): Layer[] {
   if (!located(r.origin)) return [];
   const pulse = reduced ? 0.5 : (Math.sin(now / 260) + 1) / 2;
-  const suffix = lossVerb(r).toUpperCase();
+  const verb = lossVerb(r).toUpperCase();
+  const n = (r.origins ?? []).length;
+  const suffix = verb ? ` · ${verb}` : ` · ${n} INITIAL FAILURE${n === 1 ? "" : "S"}`;
   return [
+    ...initialFailures(r, pulse),
     new ScatterplotLayer<GraphNode>({
       id: "cascade-origin-ring",
       data: [r.origin],
@@ -78,7 +102,7 @@ function originLayers(r: CascadeResponse, now: number, reduced: boolean): Layer[
     }),
     label("cascade-origin-label", [r.origin], {
       getPosition: posOf,
-      getText: (n: GraphNode) => `${n.name.toUpperCase()} · ${suffix}`,
+      getText: (n: GraphNode) => `${n.name.toUpperCase()}${suffix}`,
       getSize: 13,
       getColor: RED,
       getPixelOffset: [0, -28],

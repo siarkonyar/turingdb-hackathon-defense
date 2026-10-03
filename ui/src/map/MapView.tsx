@@ -19,11 +19,14 @@ import { FALLBACK_STYLE, loadBasemap, outlineStyle } from "./basemap";
 import { buildIconAtlas } from "./iconAtlas";
 import { buildDroneLayers, buildPulseLayer, buildStaticLayers, buildStrikeLayers, pickedNode } from "./layers";
 import { buildCascadeLayers, cascadeAnimating } from "./cascadeLayers";
+import { buildRecoveryLayers, recoveryAnimating } from "./resilienceLayers";
 import { buildMatchFxLayers, matchFxActive } from "./matchLayers";
 
 setWorkerUrl(import.meta.env.PROD ? maplibreWorkerUrl : "/vendor/maplibre/maplibre-gl-worker.mjs");
 
-const INITIAL_VIEW = { center: [7.5, 50.2] as [number, number], zoom: 4.15 };
+const INITIAL_VIEW = import.meta.env.VITE_OPSMAP_PROFILE === "dover"
+  ? { center: [1.52, 51.02] as [number, number], zoom: 6.1 }
+  : { center: [7.5, 50.2] as [number, number], zoom: 4.15 };
 const ZOOM_STEP = 4; // re-filter plants every quarter zoom level
 const FLY_DEFAULT_ZOOM = 8.5;
 const DRAWER_PAD = 420;
@@ -131,10 +134,14 @@ export function MapView() {
       const pulsing = s.pulses.some((p) => now - p.at < PULSE_DURATION_MS);
       const fxMoving = matchFxActive(s.matchFx, now);
       const cas = s.cascade;
-      const casActive = Boolean(cas.result);
+      const res = s.resilience;
+      const rec = res.side === "recovery" ? res.recovery : null;
+      const recMoving = Boolean(rec) && !reduced && recoveryAnimating(res.stepStartedAt, now);
+      const casActive = Boolean(cas.result) && !rec;
       const casMoving = casActive && (!reduced || cascadeAnimating(cas, now));
       const key = [staticRef.current.version, s.time, strikeMoving ? now : "still", pulsing ? now : "", fxMoving ? now : "",
-        s.layers.drone, casActive ? `${cas.step}|${casMoving ? now : "still"}` : ""].join("|");
+        s.layers.drone, casActive ? `${cas.step}|${casMoving ? now : "still"}` : "",
+        rec ? `rec|${res.recoveryStep}|${res.stepStartedAt}|${recMoving ? now : "still"}` : ""].join("|");
       if (key === lastKey) return;
       lastKey = key;
 
@@ -161,6 +168,9 @@ export function MapView() {
       if (fxMoving && s.matchFx) out.push(...buildMatchFxLayers(s.matchFx, now, reduced));
       if (casActive && cas.result) {
         out.push(...buildCascadeLayers({ result: cas.result, step: cas.step, elapsedMs: now - cas.stepStartedAt, now, reducedMotion: reduced }));
+      }
+      if (rec) {
+        out.push(...buildRecoveryLayers({ view: rec, step: res.recoveryStep, elapsedMs: now - res.stepStartedAt, reducedMotion: reduced }));
       }
       deck.setProps({ layers: out });
     };

@@ -62,23 +62,39 @@ export function topHits(stage: CascadeStage, n = MAX_LABELS_PER_DEGREE): Cascade
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
-/** "closed" for routes (chokepoints, ports), "lost" for everything else. */
+/** "closed" for routes (chokepoints, ports), "lost" for everything else, nothing for an exercise event. */
 export function lossVerb(result: CascadeResponse): string {
+  if (result.origin_kind === "event") return "";
   return result.origin_kind === "chokepoint" || result.origin_kind === "port" ? "closed" : "lost";
+}
+
+/** What a hit's severity means, for the step label: supply volume (Plan A) or service availability. */
+function lossPhrase(result: CascadeResponse, st: CascadeStage): string {
+  const noun = st.count === 1 ? "facility" : "facilities";
+  if (result.measure === "service_loss") {
+    return `${st.count.toLocaleString("en-GB")} ${noun}, ports or routes lose service (mean ${pct(st.mean_severity)} at the worst point)`;
+  }
+  return `${st.count.toLocaleString("en-GB")} ${st.count === 1 ? "facility loses" : "facilities lose"} supply (mean ${pct(st.mean_severity)} of inbound volume)`;
+}
+
+function originPhrase(result: CascadeResponse): string {
+  const verb = lossVerb(result);
+  if (verb) return `${result.origin.name} ${verb}`;
+  const n = result.origins?.length ?? 0;
+  return `${result.origin.name}: ${n.toLocaleString("en-GB")} initial failure${n === 1 ? "" : "s"}`;
 }
 
 export function stepLabel(result: CascadeResponse, step: number): string {
   const name = result.origin.name;
   const s = clampStep(step, result);
   if (result.connected === false) return `${name} is not connected to anything in the TuringDB graph dataset.`;
-  const closed = lossVerb(result);
-  if (!result.max_degree) return `${name} ${closed}. No facility loses at least ${pct(result.min_severity)} of its supply.`;
-  if (s === 0) return `${name} ${closed}. Impact reaches ${result.max_degree} degrees: press Continue for the 1st degree.`;
+  const head = originPhrase(result);
+  if (!result.max_degree) return `${head}. No facility loses at least ${pct(result.min_severity)} of its supply.`;
+  if (s === 0) return `${head}. Impact reaches ${result.max_degree} degrees: press Continue for the 1st degree.`;
   const st = result.stages[s - 1];
-  if (!st) return `${name} ${closed}.`;
-  const noun = st.count === 1 ? "facility loses" : "facilities lose";
+  if (!st) return `${head}.`;
   const end = s === result.max_degree ? " End of the cascade." : "";
-  return `${ordinal(s)} degree of ${result.max_degree}: ${st.count.toLocaleString("en-GB")} ${noun} supply (mean ${pct(st.mean_severity)} of inbound volume).${end}`;
+  return `${ordinal(s)} degree of ${result.max_degree}: ${lossPhrase(result, st)}.${end}`;
 }
 
 export interface Headline {
@@ -127,7 +143,7 @@ const mercatorLat = (y: number) => (Math.atan(Math.sinh(y)) * 180) / Math.PI;
 export function cascadeFocus(result: CascadeResponse, step: number): Focus {
   const st = currentStage(result, step);
   const nodes = (st?.hits ?? []).map((h) => h.node);
-  if (st?.degree === 1) nodes.push(result.origin);
+  if (st?.degree === 1) nodes.push(result.origin, ...(result.origins ?? []));
   const pts = nodes.filter((n) => n.lon != null && n.lat != null);
   if (!st || !pts.length) return { lon: result.origin.lon ?? 0, lat: result.origin.lat ?? 0, zoom: ORIGIN_ZOOM };
   const lons = pts.map((n) => n.lon as number);

@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or
 > superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** An operator asks "Hürmüz Boğazı kapanırsa ne olur?" / "Strait of Hormuz closes", and the map first
+**Goal:** An operator asks "What happens if the Strait of Hormuz closes?", and the map first
 shows the headline: *one deep TuringDB query, N degrees, M graph hops, X ms*. Then **Continue** reveals the
 impact one degree at a time. Degree 1 links appear from the origin, then degree 2 links from the degree-1
 facilities, and so on to the last degree. Every degree has its own colour, its number on the map, and a row in
@@ -21,7 +21,7 @@ stepper component and the map layer unchanged.
 deck.gl 9 (ScatterplotLayer, PathLayer, TripsLayer, TextLayer), vitest.
 
 **Spec:** `docs/superpowers/plans/2026-10-03-cascade-contract.md` (read it first; it is binding) + the user's
-request in this session (Turkish, summarised): "When the user asks what happens if Hormuz closes, first show
+request in this session: "When the user asks what happens if Hormuz closes, first show
 how many steps deep the impact went, together with TuringDB's speed ('query asked, 8 steps taken in this many
 seconds'). Then show step by step which nodes were affected at which degree: first the links of step 1 on the
 map; pressing a Continue-like button shows the links to the 2nd-degree nodes, and so on to the last step. The
@@ -38,7 +38,7 @@ all at once."
 - Python: `from __future__ import annotations`, typed, frozen dataclasses / `Frozen` pydantic models, short
   module docstring explaining *why*, no new dependencies.
 - UI: state is replaced, never mutated (zustand `setOps` with new objects). No new npm dependencies.
-- UI copy is English. The question box accepts Turkish and English place names (alias table, Task A3).
+- UI copy and the question box are English (English place names and aliases, Task A3).
 - Every `CascadeResponse` carries `Timed` fields (`latency_ms`, `roundtrip_ms`, `queries`) from the `Stopwatch`.
 - Server for live work: in-memory `theatre` (contract § Runtime rules).
 
@@ -71,7 +71,7 @@ all at once."
 | `api/backends/turing.py` (modify) | `KIND_QUERIES`/`SNAPSHOT_KINDS`/`meta.layers` gain chokepoint; public `session()` |
 | `api/deep_cascade.py` (create) | Pure engine: `SupplyNetwork`, `Seeds`, `Hit`, `propagate`, `impact_score` |
 | `api/deep_cascade_live.py` (create) | `DeepCascade`: TuringDB reads, caching, reach probe, `compute()` → `CascadeResponse` |
-| `api/cascade_resolve.py` (create) | Pure place-name resolution with Turkish/English aliases |
+| `api/cascade_resolve.py` (create) | Pure place-name resolution with English aliases |
 | `api/cascade_routes.py` (create) | `/cascade/origins`, `/cascade`, `/cascade/ask` |
 | `api/main.py` (modify) | mount the routes when live |
 | `tests/api/test_deep_cascade.py` (create) | engine unit tests |
@@ -919,7 +919,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 ---
 
-### Task A3: Place-name resolution (Turkish + English)
+### Task A3: Place-name resolution
 
 **Files:**
 - Create: `api/cascade_resolve.py`
@@ -958,25 +958,25 @@ def names(cands):
     return [c.node.name for c in cands]
 
 
-def test_normalize_strips_turkish_diacritics_and_punctuation():
-    assert normalize("Hürmüz Boğazı kapanırsa NE olur?") == "hurmuz bogazi kapanirsa ne olur"
+def test_normalize_lowercases_and_strips_punctuation():
+    assert normalize("What if the Strait of HORMUZ closes?") == "what if the strait of hormuz closes"
     assert normalize("Bab-el-Mandeb") == "bab el mandeb"
 
 
-def test_turkish_alias_resolves_hormuz_confidently():
-    cands = resolve("Hürmüz Boğazı çöktü, ne olacak şimdi?", CATALOG)
+def test_alias_resolves_hormuz_confidently():
+    cands = resolve("Hormuz is blocked. What happens now?", CATALOG)
     assert names(cands)[0] == "Strait of Hormuz" and cands[0].score == 1.0
     assert pick(cands).node.name == "Strait of Hormuz"
 
 
-def test_english_full_name_and_short_name():
+def test_full_name_and_short_name():
     assert pick(resolve("What if the Strait of Hormuz closes?", CATALOG)).node.name == "Strait of Hormuz"
     assert pick(resolve("taiwan blockade", CATALOG)).node.name == "Taiwan Strait"
-    assert pick(resolve("Kızıldeniz kapanırsa", CATALOG)).node.name == "Bab-el-Mandeb"
+    assert pick(resolve("What if the Red Sea closes?", CATALOG)).node.name == "Bab-el-Mandeb"
 
 
 def test_port_by_city_word():
-    assert pick(resolve("Busan limanı kapanırsa", CATALOG)).node.name == "Port of Busan"
+    assert pick(resolve("Busan shuts down", CATALOG)).node.name == "Port of Busan"
 
 
 def test_facility_by_name_tokens():
@@ -1013,11 +1013,12 @@ Expected: `ModuleNotFoundError: No module named 'api.cascade_resolve'`.
 Create `api/cascade_resolve.py`:
 
 ```python
-"""Resolve a plain-language question ("Hürmüz Boğazı kapanırsa ne olur?") to a cascade origin, without an LLM.
+"""Resolve a plain-language question ("What happens if the Strait of Hormuz closes?") to a cascade origin,
+without an LLM.
 
-Deterministic on purpose: the demo must never depend on a model being warm. Turkish and English aliases cover
-the 15 chokepoints; ports and facilities match on their distinctive name words. Ambiguity is returned to the
-operator as candidates rather than guessed.
+Deterministic on purpose: the demo must never depend on a model being warm. Short aliases cover the 15
+chokepoints ("hormuz", "red sea", "bosphorus"); ports and facilities match on their distinctive name words.
+Ambiguity is returned to the operator as candidates rather than guessed.
 """
 
 from __future__ import annotations
@@ -1033,30 +1034,26 @@ MARGIN = 0.15
 MIN_TOKEN = 4
 KIND_ORDER: dict[str, int] = {"chokepoint": 0, "port": 1, "facility": 2}
 STOP = frozenset({"port", "of", "the", "strait", "straits", "canal", "sea", "co", "ltd", "inc", "jsc", "fze", "llc",
-                  "gmbh", "sa", "ag", "plc", "corp", "group", "mining", "materials", "components", "trading",
-                  "limani", "bogazi", "kanali"})
+                  "gmbh", "sa", "ag", "plc", "corp", "group", "mining", "materials", "components", "trading"})
 
 # normalized alias phrase -> canonical chokepoint name (as stored in the graph)
 ALIASES: dict[str, str] = {
-    "hormuz": "Strait of Hormuz", "hurmuz": "Strait of Hormuz",
-    "taiwan": "Taiwan Strait", "tayvan": "Taiwan Strait",
-    "malacca": "Strait of Malacca", "malakka": "Strait of Malacca", "malaka": "Strait of Malacca",
-    "bab el mandeb": "Bab-el-Mandeb", "babulmendep": "Bab-el-Mandeb", "bab ul mendeb": "Bab-el-Mandeb",
-    "bab el mendeb": "Bab-el-Mandeb", "kizildeniz": "Bab-el-Mandeb", "red sea": "Bab-el-Mandeb",
-    "suez": "Suez Canal", "suveys": "Suez Canal",
+    "hormuz": "Strait of Hormuz",
+    "taiwan": "Taiwan Strait",
+    "malacca": "Strait of Malacca",
+    "bab el mandeb": "Bab-el-Mandeb", "red sea": "Bab-el-Mandeb",
+    "suez": "Suez Canal",
     "panama": "Panama Canal",
-    "gibraltar": "Strait of Gibraltar", "cebelitarik": "Strait of Gibraltar",
-    "turkish straits": "Turkish Straits", "bosphorus": "Turkish Straits", "istanbul bogazi": "Turkish Straits",
-    "turk bogazlari": "Turkish Straits", "canakkale": "Turkish Straits", "dardanelles": "Turkish Straits",
-    "danish straits": "Danish Straits", "danimarka bogazlari": "Danish Straits",
-    "dover": "Dover Strait", "mans": "Dover Strait",
-    "korea strait": "Korea Strait", "kore bogazi": "Korea Strait",
+    "gibraltar": "Strait of Gibraltar",
+    "turkish straits": "Turkish Straits", "bosphorus": "Turkish Straits", "dardanelles": "Turkish Straits",
+    "danish straits": "Danish Straits",
+    "dover": "Dover Strait", "english channel": "Dover Strait",
+    "korea strait": "Korea Strait",
     "luzon": "Luzon Strait", "sunda": "Sunda Strait", "lombok": "Lombok Strait", "florida": "Florida Strait",
 }
 
 
 def normalize(text: str) -> str:
-    text = text.replace("ı", "i").replace("İ", "i")
     text = unicodedata.normalize("NFKD", text)
     text = "".join(ch for ch in text if not unicodedata.combining(ch)).lower()
     return re.sub(r"[^a-z0-9]+", " ", text).strip()
@@ -1116,7 +1113,7 @@ Expected: all pass.
 
 ```bash
 git add api/cascade_resolve.py tests/api/test_cascade_resolve.py
-git commit -m "feat: resolve Turkish/English place questions to cascade origins
+git commit -m "feat: resolve plain-language place questions to cascade origins
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
@@ -1196,8 +1193,8 @@ def test_routes_absent_on_mock_backend_without_registration(client):
 
 
 def test_origins_lists_ranked_candidates(cclient):
-    body = cclient.get("/cascade/origins", params={"q": "hürmüz"}).json()
-    assert body["query"] == "hürmüz" and body["candidates"][0]["node"]["name"] == "Strait of Hormuz"
+    body = cclient.get("/cascade/origins", params={"q": "hormuz"}).json()
+    assert body["query"] == "hormuz" and body["candidates"][0]["node"]["name"] == "Strait of Hormuz"
     assert body["candidates"][0]["origin_kind"] == "chokepoint"
 
 
@@ -1219,8 +1216,8 @@ def test_cascade_unknown_origin_is_404(cclient):
     assert cclient.post("/cascade", json={"origin_id": "404"}).status_code == 404
 
 
-def test_ask_resolves_turkish_question(cclient, fake):
-    r = cclient.post("/cascade/ask", json={"question": "Hürmüz Boğazı kapanırsa ne olur?"})
+def test_ask_resolves_plain_question(cclient, fake):
+    r = cclient.post("/cascade/ask", json={"question": "What happens if the Strait of Hormuz closes?"})
     assert r.status_code == 200 and fake.calls[-1][1] == "11"
 
 
@@ -1249,7 +1246,7 @@ Create `api/cascade_routes.py`:
 ```python
 """OpsMap routes for the deep-supply impact cascade (read-only; never creates a branch).
 
-    GET  /cascade/origins?q=     place search (chokepoints, ports, facilities), Turkish/English aliases
+    GET  /cascade/origins?q=     place search (chokepoints, ports, facilities) with short aliases
     POST /cascade                {origin_id, branch, min_severity} -> per-degree CascadeResponse
     POST /cascade/ask            {question, branch, min_severity} -> same, or 422 {detail, candidates}
 
@@ -1348,7 +1345,7 @@ curl -s "localhost:8000/cascade/origins?q=h%C3%BCrm%C3%BCz" | python -m json.too
 ```
 
 ```bash
-curl -s -X POST localhost:8000/cascade/ask -H 'Content-Type: application/json' -d '{"question":"Hürmüz Boğazı kapanırsa ne olur?"}' | python -c "import sys,json;r=json.load(sys.stdin);print(r['origin']['name'],r['max_degree'],r['graph_hops'],[s['count'] for s in r['stages']],r['reach']['ms'],r['latency_ms'])"
+curl -s -X POST localhost:8000/cascade/ask -H 'Content-Type: application/json' -d '{"question":"What happens if the Strait of Hormuz closes?"}' | python -c "import sys,json;r=json.load(sys.stdin);print(r['origin']['name'],r['max_degree'],r['graph_hops'],[s['count'] for s in r['stages']],r['reach']['ms'],r['latency_ms'])"
 ```
 Expected: `Strait of Hormuz 7 8 [8, 18, ...] <small ms> <ms>`.
 
@@ -1797,7 +1794,7 @@ Add `cascade: CascadeState;` to `OpsState`, and to `initialState`:
 ```ts
   cascade: {
     open: false,
-    question: "Hürmüz Boğazı kapanırsa ne olur?",
+    question: "What happens if the Strait of Hormuz closes?",
     loading: false,
     error: null,
     candidates: [],
@@ -2044,7 +2041,12 @@ import { useOps } from "../state/store";
 import { CascadeStepper } from "./CascadeStepper";
 import { ScenarioPrompt } from "./ScenarioPrompt";
 
-const EXAMPLES = ["Hürmüz Boğazı kapanırsa ne olur?", "Taiwan Strait blockade", "Port of Busan closes", "Kızıldeniz kapanırsa"];
+const EXAMPLES = [
+  "What happens if the Strait of Hormuz closes?",
+  "Taiwan Strait blockade",
+  "Port of Busan closes",
+  "What if the Red Sea closes?",
+];
 
 /** "What breaks if X falls?" — one deep TuringDB query, revealed one impact degree at a time. */
 export function CascadePanel() {
@@ -2063,7 +2065,7 @@ export function CascadePanel() {
         </button>
       </header>
       <p className="scenario__hint">
-        Name a chokepoint, port or facility (Turkish or English). TuringDB walks the supply network in one deep
+        Name a chokepoint, port or facility. TuringDB walks the supply network in one deep
         query; the map then reveals who loses supply, one degree at a time. Severity = share of a facility's
         inbound supply volume lost; shown when at least 5%.
       </p>
@@ -2076,7 +2078,7 @@ export function CascadePanel() {
         submitLabel="Ask TuringDB"
         busyLabel="Querying…"
         rows={2}
-        placeholder="Hürmüz Boğazı kapanırsa ne olur?"
+        placeholder="What happens if the Strait of Hormuz closes?"
       />
       <div className="cascade__examples">
         {EXAMPLES.map((q) => (
@@ -2556,7 +2558,7 @@ derived, e.g. from an env var, and start the API on that port, or set the env va
 - [ ] **Step 2: Walk the demo and capture proof**
 
 In the browser pane:
-1. Click **Impact**. Keep `Hürmüz Boğazı kapanırsa ne olur?` and click **Ask TuringDB**.
+1. Click **Impact**. Keep `What happens if the Strait of Hormuz closes?` and click **Ask TuringDB**.
 2. Check: the headline shows 7 degrees · 8 graph hops · ~341 facilities, plus a TuringDB 12-hop time in ms.
    The map flies to Hormuz and shows the pulsing red ring and the `STRAIT OF HORMUZ · CLOSED` label.
    Screenshot.

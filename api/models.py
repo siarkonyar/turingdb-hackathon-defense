@@ -11,9 +11,11 @@ Kind = Literal["plant", "site", "supplier", "drone", "crime", "report", "part", 
                "other"]
 # chokepoint/port/facility: the original contract; company/country/plant/item: entities whose loss reaches
 # facilities through one edge (OPERATED_BY / LOCATED_IN / POWERED_BY / PRODUCED_AT).
-OriginKind = Literal["chokepoint", "port", "facility", "company", "country", "plant", "item"]
+# event: a Dover resilience exercise whose initial failures are listed in CascadeResponse.origins
+OriginKind = Literal["chokepoint", "port", "facility", "company", "country", "plant", "item", "event"]
 Status = Literal["at_risk", "lost", "no_power"]
-BranchKind = Literal["main", "hypothesis", "strike", "change", "threat", "defence", "scenario"]
+BranchKind = Literal["main", "hypothesis", "strike", "change", "threat", "defence", "scenario", "disruption",
+                     "recovery"]
 Engine = Literal["turingdb", "fixtures"]
 
 LOCATED_KINDS: tuple[str, ...] = ("plant", "site", "supplier", "drone", "crime", "report", "facility", "port",
@@ -180,6 +182,11 @@ class CascadeResponse(Timed):
     platforms: list[PlatformExposure]
     connected: bool = True  # False: the origin has no link at all into the supply network
     understood_as: str | None = None  # set when the LLM read the question: the entity name it extracted
+    # Several simultaneous initial failures (Dover exercises); empty for a single-origin cascade.
+    origins: list[Node] = Field(default_factory=list)
+    # supply_volume: share of inbound SUPPLIES volume lost (Plan A). service_loss: 1 - lowest DEPENDS_ON
+    # availability within the exercise window (Dover exercises). Degree never means simulation time.
+    measure: Literal["supply_volume", "service_loss"] = "supply_volume"
 
 
 class Commit(Frozen):

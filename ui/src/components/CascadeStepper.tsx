@@ -43,7 +43,7 @@ export function CascadeStepper() {
     <div className="cascade" aria-live="polite">
       <div className="cascade__headline">
         <div className="cascade__big">
-          <span className="cascade__num">{h.degrees}</span> degrees
+          <span className="cascade__num">{h.degrees}</span> {r.measure === "service_loss" ? "dependency degrees" : "degrees"}
           <span className="cascade__sep">·</span>
           <span className="cascade__num">{h.hops}</span> graph hops
           <span className="cascade__sep">·</span>
@@ -51,7 +51,7 @@ export function CascadeStepper() {
         </div>
         {r.understood_as ? <div className="cascade__note">Understood as: {r.understood_as}</div> : null}
         <div className="cascade__speed mono">
-          TuringDB: {h.depthLimit}-hop query reached {h.reached.toLocaleString("en-GB")} facilities in{" "}
+          TuringDB: {h.depthLimit}-hop query reached {h.reached.toLocaleString("en-GB")} {r.measure === "service_loss" ? "dependent nodes" : "facilities"} in{" "}
           <strong>{formatLatency(h.reachMs)} ms</strong> · whole answer {formatLatency(h.totalMs)} ms over {h.queries} queries
         </div>
         <details className="cascade__cypher">
@@ -67,7 +67,9 @@ export function CascadeStepper() {
           <button type="button" onClick={() => cascadeGoTo(0)}>
             <span className="cascade__swatch cascade__swatch--origin" aria-hidden />
             <span className="cascade__deg">Origin</span>
-            <span className="cascade__count">{r.origin.name}</span>
+            <span className="cascade__count">
+              {r.origin_kind === "event" ? `${(r.origins ?? []).length} initial failure${(r.origins ?? []).length === 1 ? "" : "s"}` : r.origin.name}
+            </span>
           </button>
         </li>
         {r.stages.map((st) => {
@@ -118,7 +120,7 @@ export function CascadeStepper() {
 
       {atEnd && r.platforms.length ? (
         <div className="cascade__platforms">
-          <h4>Weapon platforms exposed</h4>
+          <h4>{r.measure === "service_loss" ? "Service capabilities exposed" : "Weapon platforms exposed"}</h4>
           <ul>
             {r.platforms.slice(0, 8).map((p) => (
               <li key={p.name}>
@@ -128,7 +130,11 @@ export function CascadeStepper() {
           </ul>
         </div>
       ) : atEnd ? (
-        <p className="cascade__note">No weapon platform's final assembly loses at least {pct(r.min_severity)} of its supply.</p>
+        <p className="cascade__note">
+          {r.measure === "service_loss"
+            ? `No service capability loses at least ${pct(r.min_severity)} of its availability.`
+            : `No weapon platform's final assembly loses at least ${pct(r.min_severity)} of its supply.`}
+        </p>
       ) : null}
     </div>
   );

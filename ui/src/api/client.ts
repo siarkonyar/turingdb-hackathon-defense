@@ -6,11 +6,16 @@ import type {
   CascadeResponse,
   JobRef,
   DiffResponse,
+  AskResponse,
+  ExerciseJob,
+  ExercisesResponse,
   MetaResponse,
   NeighboursResponse,
   NodesResponse,
   OriginsResponse,
   ReportsResponse,
+  RunStarted,
+  ScenarioId,
   SavedMatch,
   SimulateResponse,
   TracksResponse,
@@ -61,6 +66,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  resilienceExercises: () => request<ExercisesResponse>("/resilience/exercises"),
+  resilienceRun: (scenario_id: ScenarioId) =>
+    request<RunStarted>("/resilience/run", { method: "POST", body: JSON.stringify({ scenario_id }) }),
+  resilienceAsk: (question: string) =>
+    request<AskResponse>("/resilience/ask", { method: "POST", body: JSON.stringify({ question }) }),
+  resilienceJob: (jobId: string, after: number) =>
+    request<ExerciseJob>(`/resilience/jobs/${encodeURIComponent(jobId)}${queryString({ after: String(after) })}`),
   cascadeOrigins: (q: string, branch = "main") =>
     request<OriginsResponse>(`/cascade/origins${queryString({ q, branch })}`),
   cascade: (req: CascadeRequest) => request<CascadeResponse>("/cascade", { method: "POST", body: JSON.stringify(req) }),

@@ -6,9 +6,12 @@ import { HoverCard } from "./components/HoverCard";
 import { KpiStrip } from "./components/KpiStrip";
 import { LayerRail } from "./components/LayerRail";
 import { NodeDrawer } from "./components/NodeDrawer";
+import { ExerciseSidePanel } from "./components/ExerciseSidePanel";
+import { ResiliencePanel } from "./components/ResiliencePanel";
 import { Toasts } from "./components/Toasts";
 import { WargamePanel } from "./components/WargamePanel";
 import { formatPercent } from "./lib/format";
+import { useDoverProfile } from "./hooks/useDoverProfile";
 import { MapView } from "./map/MapView";
 import { bootstrap } from "./state/actions";
 import { activeBranchInfo, useOps } from "./state/store";
@@ -19,6 +22,9 @@ function ContextBar() {
   const diff = useOps((s) => (s.diffOpen && s.diff?.result ? s.diff.result : null));
   const busy = useOps((s) => s.busy);
   const live = meta?.engine === "turingdb";
+  useEffect(() => {
+    document.title = meta?.graph === "dover" ? "OpsMap · Dover Corridor" : "OpsMap · Theatre";
+  }, [meta?.graph]);
   return (
     <div className="contextbar">
       <span className={`engine glass${live ? " engine--live" : ""}`} title={live ? "Serving from TuringDB" : "Serving mock fixtures"}>
@@ -74,19 +80,22 @@ function Splash() {
 
 export function App() {
   const wargameOpen = useOps((s) => s.wargame.open);
+  const dover = useDoverProfile();
   useEffect(() => {
     void bootstrap();
   }, []);
 
   return (
-    <div className={`app${wargameOpen ? " app--wargame" : ""}`}>
+    <div className={`app${wargameOpen ? " app--wargame" : ""}${dover ? " app--dover" : ""}`}>
       <MapView />
       <div className="vignette" aria-hidden />
-      <LayerRail />
+      {dover ? null : <LayerRail />}
       <KpiStrip />
       <ContextBar />
       <NodeDrawer />
       <WargamePanel />
+      <ResiliencePanel />
+      <ExerciseSidePanel />
       <BottomBar />
       <HoverCard />
       <ContextMenu />

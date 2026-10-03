@@ -4,12 +4,15 @@ import { create } from "zustand";
 
 import type {
   AgentStatus,
+  AgentStepEvent,
   Arc,
   Branch,
   CascadeResponse,
   DeepSupply,
   DiffResponse,
+  DisruptionView,
   Engine,
+  ExerciseInfo,
   GraphNode,
   ImpactDiff,
   JobStep,
@@ -17,9 +20,11 @@ import type {
   MoveTarget,
   NeighboursResponse,
   OriginCandidate,
+  RecoveryView,
   RedBlueResult,
   Report,
   SavedMatch,
+  ScenarioId,
   Side,
   SimulateResponse,
   Track,
@@ -59,7 +64,7 @@ export interface Toast {
 }
 
 export interface CascadeSource {
-  kind: "query" | "vulnerability";
+  kind: "query" | "vulnerability" | "exercise";
   title: string;
   branch: string;
 }
@@ -74,6 +79,28 @@ export interface CascadeState {
   source: CascadeSource | null;
   step: number;
   stepStartedAt: number;
+}
+
+/** One message in the Dover exercise chat. */
+export type ChatEntry =
+  | { kind: "user"; text: string }
+  | { kind: "assistant"; text: string }
+  | { kind: "disruption"; view: DisruptionView }
+  | { kind: "recovery"; view: RecoveryView }
+  | { kind: "error"; text: string };
+
+export interface ResilienceState {
+  open: boolean;
+  exercises: ExerciseInfo[];
+  running: ScenarioId | "pending" | null; // pending: the question is being interpreted
+  question: string;
+  chat: ChatEntry[];
+  progress: AgentStepEvent | null; // the recovery agent's latest step while it works
+  disruption: DisruptionView | null;
+  recovery: RecoveryView | null;
+  side: "none" | "effects" | "recovery"; // the right-hand panel (and what the map draws)
+  recoveryStep: number; // 0 = starting point, k = recovery groups 1..k, groups+1 = result
+  stepStartedAt: number; // performance.now() when the recovery step changed (draw animation)
 }
 
 export interface FlyTarget {
@@ -176,6 +203,7 @@ export interface OpsState {
   toasts: Toast[];
   flyTo: FlyTarget | null;
   cascade: CascadeState;
+  resilience: ResilienceState;
 }
 
 const EMPTY_BASE: Record<BaseKind, GraphNode[]> = {
@@ -260,13 +288,28 @@ export const initialState: OpsState = {
   flyTo: null,
   cascade: {
     open: false,
-    question: "What happens if the Strait of Hormuz closes?",
+    question: import.meta.env.VITE_OPSMAP_PROFILE === "dover"
+      ? "What happens if Dover Strait closes?"
+      : "What happens if the Strait of Hormuz closes?",
     loading: false,
     error: null,
     candidates: [],
     result: null,
     source: null,
     step: 0,
+    stepStartedAt: 0,
+  },
+  resilience: {
+    open: import.meta.env.VITE_OPSMAP_PROFILE === "dover",
+    exercises: [],
+    running: null,
+    question: "",
+    chat: [],
+    progress: null,
+    disruption: null,
+    recovery: null,
+    side: "none",
+    recoveryStep: 0,
     stepStartedAt: 0,
   },
 };

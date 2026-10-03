@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 
+import { useDoverProfile } from "../hooks/useDoverProfile";
 import { glyphForNode } from "../lib/glyphs";
 import { canStrike, flyToNode, selectNode, simulateLoss } from "../state/actions";
 import { runCascadeFor } from "../state/cascade";
@@ -7,6 +8,7 @@ import { activeOverlay, setOps, useOps } from "../state/store";
 import { Glyph } from "./Glyph";
 
 export function ContextMenu() {
+  const dover = useDoverProfile();
   const menu = useOps((s) => s.contextMenu);
   const lost = useOps((s) => (s.contextMenu ? activeOverlay(s).entries.get(s.contextMenu.node.id)?.status === "lost" : false));
   const busy = useOps((s) => s.busy);
@@ -29,7 +31,7 @@ export function ContextMenu() {
         <Glyph name={glyphForNode(node)} size={14} />
         <span>{node.name}</span>
       </div>
-      <button
+      {!dover ? <button
         ref={first}
         type="button"
         role="menuitem"
@@ -40,9 +42,9 @@ export function ContextMenu() {
         <Glyph name="lost" size={13} />
         Simulate loss
         <span className="ctxmenu__hint">{lost ? "already lost" : strikable ? "new branch" : "not an asset"}</span>
-      </button>
+      </button> : null}
       {["chokepoint", "port", "facility", "plant"].includes(node.kind) ? (
-        <button type="button" role="menuitem" className="ctxmenu__item" onClick={() => void runCascadeFor(node.id, node.name)}>
+        <button ref={dover ? first : undefined} type="button" role="menuitem" className="ctxmenu__item" onClick={() => void runCascadeFor(node.id, node.name)}>
           What breaks if this falls?
           <span className="ctxmenu__hint">impact degrees</span>
         </button>

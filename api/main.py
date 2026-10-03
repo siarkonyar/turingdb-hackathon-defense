@@ -123,16 +123,28 @@ def create_app(backend: Backend | None = None) -> FastAPI:
         try:
             from api.agent_routes import register_agent_routes
 
-            register_agent_routes(app, settings)
+            # The isolated corridor supplies data for a future agent; theatre agents
+            # assume the original impact model and must not run against this schema.
+            if settings.turingdb_graph != "dover":
+                register_agent_routes(app, settings)
         except Exception as exc:  # never let agent wiring break the core API
             log.warning("agent routes not mounted: %s", exc)
         try:
             from agents.place_extractor import PlaceExtractor
             from api.cascade_routes import register_cascade_routes
 
-            register_cascade_routes(app, extractor_factory=PlaceExtractor.from_env)
+            register_cascade_routes(app, extractor_factory=(
+                PlaceExtractor.from_env if settings.turingdb_graph != "dover" else None
+            ))
         except Exception as exc:  # never let cascade wiring break the core API
             log.warning("cascade routes not mounted: %s", exc)
+        if settings.turingdb_graph == "dover":  # the three Dover resilience exercises (docs/dover-resilience.md)
+            try:
+                from api.resilience_routes import register_resilience_routes
+
+                register_resilience_routes(app)
+            except Exception as exc:  # never let exercise wiring break the core API
+                log.warning("resilience routes not mounted: %s", exc)
 
     return app
 

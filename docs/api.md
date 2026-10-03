@@ -333,6 +333,49 @@ Measured on the live in-memory `theatre` (TuringDB 3.0, laptop, 3 October 2026):
 | Netherlands (country) | 6 (79, 197, 114, 64, 7, 1) | 462 | 6 | 1,163 facilities in ~3 ms |
 | Cobalt ore (item) | 7 (14, 8, 14, 98, 36, 17, 1) | 188 | 7 | 1,417 facilities in ~1 ms |
 
+## Dover resilience exercises (live `dover` graph only)
+
+Mounted only when `OPSMAP_BACKEND=turingdb` and `TURINGDB_GRAPH=dover`. Rules, assumptions and the demo procedure:
+`docs/dover-resilience.md`. Shapes: `api/resilience_models.py`, mirrored in `ui/src/api/types.ts`.
+
+| Method + path | Body / query | Returns |
+|---|---|---|
+| `GET /resilience/exercises` | | `{exercises: [{scenario_id, title, prompt, kind, hours}]}` (exactly three) |
+| `POST /resilience/run` | `{scenario_id}`: `scenario:strait_closure` \| `scenario:kent_power` \| `scenario:london_loss` | `{job_id, scenario_id}`; 422 for any other id; 429 while a run is in progress |
+| `GET /resilience/jobs/{job_id}?after=N` | | `{job_id, status, events: [{id, type, data}], next}` (poll with `after=next`) |
+
+Event types, in order:
+
+1. `phase`: `{phase, message}`.
+2. `disruption`: `DisruptionView`, which carries:
+   - `branch {branch, role, plan_id, parent, verified}`;
+   - `cascade`, a `CascadeResponse` with `origin_kind: "event"`, `measure: "service_loss"`, `origins: Node[]`
+     (every initial failure), stages by `DEPENDS_ON` degree, and a timed 16-hop `reach` query;
+   - `metrics`, `timeline` (simulation hours), `paths [{names, via, severity}]` and `unavailable [string]`.
+3. `agent_step`: `{thought, action, args}` for each bounded model turn.
+4. `recovery`: `RecoveryView`, which carries:
+   - `decision {mode: agent|fallback, plan_id, rationale, model, calls, reason}`;
+   - `candidates [{plan_id, title, summary, actions, rank, chosen, metrics, consumption}]`;
+   - `before`, `after`, `before_timeline` and `after_timeline`;
+   - `consumption {stock_released_t, reserves_drawn, reserves_exhausted, generators, generator_fuel_t,
+     aircraft_sorties, route_tonnes, provider_spare_t_day, programme_people}`;
+   - `groups [{key, label, actions, ready_h, capacity, essential_gain, overall_gain, cargo_gain_t}]`;
+   - `limitations`, `counts`, `services_relocated` and `programmes_relocated`;
+   - `points [{node, state: lost|relocated|restored|improved|residual, before, after, receiver_id}]`;
+   - `links [{kind: route|power|stock|relocation|export, source, target, source_id, target_id, label}]`.
+5. `error` `{message}` (only if the run fails) and `done` `{status}`.
+
+`MetricsView` holds:
+- `essential_fulfilment`, `overall_fulfilment` (0..1, time-weighted);
+- `demands_below_minimum`, `capabilities_below_minimum` / `capabilities_total`;
+- `cargo_scheduled_t`, `cargo_on_time_t`, `cargo_delayed_t`, `cargo_unmet_t`;
+- `affected_facilities`, `affected_at_end`;
+- `essential_recovery_h` (first hour essential fulfilment reaches 80%, or null);
+- `cost_units`.
+
+Branches created by a run appear in `GET /branches` with kind `disruption` or `recovery`; both can be discarded
+with `DELETE /branches/{id}`. Main is never written.
+
 ## Calling it from an agent
 
 ```python

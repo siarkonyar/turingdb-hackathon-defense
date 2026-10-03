@@ -139,7 +139,7 @@ restart, and must never see these. `spec` is base64url(JSON).
 
 | Owner | Method + path | Body / query | Returns |
 |---|---|---|---|
-| A | `GET /cascade/origins?q=hurmuz` | | `OriginsResponse` (max 8) |
+| A | `GET /cascade/origins?q=hormuz` | | `OriginsResponse` (max 8) |
 | A | `POST /cascade` | `CascadeRequest` | `CascadeResponse` (read-only, no branch created) |
 | A | `POST /cascade/ask` | `CascadeAskRequest` | `CascadeResponse`; 422 `{detail, candidates}` if ambiguous/no match |
 | B | `POST /vulnerabilities/scan` | `{top: 1..5 = 3, kinds: OriginKind[] = all, min_severity = 0.05}` | `VulnerabilitiesResponse` |
@@ -282,3 +282,15 @@ for consistent colours in the branch tree).
 - Strings in Cypher go through `string_literal`; JSON stored in a property must be base64 (quotes get mangled).
 - Expressions nest ≤ 256 levels: use `id_clauses` (chunks of 200) for id lists.
 - Do not `pkill -f "turingdb start"`. Do not run two live suites at once against the same server.
+
+## Additive extension: Dover exercises (3 October 2026)
+
+Made on request for the Dover resilience demo (`docs/dover-resilience.md`). It is backwards compatible; Plan A and
+Plan B responses are unchanged:
+
+- `OriginKind` gains `"event"`. The origin is the exercise event, drawn at the centroid of its initial failures.
+- `CascadeResponse.origins: list[Node] = []` lists simultaneous initial failures (degree 0).
+- `CascadeResponse.measure: "supply_volume" | "service_loss" = "supply_volume"`. `service_loss` severity is
+  `1 - lowest DEPENDS_ON availability in the exercise window`; a degree is still a dependency distance, never time.
+- `CascadeSource.kind` gains `"exercise"`. `BranchKind` gains `"disruption"` and `"recovery"`.
+- `CascadeStepper`, `stepLabel`, `lossVerb`, `cascadeFocus` and the cascade map layers handle these fields.

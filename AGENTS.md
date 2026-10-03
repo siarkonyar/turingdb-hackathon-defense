@@ -401,3 +401,52 @@ original model; these rules apply to the strategic turn-based match.
 - Read-only: never creates a branch, never writes main.
 - Plan B reuses `DeepCascade.compute`, `showCascade` and `<CascadeStepper />` (contract:
   `docs/superpowers/plans/2026-10-03-cascade-contract.md`).
+
+## Isolated Dover corridor (3 October 2026)
+
+- All new project content must remain in English.
+- `datasets/dover/model.py` generates `dover` without reading/importing any original graph.
+  6,095 nodes / 23,914 edges, 26 towns, ten sectors, fictional services and NATO support units,
+  4,064 dormant recovery candidates. Full handoff: `docs/dover.md`.
+- `DEPENDS_ON` is canonical (consumer -> provider), required resource groups plus share-weighted
+  material inputs. `SUPPLIES` is only the existing volume-weighted display projection: Dover
+  reaches 778 facilities across 12 degrees. Do not confuse this with time-aware scenario scoring.
+- `.venv/bin/python -m datasets.dover.build --load` imports into the dedicated
+  `data/dover-runtime` server at port 6667; generated exports/store/manifest are ignored under data/.
+  Different build fingerprints are refused rather than overwritten.
+- `.venv/bin/python scripts/run_dover_demo.py` runs the focused map at 5174 and API at 8001,
+  selecting graph `dover`; does not change `.env` or touch the theatre server/graphs.
+  The launcher restarts its own Dover server in memory, discarding previous ephemeral Dover branches.
+- The original agents/wargame routes and buttons are disabled for graph `dover`; the existing
+  Impact viewer is read-only and deterministic in this profile. No new question-answering agent
+  or resource/time allocation engine is implemented.
+- Tests: `tests/datasets/test_dover.py`; read-only live checks:
+  `DOVER_LIVE=1 .venv/bin/python -m pytest tests/datasets/test_dover_live.py -q`.
+
+## Dover resilience exercises (3 October 2026)
+
+- Three exercises only: `scenario:strait_closure` (72 h), `scenario:kent_power` (48 h), `scenario:london_loss`
+  (168 h). Full rules, assumptions, results and demo: `docs/dover-resilience.md`; API: `docs/api.md`.
+- Engine: `agents/resilience/`. Python measures everything:
+  - availability over `DEPENDS_ON` (required groups take the minimum; `material_input` is share-weighted with
+    missing shares in the denominator);
+  - daily cargo split under one shared-capacity ledger (routes, terminals, road hubs, aircraft pools);
+  - generators, provider spare, programme places and stock, each drawn down once.
+  `SUPPLIES` is display-only here.
+- One bounded recovery agent (`agent.py`):
+  - typed tools; at most 6 turns, each one HTTP attempt on the configured model (no model switch);
+  - executes only an evaluated, prepared candidate;
+  - a provider failure produces the labelled `fallback` (top-ranked prepared plan).
+- Branches (`lab.py`, marker `ResilienceBranch`):
+  - a disruption branch, and a recovery branch that replays the event first;
+  - allocation records are stored, and every branch is read back and re-measured (`verified`);
+  - `replay()` rebuilds a branch from its spec, and main is never written.
+- API: `api/resilience_routes.py` (mounted only for graph `dover`), `api/resilience_view.py` and
+  `api/resilience_models.py`.
+- UI: `ResiliencePanel.tsx`, `ResilienceReport.tsx`, `state/resilience.ts` and `map/resilienceLayers.ts`.
+  The shared cascade contract is extended additively (`origins`, `origin_kind: "event"`, `measure`).
+- Tests:
+  - `tests/agents/test_resilience.py` (offline, provider doubles, 30 tests);
+  - `tests/agents/test_resilience_live.py` (`DOVER_LIVE=1`, serial, discards its branches).
+- The Dover server must run `-in-memory`. A server started by `datasets.dover.build --load` alone is persistent
+  and would store exercise branches in `data/dover-runtime`.

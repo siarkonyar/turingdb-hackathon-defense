@@ -13,7 +13,16 @@ export type Kind =
   | "chokepoint"
   | "other";
 export type Status = "at_risk" | "lost" | "no_power";
-export type BranchKind = "main" | "hypothesis" | "strike" | "change" | "threat" | "defence" | "scenario";
+export type BranchKind =
+  | "main"
+  | "hypothesis"
+  | "strike"
+  | "change"
+  | "threat"
+  | "defence"
+  | "scenario"
+  | "disruption"
+  | "recovery";
 export type Engine = "turingdb" | "fixtures";
 
 export interface GraphNode {
@@ -345,7 +354,8 @@ export type JobEvent =
 
 // ---------------------------------------------------------------- impact cascade (docs/api.md)
 
-export type OriginKind = "chokepoint" | "port" | "facility" | "company" | "country" | "plant" | "item";
+// event: a Dover resilience exercise; its simultaneous initial failures are in CascadeResponse.origins.
+export type OriginKind = "chokepoint" | "port" | "facility" | "company" | "country" | "plant" | "item" | "event";
 
 export interface CascadeHit {
   node: GraphNode;
@@ -390,6 +400,10 @@ export interface CascadeResponse extends Timed {
   platforms: PlatformExposure[];
   connected?: boolean; // false: the origin has no link into the supply network
   understood_as?: string | null; // the entity name the LLM read from the question, when it was needed
+  origins?: GraphNode[]; // several simultaneous initial failures (Dover exercises)
+  // supply_volume: share of inbound supply volume lost. service_loss: 1 - lowest DEPENDS_ON availability in the
+  // exercise window. Either way a degree is a dependency distance, never simulation time.
+  measure?: "supply_volume" | "service_loss";
 }
 
 export interface CascadeRequest {
@@ -413,4 +427,193 @@ export interface OriginCandidate {
 export interface OriginsResponse {
   query: string;
   candidates: OriginCandidate[];
+}
+
+// ---------------------------------------------------------------- Dover resilience exercises (docs/api.md)
+
+export type ScenarioId = "scenario:strait_closure" | "scenario:kent_power" | "scenario:london_loss";
+
+export interface ExerciseInfo {
+  scenario_id: ScenarioId;
+  title: string;
+  prompt: string;
+  kind: "closure" | "power_outage" | "regional_loss";
+  hours: number;
+}
+
+export interface ExercisesResponse {
+  exercises: ExerciseInfo[];
+}
+
+export interface RunStarted {
+  job_id: string;
+  scenario_id: ScenarioId;
+}
+
+/** A free-text question either starts a run for the event it describes, or gets a plain reply. */
+export interface AskResponse {
+  job_id?: string;
+  scenario_id?: ScenarioId;
+  title?: string;
+  hours?: number;
+  reply?: string;
+}
+
+export interface ExerciseMetrics {
+  essential_fulfilment: number;
+  overall_fulfilment: number;
+  demands_below_minimum: number;
+  capabilities_below_minimum: number;
+  capabilities_total: number;
+  cargo_scheduled_t: number;
+  cargo_on_time_t: number;
+  cargo_delayed_t: number;
+  cargo_unmet_t: number;
+  affected_facilities: number;
+  affected_at_end: number;
+  essential_recovery_h?: number | null;
+  cost_units: number;
+}
+
+export interface ExerciseConsumption {
+  stock_released_t: number;
+  reserves_drawn: number;
+  reserves_exhausted: number;
+  first_exhausted_h?: number | null;
+  generators: number;
+  generator_fuel_t: number;
+  aircraft_sorties: number;
+  route_tonnes: Record<string, number>;
+  provider_spare_t_day: number;
+  programme_people: number;
+}
+
+export interface ExerciseTimePoint {
+  hour: number;
+  essential: number;
+  overall: number;
+  capabilities_ok: number;
+}
+
+export interface DependencyPathView {
+  names: string[];
+  via: (string | null)[];
+  severity: number;
+}
+
+export interface ExerciseBranch {
+  branch: string;
+  role: "disruption" | "recovery";
+  plan_id?: string | null;
+  parent: string;
+  verified: boolean;
+}
+
+export interface DisruptionView {
+  scenario_id: ScenarioId;
+  title: string;
+  hours: number;
+  branch: ExerciseBranch;
+  cascade: CascadeResponse;
+  metrics: ExerciseMetrics;
+  timeline: ExerciseTimePoint[];
+  paths: DependencyPathView[];
+  unavailable: string[];
+}
+
+export interface CandidateView {
+  plan_id: string;
+  title: string;
+  summary: string;
+  actions: number;
+  rank: number;
+  chosen: boolean;
+  metrics: ExerciseMetrics;
+  consumption: ExerciseConsumption;
+}
+
+export interface DecisionView {
+  mode: "agent" | "fallback";
+  plan_id: string;
+  rationale: string;
+  model?: string | null;
+  calls: number;
+  reason?: string | null;
+}
+
+export interface ActionGroupView {
+  key: string;
+  label: string;
+  actions: number;
+  ready_h: number;
+  capacity: string;
+  essential_gain: number;
+  overall_gain: number;
+  cargo_gain_t: number;
+}
+
+export type RecoveryState = "lost" | "relocated" | "restored" | "improved" | "residual";
+
+export interface StatePoint {
+  node: GraphNode;
+  state: RecoveryState;
+  before: number;
+  after: number;
+  receiver_id?: string | null;
+}
+
+export type RecoveryLinkKind = "route" | "power" | "stock" | "relocation" | "export";
+
+export interface RecoveryLink {
+  kind: RecoveryLinkKind;
+  source: [number, number];
+  target: [number, number];
+  source_id: string;
+  target_id: string;
+  label: string;
+  group: string; // ActionGroupView.key: the recovery step that introduces this link
+}
+
+export interface RecoveryView {
+  scenario_id: ScenarioId;
+  title: string;
+  hours: number;
+  disruption_branch: string;
+  branch: ExerciseBranch;
+  decision: DecisionView;
+  candidates: CandidateView[];
+  before: ExerciseMetrics;
+  after: ExerciseMetrics;
+  before_timeline: ExerciseTimePoint[];
+  after_timeline: ExerciseTimePoint[];
+  consumption: ExerciseConsumption;
+  groups: ActionGroupView[];
+  limitations: string[];
+  counts: Partial<Record<RecoveryState, number>>;
+  services_relocated: number;
+  programmes_relocated: number;
+  points: StatePoint[];
+  links: RecoveryLink[];
+}
+
+export interface AgentStepEvent {
+  thought: string;
+  action: string;
+  args: Record<string, unknown>;
+}
+
+export type ExerciseEvent =
+  | { id: number; type: "job_started"; data: Record<string, unknown> }
+  | { id: number; type: "phase"; data: { phase: string; message: string } }
+  | { id: number; type: "disruption"; data: DisruptionView }
+  | { id: number; type: "agent_step"; data: AgentStepEvent }
+  | { id: number; type: "recovery"; data: RecoveryView }
+  | { id: number; type: "error"; data: { message: string } }
+  | { id: number; type: "done"; data: { status: string } };
+
+export interface ExerciseJob {
+  job_id: string;
+  status: string;
+  events: ExerciseEvent[];
+  next: number;
 }

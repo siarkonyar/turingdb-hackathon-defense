@@ -3,28 +3,19 @@
 
 import { ApiError, api } from "../api/client";
 import type { CascadeResponse, OriginCandidate } from "../api/types";
-import { cascadeFocus, clampStep } from "../lib/cascade";
+import { clampStep } from "../lib/cascade";
 import { message, recordLatency, toast } from "./actions";
 import { setOps, useOps, type CascadeSource, type CascadeState } from "./store";
 
-let flyNonce = 0;
-
 function patch(p: Partial<CascadeState>): void {
   setOps((s) => ({ cascade: { ...s.cascade, ...p } }));
-}
-
-function flyToStep(result: CascadeResponse, step: number): void {
-  const f = cascadeFocus(result, step);
-  flyNonce += 1;
-  setOps({ flyTo: { lon: f.lon, lat: f.lat, zoom: f.zoom, nonce: flyNonce } });
 }
 
 function setStep(step: number): void {
   const { result } = useOps.getState().cascade;
   if (!result) return;
   const next = clampStep(step, result);
-  patch({ step: next, stepStartedAt: performance.now() });
-  flyToStep(result, next);
+  patch({ step: next, stepStartedAt: performance.now() }); // the map stays where the operator is looking
 }
 
 export function setCascadeOpen(open: boolean): void {
@@ -38,7 +29,6 @@ export function setCascadeQuestion(question: string): void {
 export function showCascade(result: CascadeResponse, source: CascadeSource): void {
   patch({ result, source, step: 0, stepStartedAt: performance.now(), error: null, loading: false, candidates: [] });
   recordLatency(`cascade ${result.origin.name}`, result);
-  flyToStep(result, 0);
 }
 
 export const cascadeNext = () => setStep(useOps.getState().cascade.step + 1);
