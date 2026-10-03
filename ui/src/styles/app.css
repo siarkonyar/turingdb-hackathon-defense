@@ -1763,3 +1763,9 @@ code {
     --wargame-w: 360px;
   }
 }
+
+/* bottom-bar popovers open beside the wargame panel, not over it */
+.app--wargame .diff,
+.app--wargame .scenario {
+  right: var(--wargame-w); /* bottombar's right edge already sits one gap in */
+}
