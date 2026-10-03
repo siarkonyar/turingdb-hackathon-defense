@@ -19,6 +19,10 @@ OPSMAP_BACKEND=turingdb uv run uvicorn api.main:app --port 8000  # live `theatre
 | `OPSMAP_MATCHES_DIR` | `matches/` | Where wargame matches are saved and replayed from (live backend) |
 | `FEATHERLESS_API_KEY` | unset | LLM key for the agents. Without it, everything except replay reports `LLM unavailable` |
 
+Every variable can also be set in a gitignored `.env` at the repo root (copy `.env.example`); real environment
+variables win. With `OPSMAP_BACKEND=turingdb` and `FEATHERLESS_API_KEY` in `.env`, a plain
+`uv run uvicorn api.main:app` serves the live graph with the agents and the wargame.
+
 Both backends return identical shapes, so a client cannot tell them apart except through `engine`.
 
 ## Conventions

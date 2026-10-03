@@ -18,7 +18,7 @@
       "runtimeExecutable": "sh",
       "runtimeArgs": [
         "-c",
-        "export OPSMAP_BACKEND=turingdb; export FEATHERLESS_API_KEY=\"${FEATHERLESS_API_KEY:-$(launchctl getenv FEATHERLESS_API_KEY)}\"; exec uv run uvicorn api.main:app --port 8000"
+        "OPSMAP_BACKEND=turingdb exec uv run uvicorn api.main:app --port 8000"
       ],
       "port": 8000
     },

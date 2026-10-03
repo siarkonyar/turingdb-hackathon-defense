@@ -7,6 +7,8 @@
     TURINGDB_GRAPH        theatre
     AGENT_QUERY_TIMEOUT   seconds before an agent-written query counts as runaway (default 20)
     AGENT_AUTOSTART       1 (default): start / restart the TuringDB server without an operator
+
+Values may also come from the gitignored `.env` at the repo root (real environment variables win).
 """
 
 from __future__ import annotations
@@ -14,6 +16,8 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
+
+from api.env import load_env
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -44,6 +48,7 @@ class AgentSettings:
 
 
 def load_agent_settings() -> AgentSettings:
+    load_env()
     return AgentSettings(
         api_key=os.environ.get("FEATHERLESS_API_KEY") or None,
         base_url=os.environ.get("FEATHERLESS_BASE_URL", "https://api.featherless.ai/v1").rstrip("/"),
