@@ -246,6 +246,7 @@ export interface Move {
   targets: MoveTarget[];
   arcs: Arc[];
   fallback: boolean;
+  breakdown?: { deep_pct?: number | null; legacy_pct?: number | null }; // absolute loss per layer
 }
 
 export interface MatchSummary {

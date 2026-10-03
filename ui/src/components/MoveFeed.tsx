@@ -23,6 +23,11 @@ function MoveCard({ move }: { move: Move }) {
         </span>
         <span className="mcard__abs">{move.abs_loss_pct.toFixed(1)}% total · #{move.branch_id}</span>
       </div>
+      {move.breakdown?.deep_pct != null ? (
+        <div className="mcard__split mono" title="Absolute loss on each layer: the deep supply network (platform production) and the original parts layer">
+          deep network {move.breakdown.deep_pct.toFixed(1)}% · parts layer {(move.breakdown.legacy_pct ?? 0).toFixed(1)}%
+        </div>
+      ) : null}
     </li>
   );
 }

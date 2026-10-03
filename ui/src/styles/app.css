@@ -95,6 +95,8 @@ code {
 
 /* maplibre-gl.css sets .maplibregl-map { position: relative }, so size it explicitly */
 .map {
+  /* Keep deck.gl canvas layers beneath the surrounding controls and move cards. */
+  isolation: isolate;
   position: absolute;
   inset: 0;
   width: 100%;
@@ -1661,6 +1663,7 @@ code {
 /* move feed */
 .mfeed {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   margin: 0;
   padding: 0;
@@ -1668,6 +1671,7 @@ code {
 }
 
 .mcard {
+  min-width: 0;
   padding: 9px 11px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--hairline);
@@ -1768,4 +1772,10 @@ code {
 .app--wargame .diff,
 .app--wargame .scenario {
   right: var(--wargame-w); /* bottombar's right edge already sits one gap in */
+}
+
+.mcard__split {
+  margin-top: 2px;
+  font-size: 10.5px;
+  color: var(--text-3);
 }
