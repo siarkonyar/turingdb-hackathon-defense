@@ -10,7 +10,13 @@ GRAPH_NAME = "theatre"
 JSONL_NAME = "theatre.jsonl"  # written to <REPO_ROOT>/data/, where LOAD JSONL looks
 SERVER_URL = "http://localhost:6666"
 
-SOURCES = ("power_plants", "supply_chain", "logistics_risk", "drone_swarm", "poledb", "attack_scenarios")
+SOURCES = ("power_plants", "supply_chain", "logistics_risk", "drone_swarm", "poledb", "attack_scenarios",
+           "supply_chain_deep")
+DEEP = "supply_chain_deep"
+
+# Labels renamed in the fused graph: supply_chain_deep's shipments would otherwise mix with the 113k
+# logistics_risk Shipments under one label despite a different schema.
+RELABELS = {(DEEP, "Shipment"): "Consignment"}
 
 # Labels present in more than one source keep their label; their key value is prefixed with the source.
 PREFIXED_KEYS = {("supply_chain", "Supplier"): "supplier_id", ("logistics_risk", "Supplier"): "supplier_id"}
@@ -20,8 +26,11 @@ PROPERTY_RENAMES = {
     ("power_plants", "PowerPlant", "source"): "data_source",
     ("attack_scenarios", "Attack", "source"): "data_source",
     ("drone_swarm", "Reading", "timestamp"): "timestep",
+    # deep ports / waypoints use lat/lon; theatre (and the OpsMap API) use latitude/longitude
+    **{(DEEP, label, short): long for label in ("Port", "Chokepoint", "SeaArea")
+       for short, long in (("lat", "latitude"), ("lon", "longitude"))},
 }
-# Int64 in supply_chain, Double in logistics_risk -> one graph-wide type.
+# Int64 in supply_chain / supply_chain_deep, Double in logistics_risk -> one graph-wide type.
 FLOAT_PROPERTIES = frozenset({"lead_time_days"})
 
 SEED = 20261002
@@ -32,6 +41,7 @@ NEAR_MAX_KM = 5.0
 SITE_JITTER_KM = 1.5
 SUPPLIER_JITTER_KM = 5.0
 SOURCES_FROM_MIN, SOURCES_FROM_MAX = 1, 3
+FACILITY_JITTER_KM = 6.0  # deep facilities are placed at their city centroid plus this much seeded jitter
 
 # Sites: UK and NATO-Europe aerospace towns. SITE01 sits in Greater Manchester, where the
 # poledb Locations are, so crimes/people near a critical asset are reachable.

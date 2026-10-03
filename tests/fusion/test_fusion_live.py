@@ -37,7 +37,8 @@ def test_every_site_and_part_supplier_is_powered_and_located(client):
 
 
 def test_country_merge_and_synthetic_flags(client):
-    assert _count(client, "MATCH (c:Country) RETURN count(c)") == 168
+    # 168 from power_plants + logistics_risk, plus HKG and VGB that only supply_chain_deep knows
+    assert _count(client, "MATCH (c:Country) RETURN count(c)") == 170
     assert _count(client, "MATCH (c:Country {country_code:'GBR'}) RETURN count(c)") == 1
     assert _count(client, "MATCH (a)-[e:POWERED_BY]->(b) WHERE e.synthetic = true RETURN count(e)") == \
         _count(client, "MATCH (a)-[e:POWERED_BY]->(b) RETURN count(e)")
@@ -46,3 +47,12 @@ def test_country_merge_and_synthetic_flags(client):
 def test_reports_and_contradictions(client):
     assert _count(client, "MATCH (r:Report) RETURN count(r)") == 21
     assert _count(client, "MATCH (a:Report)-[e:CONTRADICTS]->(b:Report) RETURN count(e)") == 6
+
+
+def test_supply_chain_deep_layer(client):
+    assert _count(client, "MATCH (f:Facility) RETURN count(f)") == 4404
+    assert _count(client, "MATCH (f:Facility) WHERE f.latitude IS NOT NULL RETURN count(f)") == 4404
+    assert _count(client, "MATCH (s:Consignment) RETURN count(s)") == 120000
+    assert _count(client, "MATCH (p:Port) WHERE p.latitude IS NOT NULL RETURN count(p)") == 71
+    assert _count(client, "MATCH (f:Facility)-[:LOCATED_IN]->(c:Country) RETURN count(f)") == 4404
+    assert _count(client, "MATCH (f:Facility)-[:POWERED_BY]->(p:PowerPlant) RETURN count(f)") > 12000
