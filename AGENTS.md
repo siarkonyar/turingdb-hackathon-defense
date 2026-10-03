@@ -59,8 +59,8 @@ uv run pytest tests/agents/test_agents_live.py -q                      # real Fe
 npm --prefix ui run typecheck && npm --prefix ui test && npm --prefix ui run build
 ```
 
-Last known state (turingdb 3.0, theatre with the deep layer, facility/port kinds): api + fusion + agents-offline
-+ branch-lab all green; live agent tests 4/4 (real Featherless); UI 16 tests, typecheck and build OK. Live tests skip themselves when the server or key is missing.
+Last known state (TuringDB 3.0, theatre with the deep layer): API + fusion + offline agents green;
+UI 27 tests, typecheck and build OK. See the latest validation notes in docs/agents.md for live checks. Live tests skip themselves when the server or key is missing.
 
 ## TuringDB 3.0 - things that will bite you
 
@@ -112,8 +112,8 @@ Fused by `fusion/assemble.py` + `fusion/links.py::add_deep_powered_by`:
   (facilities destroyed/flagged/downstream, platforms exposed) that the UI panel shows. The old-layer loss is
   reported as `original_layer_supply_loss_pct`. Live-tested: Istanbul -> 34 destroyed, 96 flagged, 2,519
   downstream; Manchester has no deep facilities.
-- **Threat/defence agents stay on the original synthetic supply layer** (their impact model and actions).
-  Retargeting the *threat* agent onto the deep network (real chokepoints/countries) was deliberately not done.
+- **One-shot threat/defence agents stay on the original synthetic supply layer** (their impact model and actions).
+  Retargeting the one-shot *threat* agent onto the deep network (real chokepoints/countries) was deliberately not done.
 
 ## The agents system (`agents/`)
 
@@ -174,6 +174,34 @@ fresh change. The scenario agent's `simulate_scenario` takes a `parent` (main or
 `FEATHERLESS_API_KEY`) without overriding real env vars. UI: Wargame panel (`WargamePanel.tsx`, `state/wargame.ts`,
 `LossChart`, `MoveFeed`, `BranchTree`, `map/matchLayers.ts`).
 
+**Deep wargame (distinct from the one-shot agents).** `deep_impact.py` loads main's deep network once and
+reads branch state, then evaluates capability in Python; `deep_actions.py` registers replayable typed edits;
+`match_deep.py` combines scores and builds map effects. Match loss = `DEEP_WEIGHT = 0.75` deep platform
+capability loss + 25% original parts loss (legacy-only fallback without the deep graph). Each move includes
+`breakdown {deep_pct, legacy_pct}`; the UI feed shows both. Relative match loss subtracts the base score.
+- Facility output: zero if removed/closed or if all its original power feeds are lost; otherwise best export
+  route. Closed ports retain `OVERLAND_FLOOR = 0.4`; alternative ports have `ALT_PORT_EFFICIENCY = 0.8`;
+  blocked chokepoints lose `REROUTE_LOSS = 0.35` times their shipment share (combined shares capped at 1).
+- Item production is share-weighted maker output (deleted makers keep their original lost share in the
+  denominator, including when all PRODUCED_AT edges vanish). Availability is the minimum of production and buffered
+  child availability: `1 - (1 - child) * (1 - TIER_BUFFER)`, `TIER_BUFFER = 0.3`. Country export controls zero
+  that country's makers and production share for the item. Stockpiled items retain `STOCKPILE_FLOOR = 0.8`.
+- Platform weights: `EQUAL_SHARE = 0.5` equal programme share + 50% annual-value share (demand x cost).
+  All constants are gameplay assumptions, not calibrated. Mineral controls are weak after seven buffers.
+- Red: `close_port`, `block_chokepoint`, non-allied `export_controls`, `facility_outage`; blue:
+  `reroute_exports` (up to three ports), `replace_facility`, `second_source` (allied first, share 50),
+  `stockpile`, `harden`. Candidates preview the current head's effects. Red cannot repeat its previous
+  action kind; rejected fallbacks try alternates. Prompts retain two candidates per kind without truncating
+  JSON, and encourage at least three useful disruption kinds across a multi-round exercise. One-shot
+  threat/defence actions are unchanged. `match_errors.py` shares MoveRejected across CLI/imported modules.
+- Deep effects flash/pulse ports, facilities and chokepoints, with arcs to affected exporters and platform
+  final-assembly facilities. They use capability changes rather than only ordinary node diffs.
+- `Session.refresh_schema()` is required after lineage edits introduce new properties. Numeric edge
+  properties must be emitted as numeric literals (`BranchLab.add_edge`), and NATO/EU flags may be numpy bools.
+- Offline rules: `test_deep_impact.py`, `test_match.py`; live moves/replay with fake model:
+  `test_match_live.py`. See `docs/agents.md` for the model and demo commands.
+
+
 ## OpsMap integration
 
 - `api/backends/turing.py::_describe_change` recognises `AgentBranch` -> `Branch.kind` threat|defence|scenario
@@ -181,7 +209,7 @@ fresh change. The scenario agent's `simulate_scenario` takes a `parent` (main or
   hypotheses stay read-only.
 - `api/agent_routes.py` (mounted in `api/main.py` only when backend == turingdb; failure to mount is logged,
   never fatal): `GET /agent/status`, `POST /agent/scenario {question,max_steps}`, `/agent/threat`,
-  `/agent/defence {threat_branch}`, `/agent/redblue`. Endpoints are sync (FastAPI threadpool) and slow (LLM).
+  `/agent/defence {threat_branch}`, `/agent/redblue`. Calls run as background jobs with SSE progress.
 - UI: bottom-bar **Scenario** button (live only) -> `ScenarioAgent.tsx` -> `askScenario()` in
   `state/actions.ts` -> `refreshBranches()` + `switchBranch(branch)`. The map overlay comes from the existing
   `GET /diff main->branch` (`overlayFromDiff`: removed = red/lost, changed status = amber). Branch switcher has
@@ -233,10 +261,11 @@ fresh change. The scenario agent's `simulate_scenario` takes a `parent` (main or
 
 ## Open items / ideas
 
-- Re-run `tests/agents/test_agents_live.py` and the UI checks on 3.0.
+- Validated 3 October 2026: full Python suite 197 passed (real Featherless included); subsequent deep/match
+  checks 39 passed; UI 27 tests, typecheck/build passed. Demo: four real-model rounds, final combined loss
+  22.5% (deep 30.0%, parts 0.0%), no fallbacks; browser replay completed.
 
 - UI eyeballed with Playwright screenshots (facility/port layers, scenario branch overlay, Scenario panel);
   the online CARTO basemap fails TLS in this sandbox, so screenshots show the built-in outline fallback.
-- Agent endpoints are synchronous and can take minutes; a job queue + progress polling would improve UX.
 - Defence often prefers one bulk measure; if a "three distinct countermeasures" story is wanted, constrain it
   in `defence.py`'s prompt or budget.

@@ -53,7 +53,8 @@ Defence / Scenario groups); switching to one re-colours the map from `GET /diff`
 
 ## The impact model (the objective)
 
-`agents/impact.py` computes one number from graph state on any ref: **projected supply-chain loss**.
+The one-shot threat/defence agents use the original parts layer only. The turn-based match also scores
+the deep network (see below). `agents/impact.py` computes one number from graph state on any ref: **projected supply-chain loss**.
 
 - **Demand** (read from `main` once): every `(Site, Part)` pair that has purchase orders, weighted by PO
   count x part criticality (A=5, B=2, C=1).
@@ -118,23 +119,74 @@ streams its progress over server-sent events; nothing blocks the HTTP server. Fu
 ## The wargame (`agents/match.py`)
 
 Each round red plays ONE disruption and blue ONE countermeasure, each a branch stacked on the current head
-(a fresh change from main that replays the head's lineage, because 1.37 cannot stack changes). A move is
+(a fresh change from main that replays the head's lineage, because TuringDB 3.0 cannot stack changes). A move is
 one decision: the options are in the prompt, so it is usually a single LLM call, with at most 3 calls
 (a format retry or one read query) and a flagged fallback. Loss is measured against the base branch.
 Injects run the scenario agent on the head. Matches are saved to `matches/<id>.json` and replayable
 without the LLM (`uv run python -m agents.match --replay demo`).
+
+### Deep-network capability (`deep_impact.py`, `deep_actions.py`, `match_deep.py`)
+
+The match score is **75% deep capability loss + 25% original parts loss** (`DEEP_WEIGHT = 0.75`). Each
+move records both absolute component losses as `breakdown.deep_pct` and `breakdown.legacy_pct`; the feed
+shows the split. If the graph has no deep layer, the score uses the original layer alone. Loss versus a
+scenario base is the difference between the combined scores, in percentage points.
+
+The deep model loads the bill of materials, facilities, export routes and country production shares from
+main, reads each branch's edited state, then evaluates it in Python:
+
+- Facility output is zero when removed, closed, or deprived of all its original power feeds. Otherwise it
+  uses its best export route. A closed/removed port retains `OVERLAND_FLOOR = 0.4` for overland/air fallback.
+  A blocked chokepoint reduces route output by `REROUTE_LOSS = 0.35` times its share of that port's shipments
+  (summed blocked shares are capped at 1). An alternative port runs at `ALT_PORT_EFFICIENCY = 0.8`.
+- Item production is the share-weighted output of its makers. Deleted makers retain their original share
+  in the denominator, so losing a facility cannot improve the surviving makers' output. Export controls zero the controlling country's
+  makers for that item and reduce its mineral/material `PRODUCTION_SHARE`. Item availability is the minimum
+  of production and each buffered input availability: `1 - (1 - child_availability) * (1 - TIER_BUFFER)`.
+  `TIER_BUFFER = 0.3` absorbs 30% of an input shortfall at each tier. Stockpiled components/materials/minerals
+  have availability at least `STOCKPILE_FLOOR = 0.8`.
+- Platform weights mix equal programme share and annual value share (`demand * unit_cost`), with
+  `EQUAL_SHARE = 0.5`. Deep loss is one minus weighted platform availability.
+
+**These constants are gameplay assumptions, not calibrated estimates of real production.** Seven buffered
+input tiers make mineral export controls relatively weak, so they need not be selected in every match.
+The one-shot threat/defence agents retain their original impact model and action set.
+
+| Side | Deep moves |
+|---|---|
+| Red | `close_port`, `block_chokepoint`, `export_controls` (outside NATO/EU), `facility_outage` |
+| Blue | `reroute_exports`, `replace_facility`, `second_source`, `stockpile`, `harden` |
+
+Candidate effects are previewed in Python on the current head before the model chooses. Prompts keep
+two ranked options per action kind and complete JSON so lower-ranked production disruptions remain visible;
+red is encouraged to explore at least three useful disruption kinds across a multi-round exercise. Rerouting spreads
+exporters across up to three alternative ports; replacement qualifies makers for everything the affected
+facility produced; second sources prefer allied countries and add a production share of 50. Hardening
+prevents subsequent closures/outages on the asset. Red cannot repeat its previous action kind on its next
+turn. Invalid model decisions retry, then use a ranked fallback and alternates if that fallback is refused.
+All edits use the branch action dispatcher and replay with the lineage; main remains untouched.
+
+Deep move map effects flash/pulse the port, chokepoint or facility and draw arcs to affected exporters and
+final-assembly facilities of platforms whose availability changed. These effects come from the capability
+model, since a closure flag is not a node deletion in the ordinary OpsMap diff.
+
+```bash
+OPSMAP_BACKEND=turingdb uv run python -m agents.match --base main --rounds 4 --save-as demo
+uv run python -m agents.match --replay demo --speed 4
+```
 
 ### Demo runbook (all in the browser)
 
 1. `.env` with `OPSMAP_BACKEND=turingdb` and `FEATHERLESS_API_KEY` (see `.env.example`), TuringDB 3.0 running
    in-memory with `theatre`, then `uv run uvicorn api.main:app` and `npm --prefix ui run dev`.
 2. **Scenario** → "everything in Manchester is destroyed" → Simulate (branch, 13.8% loss).
-3. **Wargame** → base = that branch, 3 rounds → Start. Type "the Liverpool port is closed" → Inject during
+3. **Wargame** → base = main for the deep-network demo, or that scenario branch; choose 4 rounds → Start. Type "the Liverpool port is closed" → Inject during
    round 1; it lands before round 2 as an amber card and a new head.
 4. LLM down? The chip says so and **Replay saved match** plays `matches/demo.json` (a real recorded match)
    with its original timing and no model calls, rebuilding every branch on TuringDB.
 
-Measured (Qwen2.5-72B, TuringDB 3.0): a move is 4-9 s of LLM time and 1-2 s of TuringDB time.
+Measured locally (Qwen2.5-72B, TuringDB 3.0): warm moves usually take 3-8 s of LLM time and 1-3 s of
+TuringDB time. A cold start or model retry can take longer.
 
 ## Tests
 
@@ -144,5 +196,21 @@ uv run pytest tests/agents -q
 
 - `test_guard.py`, `test_llm.py` - offline unit tests (no network).
 - `test_branch_lab_live.py` - live branch mechanics against TuringDB (no LLM); skipped if the server is down.
+- `test_deep_impact.py`, `test_match.py` - offline capability rules, no-repeat and fallback behavior.
+- `test_match_live.py` - deep actions, capability recovery, map effects and replay against live TuringDB
+  with a fake model.
 - `test_agents_live.py` - end-to-end with **real Featherless calls and real branches**; skipped unless both
   the server and `FEATHERLESS_API_KEY` are available.
+
+### Validation on 3 October 2026
+
+- Full Python suite: 197 passed, including all four real Featherless agent tests and live TuringDB tests.
+- After preserving deleted-maker shares, focused deep model / match / live match tests: 39 passed.
+- UI: typecheck, 27 tests and production build passed.
+- Four-round real Qwen2.5-72B match: eight moves, no fallbacks, final combined loss 22.5% (deep 30.0%,
+  original parts 0.0%). Red used ports, a facility outage and a chokepoint; blue rerouted exports, qualified
+  replacement production and hardened a port. Export controls were offered but not selected.
+- `matches/demo.json` records that match. Browser replay completed with ports/facilities/chokepoint effects
+  and split scores. Map stacking and feed sizing were fixed so effects stay behind controls and long names fit.
+- Invalid model choices retry in the CLI as well as the API: `MoveRejected` lives in `match_errors.py` to
+  avoid separate exception identities when `agents.match` runs as `__main__`.
