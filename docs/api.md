@@ -274,10 +274,28 @@ and works on `main` or any existing branch ref. Mounted only when `OPSMAP_BACKEN
 | `POST /cascade` | `CascadeRequest {origin_id, branch="main", min_severity=0.05 (0.01..0.5)}` | `CascadeResponse`; 404 unknown node, 422 not a chokepoint/port/facility |
 | `POST /cascade/ask` | `CascadeAskRequest {question (2..400), branch, min_severity}` | `CascadeResponse`, or **422** `{detail, candidates}` when no place or several places match |
 
-`question` is plain English naming a place ("What happens if the Strait of Hormuz closes?", "Taiwan Strait
-blockade", "Port of Busan closes"); resolution is a deterministic alias table plus name-token matching
-(`api/cascade_resolve.py`), no LLM. An ambiguous question returns the candidates as chips; the UI then calls
-`POST /cascade` with the chosen `origin_id`.
+`question` is free text ("What happens if the Strait of Hormuz closes?", "What if Europe's biggest port shuts?").
+Resolution runs in two steps:
+
+1. **Deterministic** (`api/cascade_resolve.py`): chokepoint aliases plus name-token matching over every
+   chokepoint, port, facility, company, country, power plant and supply item (~48k names, 30-250 ms). A
+   confident, unambiguous match runs immediately, with no model involved.
+2. **LLM fallback** (`agents/place_extractor.py`, Featherless, one bounded call, 60 s timeout): only when step 1
+   is not confident. The model only turns the question into concrete entity names ("Europe's biggest port" ->
+   "Port of Rotterdam"); those names go back through step 1. It never queries the graph or estimates impact.
+   The name it used is returned as `understood_as`. Without `FEATHERLESS_API_KEY`, or when the call fails, the
+   endpoint answers from step 1 alone.
+
+Several confident matches (e.g. "Busan Hamburg") return 422 with them as `candidates` (chips in the UI, which
+then call `POST /cascade`). If nothing matches, the 422 says it is not connected to anything in the TuringDB graph
+dataset. An entity that exists but has no link into the supply network (e.g. a solar park powering no facility)
+returns 200 with `connected: false` and no stages.
+
+**Origin kinds.** `chokepoint`, `port`, `facility` as below, plus entities that reach facilities through one
+edge: `company` (facilities `OPERATED_BY` it), `country` (facilities `LOCATED_IN` it), `plant` (facilities
+`POWERED_BY` it; seed severity = 1 / that facility's number of power feeds) and `item` (minerals, materials,
+components, assemblies, subsystems, systems: facilities it is `PRODUCED_AT`). Their seeds are degree 1 with
+severity 1 (plants: as above). Companies and items have no coordinates and are drawn at their facilities' centroid.
 
 **Model.** Degree 0 is the origin (`status: "lost"`). Seeds (degree 1) for a chokepoint/port are the
 facilities that ship consignments through it (`TRANSITED` / `LOADED_AT`), with
@@ -294,13 +312,15 @@ facility's inbound supply volume lost: an explainable proxy, not a calibrated fo
 
 | Field | Meaning |
 |---|---|
-| `origin`, `origin_kind` | origin node (`lost`), `chokepoint` / `port` / `facility` |
+| `origin`, `origin_kind` | origin node (`lost`), `chokepoint` / `port` / `facility` / `company` / `country` / `plant` / `item` |
 | `stages[]` | `{degree, hits[], arcs[], count, mean_severity}`; `stages[i].degree == i + 1`; hits sorted by severity |
 | `hits[]` | `{node (at_risk), degree, severity, parent_id, via: TRANSITED / LOADED_AT / SUPPLIES}` |
 | `arcs[]` | parent → hit, `hop == degree`, `rel == via` |
 | `max_degree`, `graph_hops` | degrees reached; edges walked (`max_degree + 1` for a chokepoint/port) |
 | `total_affected` | sum of stage counts |
 | `reach` | `{cypher, depth_limit: 12, reached, ms}`: the one deep `-[:SUPPLIES]->{1,12}` query, unweighted, timed by TuringDB |
+| `connected` | `false` when the origin has no link into the supply network |
+| `understood_as` | entity name the LLM extracted, when step 2 was needed |
 | `platforms[]` | `{name, archetype, severity, facility_id}`: weapon platforms whose final-assembly facility is affected |
 
 Measured on the live in-memory `theatre` (TuringDB 3.0, laptop, 3 October 2026):
@@ -309,6 +329,9 @@ Measured on the live in-memory `theatre` (TuringDB 3.0, laptop, 3 October 2026):
 |---|---|---|---|---|
 | Strait of Hormuz | 7 (7, 18, 110, 122, 68, 12, 3) | 340 | 8 | 2,262 facilities in 10–41 ms; whole answer 22–51 ms |
 | Taiwan Strait | 6 (1,082, 1,894, 769, 174, 54, 1) | 3,974 | 7 | 3,925 facilities in 1,061–1,155 ms; whole answer ~1,180 ms |
+| Port of Rotterdam | 5 (37, 80, 31, 9, 1) | 158 | 6 | 806 facilities in 5–30 ms |
+| Netherlands (country) | 6 (79, 197, 114, 64, 7, 1) | 462 | 6 | 1,163 facilities in ~3 ms |
+| Cobalt ore (item) | 7 (14, 8, 14, 98, 36, 17, 1) | 188 | 7 | 1,417 facilities in ~1 ms |
 
 ## Calling it from an agent
 

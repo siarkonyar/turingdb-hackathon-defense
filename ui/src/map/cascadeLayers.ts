@@ -7,7 +7,7 @@ import { PathLayer, ScatterplotLayer, TextLayer } from "@deck.gl/layers";
 
 import type { CascadeHit, CascadeResponse, CascadeStage, GraphNode } from "../api/types";
 import { curvedPath, type LonLat } from "../lib/arcs";
-import { currentStage, degreeColor, ordinal, topHits, visibleStages } from "../lib/cascade";
+import { currentStage, degreeColor, lossVerb, ordinal, topHits, visibleStages } from "../lib/cascade";
 import { RED, WHITE, withAlpha } from "./colors";
 import { LABEL_FONT } from "./layers";
 
@@ -61,7 +61,7 @@ function label<T>(id: string, data: T[], extra: Record<string, unknown>): Layer 
 function originLayers(r: CascadeResponse, now: number, reduced: boolean): Layer[] {
   if (!located(r.origin)) return [];
   const pulse = reduced ? 0.5 : (Math.sin(now / 260) + 1) / 2;
-  const suffix = r.origin_kind === "facility" ? "LOST" : "CLOSED";
+  const suffix = lossVerb(r).toUpperCase();
   return [
     new ScatterplotLayer<GraphNode>({
       id: "cascade-origin-ring",

@@ -41,7 +41,7 @@ export function ContextMenu() {
         Simulate loss
         <span className="ctxmenu__hint">{lost ? "already lost" : strikable ? "new branch" : "not an asset"}</span>
       </button>
-      {["chokepoint", "port", "facility"].includes(node.kind) ? (
+      {["chokepoint", "port", "facility", "plant"].includes(node.kind) ? (
         <button type="button" role="menuitem" className="ctxmenu__item" onClick={() => void runCascadeFor(node.id, node.name)}>
           What breaks if this falls?
           <span className="ctxmenu__hint">impact degrees</span>

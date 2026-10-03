@@ -9,7 +9,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 Kind = Literal["plant", "site", "supplier", "drone", "crime", "report", "part", "facility", "port", "chokepoint",
                "other"]
-OriginKind = Literal["chokepoint", "port", "facility"]
+# chokepoint/port/facility: the original contract; company/country/plant/item: entities whose loss reaches
+# facilities through one edge (OPERATED_BY / LOCATED_IN / POWERED_BY / PRODUCED_AT).
+OriginKind = Literal["chokepoint", "port", "facility", "company", "country", "plant", "item"]
 Status = Literal["at_risk", "lost", "no_power"]
 BranchKind = Literal["main", "hypothesis", "strike", "change", "threat", "defence", "scenario"]
 Engine = Literal["turingdb", "fixtures"]
@@ -176,6 +178,8 @@ class CascadeResponse(Timed):
     total_affected: int
     reach: ReachProbe
     platforms: list[PlatformExposure]
+    connected: bool = True  # False: the origin has no link at all into the supply network
+    understood_as: str | None = None  # set when the LLM read the question: the entity name it extracted
 
 
 class Commit(Frozen):

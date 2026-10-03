@@ -26,6 +26,14 @@ export function CascadeStepper() {
   }, [r]);
 
   if (!r) return null;
+  if (r.connected === false) {
+    return (
+      <div className="cascade" aria-live="polite">
+        {r.understood_as ? <p className="cascade__note">Understood as: {r.understood_as}</p> : null}
+        <p className="cascade__step">{stepLabel(r, 0)}</p>
+      </div>
+    );
+  }
   const h = headline(r);
   const cur = currentStage(r, c.step);
   const maxCount = Math.max(1, ...r.stages.map((s) => s.count));
@@ -41,6 +49,7 @@ export function CascadeStepper() {
           <span className="cascade__sep">·</span>
           <span className="cascade__num">{h.affected.toLocaleString("en-GB")}</span> facilities
         </div>
+        {r.understood_as ? <div className="cascade__note">Understood as: {r.understood_as}</div> : null}
         <div className="cascade__speed mono">
           TuringDB: {h.depthLimit}-hop query reached {h.reached.toLocaleString("en-GB")} facilities in{" "}
           <strong>{formatLatency(h.reachMs)} ms</strong> · whole answer {formatLatency(h.totalMs)} ms over {h.queries} queries

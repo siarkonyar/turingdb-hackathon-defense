@@ -25,7 +25,7 @@ export function BottomBar() {
               type="button"
               className={`btn btn--quiet bottombar__diff${cascadeOpen ? " is-on" : ""}`}
               aria-pressed={cascadeOpen}
-              title="What breaks if a chokepoint, port or facility falls? Step through the impact degree by degree"
+              title="What breaks if a port, chokepoint, facility, company, country, plant or supply item is lost? Step through the impact degree by degree"
               onClick={() => setCascadeOpen(!cascadeOpen)}
             >
               Impact

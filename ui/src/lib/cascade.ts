@@ -62,13 +62,20 @@ export function topHits(stage: CascadeStage, n = MAX_LABELS_PER_DEGREE): Cascade
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
+/** "closed" for routes (chokepoints, ports), "lost" for everything else. */
+export function lossVerb(result: CascadeResponse): string {
+  return result.origin_kind === "chokepoint" || result.origin_kind === "port" ? "closed" : "lost";
+}
+
 export function stepLabel(result: CascadeResponse, step: number): string {
   const name = result.origin.name;
   const s = clampStep(step, result);
-  if (!result.max_degree) return `${name} closed. No facility loses at least ${pct(result.min_severity)} of its supply.`;
-  if (s === 0) return `${name} closed. Impact reaches ${result.max_degree} degrees: press Continue for the 1st degree.`;
+  if (result.connected === false) return `${name} is not connected to anything in the TuringDB graph dataset.`;
+  const closed = lossVerb(result);
+  if (!result.max_degree) return `${name} ${closed}. No facility loses at least ${pct(result.min_severity)} of its supply.`;
+  if (s === 0) return `${name} ${closed}. Impact reaches ${result.max_degree} degrees: press Continue for the 1st degree.`;
   const st = result.stages[s - 1];
-  if (!st) return `${name} closed.`;
+  if (!st) return `${name} ${closed}.`;
   const noun = st.count === 1 ? "facility loses" : "facilities lose";
   const end = s === result.max_degree ? " End of the cascade." : "";
   return `${ordinal(s)} degree of ${result.max_degree}: ${st.count.toLocaleString("en-GB")} ${noun} supply (mean ${pct(st.mean_severity)} of inbound volume).${end}`;

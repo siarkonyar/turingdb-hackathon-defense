@@ -27,7 +27,8 @@ export function CascadePanel() {
         </button>
       </header>
       <p className="scenario__hint">
-        Name a chokepoint, port or facility. TuringDB walks the supply network in one deep
+        Ask what happens if a chokepoint, port, facility, company, country, power plant or supply item is lost.
+        TuringDB walks the supply network in one deep
         query; the map then reveals who loses supply, one degree at a time. Severity = share of a facility's
         inbound supply volume lost; shown when at least 5%.
       </p>
@@ -37,8 +38,8 @@ export function CascadePanel() {
         onChange={setCascadeQuestion}
         onSubmit={() => void askCascade()}
         busy={c.loading}
-        submitLabel="Ask TuringDB"
-        busyLabel="Querying…"
+        submitLabel="Ask"
+        busyLabel="Thinking…"
         rows={2}
         placeholder="What happens if the Strait of Hormuz closes?"
       />

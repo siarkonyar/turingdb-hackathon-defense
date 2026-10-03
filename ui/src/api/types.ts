@@ -345,7 +345,7 @@ export type JobEvent =
 
 // ---------------------------------------------------------------- impact cascade (docs/api.md)
 
-export type OriginKind = "chokepoint" | "port" | "facility";
+export type OriginKind = "chokepoint" | "port" | "facility" | "company" | "country" | "plant" | "item";
 
 export interface CascadeHit {
   node: GraphNode;
@@ -388,6 +388,8 @@ export interface CascadeResponse extends Timed {
   total_affected: number;
   reach: ReachProbe;
   platforms: PlatformExposure[];
+  connected?: boolean; // false: the origin has no link into the supply network
+  understood_as?: string | null; // the entity name the LLM read from the question, when it was needed
 }
 
 export interface CascadeRequest {

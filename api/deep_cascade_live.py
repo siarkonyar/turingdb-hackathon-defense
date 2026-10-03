@@ -13,6 +13,7 @@ import pandas as pd
 
 from api.backends.turing import ENGINE, NODE_PROPS, TuringBackend
 from api.backends.turing_session import Session, node_id_literal, string_literal
+from api.cascade_entities import ENTITY_KINDS, ENTITY_LABELS, ENTITY_SEED, POWER_FEEDS_Q, entity_severities
 from api.deep_cascade import MAX_DEGREE, MIN_SEVERITY, Hit, Seeds, SupplyNetwork, propagate
 from api.models import (Arc, CascadeHit, CascadeResponse, CascadeStage, Node, OriginKind, PlatformExposure,
                         ReachProbe)
@@ -168,6 +169,23 @@ class DeepCascade:
             return out
         return self._cached(s, "catalog", build)
 
+    def search_catalog(self, s: Session) -> list[tuple[Node, OriginKind]]:
+        """catalog() plus every named company, country, power plant and supply item: what a question can name."""
+        def build() -> list[tuple[Node, OriginKind]]:
+            out = list(self.catalog(s))
+            for label, kind in ENTITY_LABELS.items():
+                if label in s.labels:
+                    frame = s.q(f"MATCH (n:{label}) RETURN n{s.project('n', NODE_PROPS)}")
+                    out += [(n, kind) for n in s.nodes_from(frame, "n", label=label) if n.name]
+            return out
+        return self._cached(s, "search_catalog", build)
+
+    def _power_feeds(self, s: Session) -> dict[str, int]:
+        def build() -> dict[str, int]:
+            frame = s.q(POWER_FEEDS_Q)
+            return {str(f): int(n) for f, n in zip(frame["fid"], frame["n"])}
+        return self._cached(s, "power_feeds", build)
+
     # ------------------------------------------------------------------ origin + seeds
 
     def origin(self, s: Session, origin_id: str) -> Origin:
@@ -177,9 +195,12 @@ class DeepCascade:
         if frame.empty:
             raise NotFound(f"node {origin_id} not on {s.ref}")
         node = s.nodes_from(frame, "n", label_col="lbl")[0]
-        kind = ORIGIN_LABELS.get(node.label)
+        kind = ORIGIN_LABELS.get(node.label) or ENTITY_LABELS.get(node.label)
         if kind is None:
-            raise ValueError(f"a {node.label} cannot be a cascade origin: pick a chokepoint, port or facility")
+            raise ValueError(f"{node.name or node.id} ({node.label}) is not connected to the supply network in the "
+                             "TuringDB graph dataset")
+        if kind in ENTITY_KINDS:  # located later at its facilities if it has no coordinates of its own
+            return Origin(node=with_status(node, "lost"), kind=kind, key=node.id)
         if not is_located(node):
             raise ValueError(f"{node.name} has no coordinates")
         key = clean(frame.iloc[0].get(f"n_{KEY_PROP[kind]}"))
@@ -188,12 +209,22 @@ class DeepCascade:
         return Origin(node=with_status(node, "lost"), kind=kind, key=str(key))
 
     @staticmethod
+    def _entity_match(origin: Origin, tail: str = "") -> str:
+        pattern, _ = ENTITY_SEED[origin.kind]
+        return f"MATCH {pattern}{tail} WHERE o = {node_id_literal(origin.key)}"
+
+    @staticmethod
     def _origin_pattern(origin: Origin) -> str:
         return f"(o:{LABEL_OF[origin.kind]} {{{KEY_PROP[origin.kind]}: {string_literal(origin.key)}}})"
 
     def seeds(self, s: Session, origin: Origin) -> Seeds:
         if origin.kind == "facility":
             return Seeds({origin.key: 1.0}, degree=0, via="SUPPLIES")
+        if origin.kind in ENTITY_KINDS:
+            frame = s.q(f"{self._entity_match(origin)} RETURN DISTINCT f.facility_id AS fid")
+            fids = [str(f) for f in frame["fid"]] if len(frame) else []
+            return Seeds(entity_severities(origin.kind, fids, self._power_feeds(s)), degree=1,
+                         via=ENTITY_SEED[origin.kind][1])
         edge = SEED_EDGE[origin.kind]
         frame = s.q(f"MATCH {self._origin_pattern(origin)}<-[:{edge}]-(c:Consignment)-[:SHIPPED_FROM]->(f:Facility) "
                     "RETURN f.facility_id AS fid, count(DISTINCT c) AS n")
@@ -214,6 +245,8 @@ class DeepCascade:
         span = f"-[:SUPPLIES]->{{1,{MAX_DEGREE}}}(g:Facility)"
         if origin.kind == "facility":
             cypher = f"MATCH {self._origin_pattern(origin)}{span} RETURN count(DISTINCT g) AS reached"
+        elif origin.kind in ENTITY_KINDS:
+            cypher = f"{self._entity_match(origin, span)} RETURN count(DISTINCT g) AS reached"
         else:
             cypher = (f"MATCH {self._origin_pattern(origin)}<-[:{SEED_EDGE[origin.kind]}]-(c:Consignment)"
                       f"-[:SHIPPED_FROM]->(f:Facility){span} RETURN count(DISTINCT g) AS reached")
@@ -228,11 +261,34 @@ class DeepCascade:
         s = self.session(ref, sw)
         origin = self.origin(s, origin_id)
         probe = self.reach(s, origin)
-        layers = propagate(self.seeds(s, origin), self.network(s), min_severity)
+        seeds = self.seeds(s, origin)
+        network = self.network(s)
         index = self.facility_index(s)
+        origin = _locate(origin, seeds, index)
+        layers = propagate(seeds, network, min_severity)
         stages = build_stages(origin, layers, index)
-        hops = len(stages) + (1 if origin.kind != "facility" and stages else 0)
+        hops = len(stages) + (1 if origin.kind in SEED_EDGE and stages else 0)  # consignment hop to the seeds
         return CascadeResponse(branch=str(ref), origin=origin.node, origin_kind=origin.kind, min_severity=min_severity,
                                stages=stages, max_degree=len(stages), graph_hops=hops,
                                total_affected=sum(st.count for st in stages), reach=probe,
-                               platforms=platform_exposure(origin, layers, index), **sw.timed())
+                               platforms=platform_exposure(origin, layers, index),
+                               connected=_connected(origin, seeds, network), **sw.timed())
+
+
+def _connected(origin: Origin, seeds: Seeds, network: SupplyNetwork) -> bool:
+    """Whether the origin touches the supply network at all (a weak link below the threshold still counts)."""
+    if origin.kind == "facility":
+        return origin.key in network.out_edges or origin.key in network.inbound
+    return bool(seeds.severities)
+
+
+def _locate(origin: Origin, seeds: Seeds, index: FacilityIndex) -> Origin:
+    """Companies and supply items have no coordinates: draw them at the centroid of the facilities they reach."""
+    if is_located(origin.node):
+        return origin
+    pts = [n for n in (index.by_fid.get(fid) for fid in seeds.severities) if n is not None and is_located(n)]
+    if not pts:
+        return origin
+    lat = sum(n.lat for n in pts) / len(pts)  # type: ignore[misc]
+    lon = sum(n.lon for n in pts) / len(pts)  # type: ignore[misc]
+    return Origin(node=origin.node.model_copy(update={"lat": lat, "lon": lon}), kind=origin.kind, key=origin.key)

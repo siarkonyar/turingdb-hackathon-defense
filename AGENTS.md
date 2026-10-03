@@ -394,6 +394,10 @@ original model; these rules apply to the strategic turn-based match.
   `CascadeStepper.tsx`, `map/cascadeLayers.ts`, `lib/cascade.ts`; chokepoints are now a node kind and map layer.
 - Weighting: severity = share of a facility's inbound `SUPPLIES` volume lost; kept when >= 5%, BFS up to 12
   degrees. Hormuz: 7 degrees / 8 hops / 340 facilities, reach query ~10-40 ms. Details: `docs/api.md`.
+- Origins: chokepoint, port, facility, plus company / country / power plant / supply item (`api/cascade_entities.py`).
+  `/cascade/ask` is deterministic first; only unclear questions go to `agents/place_extractor.py` (one bounded
+  Featherless call that names the entity, never queries). Unmatched or unlinked things are reported as "not
+  connected to anything in the TuringDB graph dataset" (`connected: false` for an unlinked node).
 - Read-only: never creates a branch, never writes main.
 - Plan B reuses `DeepCascade.compute`, `showCascade` and `<CascadeStepper />` (contract:
   `docs/superpowers/plans/2026-10-03-cascade-contract.md`).
