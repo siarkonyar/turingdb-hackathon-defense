@@ -23,6 +23,15 @@
       "port": 8000
     },
     {
+      "name": "opsmap-api-replay-only",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "OPSMAP_BACKEND=turingdb FEATHERLESS_API_KEY= exec uv run uvicorn api.main:app --port 8000"
+      ],
+      "port": 8000
+    },
+    {
       "name": "opsmap-ui",
       "runtimeExecutable": "npm",
       "runtimeArgs": [

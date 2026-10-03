@@ -42,7 +42,8 @@ export async function refreshAgentStatus(): Promise<void> {
 export async function refreshSaved(): Promise<void> {
   try {
     const { matches } = await api.matches();
-    patch((w) => ({ saved: matches, replayFile: matches.some((m) => m.file === w.replayFile) ? w.replayFile : (matches[0]?.file ?? "") }));
+    const fallback = matches.find((m) => m.file === "demo")?.file ?? matches[0]?.file ?? "";
+    patch((w) => ({ saved: matches, replayFile: matches.some((m) => m.file === w.replayFile) ? w.replayFile : fallback }));
   } catch (err) {
     toast(`Could not list saved matches: ${message(err)}`, "warn");
   }
