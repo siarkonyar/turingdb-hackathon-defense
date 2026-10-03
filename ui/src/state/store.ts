@@ -6,6 +6,7 @@ import type {
   AgentStatus,
   Arc,
   Branch,
+  CascadeResponse,
   DeepSupply,
   DiffResponse,
   Engine,
@@ -15,6 +16,7 @@ import type {
   MetaResponse,
   MoveTarget,
   NeighboursResponse,
+  OriginCandidate,
   RedBlueResult,
   Report,
   SavedMatch,
@@ -54,6 +56,24 @@ export interface Toast {
   id: number;
   text: string;
   tone: "info" | "warn" | "error";
+}
+
+export interface CascadeSource {
+  kind: "query" | "vulnerability";
+  title: string;
+  branch: string;
+}
+
+export interface CascadeState {
+  open: boolean;
+  question: string;
+  loading: boolean;
+  error: string | null;
+  candidates: OriginCandidate[];
+  result: CascadeResponse | null;
+  source: CascadeSource | null;
+  step: number;
+  stepStartedAt: number;
 }
 
 export interface FlyTarget {
@@ -155,6 +175,7 @@ export interface OpsState {
   busy: string | null;
   toasts: Toast[];
   flyTo: FlyTarget | null;
+  cascade: CascadeState;
 }
 
 const EMPTY_BASE: Record<BaseKind, GraphNode[]> = {
@@ -235,6 +256,17 @@ export const initialState: OpsState = {
   busy: null,
   toasts: [],
   flyTo: null,
+  cascade: {
+    open: false,
+    question: "Hürmüz Boğazı kapanırsa ne olur?",
+    loading: false,
+    error: null,
+    candidates: [],
+    result: null,
+    source: null,
+    step: 0,
+    stepStartedAt: 0,
+  },
 };
 
 export const useOps = create<OpsState>()(() => initialState);
