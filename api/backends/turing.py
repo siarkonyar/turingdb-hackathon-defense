@@ -43,8 +43,9 @@ KIND_QUERIES: dict[str, tuple[tuple[str, ...], str, str | None]] = {
     "part": (("Part",), "MATCH (n:Part)", None),
     "facility": (("Facility",), "MATCH (n:Facility)", None),  # supply_chain_deep
     "port": (("Port",), "MATCH (n:Port)", None),
+    "chokepoint": (("Chokepoint",), "MATCH (n:Chokepoint)", None),  # supply_chain_deep sea chokepoints
 }
-SNAPSHOT_KINDS = ("plant", "site", "supplier", "drone", "report", "part", "facility", "port")
+SNAPSHOT_KINDS = ("plant", "site", "supplier", "drone", "report", "part", "facility", "port", "chokepoint")
 TRACK_EVERY = 6  # keep every 6th drone reading
 CACHE_LIMIT = 48
 _LABEL = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -101,6 +102,10 @@ class TuringBackend:
         if not ref.is_main and ref.branch not in self._change_ids(sw):
             raise NotFound(f"unknown branch {ref.branch}")
         return self._open(ref, sw)
+
+    def session(self, ref: Ref, sw: Stopwatch) -> Session:
+        """A session checked out on `ref` (validated). Public so read-only feature modules can query."""
+        return self._session(ref, sw)
 
     def _change_ids(self, sw: Stopwatch) -> set[str]:
         frame = self._open(Ref("main"), sw).q("CHANGE LIST")
@@ -162,7 +167,8 @@ class TuringBackend:
 
     def meta(self) -> MetaResponse:
         return MetaResponse(engine=ENGINE, graph=self.graph,
-                            layers=["plant", "site", "supplier", "drone", "crime", "cyber", "report", "facility", "port"])
+                            layers=["plant", "site", "supplier", "drone", "crime", "cyber", "report", "facility", "port",
+                                    "chokepoint"])
 
     def nodes(self, ref: Ref, kinds: Sequence[str], bbox: BBox | None) -> NodesResponse:
         sw = Stopwatch(ENGINE)
