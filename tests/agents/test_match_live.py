@@ -23,9 +23,11 @@ def board(lab):
 
 
 def _plays_top_option(board: LabBoard, head: str) -> FakeLLM:
-    """A fake model that plays the board's own top-ranked red option (valid on the live graph)."""
-    red = board.options("red", head)["fallback"]
-    return FakeLLM({"red": [json.dumps({"thought": "top-ranked target", **red})]})
+    """A fake model that plays the top-ranked supplier of the original parts layer (whose map payload this
+    test checks); the deep layer has its own tests below."""
+    supplier = board.options("red", head)["parts_layer"]["suppliers_by_critical_demand"][0]["supplier_id"]
+    return FakeLLM({"red": [json.dumps({"thought": "top-ranked target", "action": "strike_supplier",
+                                        "args": {"supplier_id": supplier}})]})
 
 
 def test_live_match_stacks_on_a_scenario_base_and_replays(board, tmp_path):
@@ -73,3 +75,42 @@ def _refs(a: str, b: str):
     from api.refs import Ref
 
     return (Ref("main") if a == "main" else Ref(a)), (Ref("main") if b == "main" else Ref(b))
+
+
+# ---------------------------------------------------------------------- the deep supply network
+
+
+def test_deep_moves_change_capability_and_blue_measures_are_partial(board):
+    from agents.match import MoveRejected
+
+    red = board.options("red", "main")
+    assert red["deep_candidates"] and red["deep_candidates"][0]["est_gain_pct"] > 0
+    port = next(c for c in red["deep_candidates"] if c["action"] == "close_port")
+    closed = board.stack("red", "live deep close", "main", [{"action": "close_port", "args": port["args"]}])
+    hit = board.loss(closed)
+    assert hit > 0.05, "closing a busy export port should cost real capability"
+    assert board.breakdown(closed)["deep_pct"] > 0
+
+    fx = board.effects("red", "main", closed, [{"action": "close_port", "args": port["args"]}])
+    assert fx["targets"][0]["kind"] == "port" and fx["arcs"], "the closed port flashes with arcs to its exporters"
+
+    rerouted = board.stack("blue", "live deep reroute", closed,
+                           [{"action": "reroute_exports", "args": port["args"]}])
+    assert 0 < board.loss(rerouted) < hit, "a reroute recovers most, not all, of the loss"
+
+    hardened = board.stack("blue", "live deep harden", "main", [{"action": "harden", "args": port["args"]}])
+    with pytest.raises(MoveRejected):
+        board.stack("red", "live deep close hardened", hardened, [{"action": "close_port", "args": port["args"]}])
+    with pytest.raises(MoveRejected):
+        board.stack("red", "live allied controls", "main",
+                    [{"action": "export_controls", "args": {"country_code": "DEU", "item_id": "MAT00001"}}])
+
+
+def test_deep_outage_can_be_answered_by_replacing_the_facility(board):
+    outage = next(c for c in board.options("red", "main")["deep_candidates"] if c["action"] == "facility_outage")
+    out = board.stack("red", "live deep outage", "main", [{"action": "facility_outage", "args": outage["args"]}])
+    blue = board.options("blue", out)
+    replace = [c for c in blue["deep_candidates"] if c["action"] == "replace_facility"]
+    assert replace, "blue should be offered a replacement for the facility that went out"
+    fixed = board.stack("blue", "live deep replace", out, [{"action": "replace_facility", "args": replace[0]["args"]}])
+    assert board.loss(fixed) < board.loss(out)

@@ -27,6 +27,7 @@ from typing import Any, Callable, Protocol
 from agents.config import ROOT
 from agents.engine import PROTOCOL
 from agents.llm import parse_action
+from agents.match_errors import MoveRejected
 from agents.match_prompts import BLUE_ACTIONS, RED_ACTIONS, describe_action, system_prompt, task_prompt
 
 log = logging.getLogger("agents.match")
@@ -37,10 +38,6 @@ MOVE_MAX_TOKENS = 350
 _FILE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
 Emit = Callable[[str, dict], None]
-
-
-class MoveRejected(ValueError):
-    """The board could not build a move (bad target, refused edit); the model sees the message."""
 
 
 class MatchStopped(Exception):
@@ -94,6 +91,7 @@ class Move:
     targets: list[dict] = field(default_factory=list)  # {id, name, kind, lat, lon} for the map
     arcs: list[dict] = field(default_factory=list)  # {source, target, source_id, target_id, hop, rel}
     fallback: bool = False  # the model gave no valid move; a deterministic default was played
+    breakdown: dict = field(default_factory=dict)  # {deep_pct, legacy_pct}: absolute loss per layer
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -243,9 +241,10 @@ class Match:
         self._emit("inject", {"text": text, "branch": move.branch_id, "move": move.as_dict()})
 
     def _play(self, side: str, rnd: int) -> Move:
-        allowed = RED_ACTIONS if side == "red" else BLUE_ACTIONS
         started = time.perf_counter()
-        opts = self.board.options(side, self.head)
+        banned = self._last_action(side) if side == "red" else None  # red must vary its disruption kind
+        allowed = tuple(a for a in (RED_ACTIONS if side == "red" else BLUE_ACTIONS) if a != banned)
+        opts = _without(self.board.options(side, self.head), banned)
         messages = [{"role": "system", "content": f"{system_prompt(side)}\n\n{PROTOCOL}"},
                     {"role": "user", "content": task_prompt(side, rnd, self.rounds, self._history(),
                                                             self._losses(self.head), opts)}]
@@ -276,15 +275,26 @@ class Match:
             messages.append({"role": "user", "content": "OBSERVATION:\n" + json.dumps(obs, default=str)[:2500]})
         return self._fallback(side, rnd, opts, timed.ms if timed else 0.0, started)
 
+    def _last_action(self, side: str) -> str | None:
+        return next((m.action for m in reversed(self.moves) if m.side == side), None)
+
     def _fallback(self, side: str, rnd: int, opts: dict, llm_ms: float, started: float) -> Move:
-        step = opts.get("fallback")
-        if not step:
+        """The model gave no valid move: play the top-ranked default, or the next one if the board refuses it."""
+        steps = [s for s in [opts.get("fallback"), *opts.get("alternates", [])] if s]
+        if not steps:
             raise RuntimeError(f"{side} produced no valid move and the board offered no default")
-        label = describe_action(step["action"], step.get("args", {}), opts)
-        branch = self.board.stack(side, label, self.head, [step])
-        return self._finalise(side, rnd, step["action"], step.get("args", {}), [step], branch, label,
-                              "Model gave no valid move; played the top-ranked default.", llm_ms, started,
-                              fallback=True)
+        errors = []
+        for step in steps:
+            label = describe_action(step["action"], step.get("args", {}), opts)
+            try:
+                branch = self.board.stack(side, label, self.head, [step])
+            except MoveRejected as exc:
+                errors.append(str(exc))
+                continue
+            return self._finalise(side, rnd, step["action"], step.get("args", {}), [step], branch, label,
+                                  "Model gave no valid move; played the top-ranked default.", llm_ms, started,
+                                  fallback=True)
+        raise RuntimeError(f"{side} had no playable move: {'; '.join(errors)[:400]}")
 
     def _finalise(self, side: str, rnd: int, action: str, args: dict, actions: list[dict], branch: str,
                   label: str, rationale: str, llm_ms: float, started: float, fallback: bool) -> Move:
@@ -296,7 +306,8 @@ class Match:
                     parent_id=parent, label=label, rationale=rationale or label, loss_pct=losses["loss_pct"],
                     abs_loss_pct=losses["abs_loss_pct"], llm_ms=round(llm_ms, 1),
                     db_ms=round(max(0.0, total_ms - llm_ms), 1), latency_ms=round(total_ms, 1),
-                    targets=effects.get("targets", []), arcs=effects.get("arcs", []), fallback=fallback)
+                    targets=effects.get("targets", []), arcs=effects.get("arcs", []), fallback=fallback,
+                    breakdown=losses.get("breakdown", {}))
 
     def _record(self, move: Move) -> None:
         self.moves.append(move)
@@ -316,7 +327,9 @@ class Match:
 
     def _losses(self, branch: str) -> dict:
         loss = self.board.loss(branch)
-        return {"loss_pct": _pct(loss - self.base_loss), "abs_loss_pct": _pct(loss)}
+        split = getattr(self.board, "breakdown", None)
+        return {"loss_pct": _pct(loss - self.base_loss), "abs_loss_pct": _pct(loss),
+                **({"breakdown": split(branch)} if split else {})}
 
     def _history(self) -> list[str]:
         return [f"R{m.round} {m.side}: {m.label} -> {m.loss_pct:+.1f}% vs base" for m in self.moves[-8:]]
@@ -363,6 +376,17 @@ class Match:
             tmp.replace(self.path)
         except OSError as exc:  # persistence must never kill a live match
             log.error("could not save match %s: %s", self.id, exc)
+
+
+def _without(opts: dict, banned: str | None) -> dict:
+    """Options minus one action kind (the candidates, the default and its alternates)."""
+    if not banned:
+        return opts
+    keep = [s for s in [opts.get("fallback"), *opts.get("alternates", [])] if s and s.get("action") != banned]
+    out = {**opts, "fallback": keep[0] if keep else None, "alternates": keep[1:], "not_allowed_this_turn": banned}
+    if "deep_candidates" in opts:
+        out["deep_candidates"] = [c for c in opts["deep_candidates"] if c.get("action") != banned]
+    return out
 
 
 # ---------------------------------------------------------------------- replay

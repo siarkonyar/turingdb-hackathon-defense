@@ -1,6 +1,6 @@
 """The live wargame board: every match move is a TuringDB branch built by the BranchLab.
 
-TuringDB 1.37 cannot open a change on top of a change, so a move "stacked on the head" is a fresh change cut
+TuringDB 3.0 cannot open a change on top of a change, so a move "stacked on the head" is a fresh change cut
 from main that replays the head's lineage and then the new action (build_stacked). The map payload of a move
 (targets to flash, cascade arcs) comes from the OpsMap node diff between the parent and the new branch.
 """
@@ -14,10 +14,14 @@ from api.backends.turing_session import first_label, id_clauses
 from api.models import Node
 from api.refs import Ref
 
+from agents import deep_impact as D
+from agents import match_deep
 from agents.actions import _resolve_facility
 from agents.branches import BranchLab
+from agents.deep_actions import blue_candidates, deep_static, red_candidates
 from agents.guard import UnsafeQuery, check_read_query
-from agents.match import InjectResult, MoveRejected
+from agents.match import InjectResult
+from agents.match_errors import MoveRejected
 from agents.scenario import run_scenario
 from agents.threat import scout_targets
 from agents.tools import PROPAGATE, build_stacked, lineage_actions
@@ -58,16 +62,38 @@ def _severity_moved(change, up: bool) -> bool:
 class LabBoard:
     def __init__(self, lab: BranchLab) -> None:
         self.lab = lab
+        self._deep_cache: dict[str, tuple[D.State, D.Result]] = {}  # branches are immutable once built
 
     # ------------------------------------------------------------------ state
 
-    def loss(self, branch: str) -> float:
+    def legacy_loss(self, branch: str) -> float:
+        self.lab.ensure_ready()
         if str(branch) == "main":
             return self.lab.baseline.loss
         rec = self.lab.record(str(branch))
         if rec is not None and rec.loss is not None:
             return rec.loss
         return self.lab.evaluate_branch(str(branch)).loss
+
+    def deep(self, branch: str) -> tuple[D.State, D.Result] | None:
+        static = deep_static(self.lab)
+        if static is None:
+            return None
+        branch = str(branch)
+        if branch not in self._deep_cache:
+            state = D.load_state(self.lab.graph.session(branch))
+            self._deep_cache[branch] = (state, D.evaluate(static, state))
+        return self._deep_cache[branch]
+
+    def loss(self, branch: str) -> float:
+        """Capability loss: deep platform production (DEEP_WEIGHT) + the original parts layer."""
+        deep = self.deep(branch)
+        return match_deep.combined(self.legacy_loss(branch), deep[1].loss if deep else None)
+
+    def breakdown(self, branch: str) -> dict:
+        deep = self.deep(branch)
+        return {"deep_pct": round(100 * deep[1].loss, 1) if deep else None,
+                "legacy_pct": round(100 * self.legacy_loss(branch), 1)}
 
     def lineage(self, branch: str) -> list[dict]:
         return lineage_actions(self.lab, str(branch))
@@ -94,7 +120,30 @@ class LabBoard:
     # ------------------------------------------------------------------ options for one decision
 
     def options(self, side: str, head: str) -> dict:
-        return self._red_options(str(head)) if side == "red" else self._blue_options(str(head))
+        """Deep-network candidates (previewed) first, then the original parts layer; the fallback is the
+        best previewed deep move when there is one."""
+        legacy = self._red_options(str(head)) if side == "red" else self._blue_options(str(head))
+        static, deep = deep_static(self.lab), self.deep(str(head))
+        if static is None or deep is None:
+            return legacy
+        state = deep[0]
+        if side == "red":
+            cands = red_candidates(static, state)
+            best = cands[0] if cands and cands[0]["est_gain_pct"] > 0 else None
+        else:
+            cands = blue_candidates(static, state)
+            best = cands[0] if cands and max(cands[0]["est_reduction_pct"],
+                                             0.5 * cands[0].get("prevents_pct", 0.0)) > 0 else None
+        trimmed = {k: v for k, v in legacy.items() if k not in ("names", "fallback", "note")}
+        for key in ("suppliers_by_critical_demand", "site_feeding_plants", "unprotected_site_feeding_plants"):
+            if key in trimmed:
+                trimmed[key] = trimmed[key][:4]
+        fallback = {"action": best["action"], "args": best["args"]} if best else legacy.get("fallback")
+        alternates = [{"action": c["action"], "args": c["args"]} for c in cands[1:6]]
+        if legacy.get("fallback"):
+            alternates.append(legacy["fallback"])
+        return {"deep_candidates": cands, "parts_layer": trimmed, "names": legacy["names"] | match_deep.names(static),
+                "fallback": fallback, "alternates": alternates}
 
     def _names(self, s) -> dict[str, str]:
         names: dict[str, str] = {}
@@ -152,6 +201,12 @@ class LabBoard:
     # ------------------------------------------------------------------ map payload
 
     def effects(self, side: str, parent: str, child: str, actions: list[dict]) -> dict:
+        static = deep_static(self.lab)
+        if static is not None and match_deep.is_deep(actions):
+            return match_deep.effects(static, side, self.deep(str(parent)), self.deep(str(child)), actions)
+        return self._legacy_effects(side, parent, child, actions)
+
+    def _legacy_effects(self, side: str, parent: str, child: str, actions: list[dict]) -> dict:
         """What the map draws for a move. Red: destroyed nodes, with arcs to the located nodes that lost status
         and to the sites ordering parts that became unavailable. Blue: the providers of the edges this move
         added (backup supplier, power plant, logistics partner), with arcs to what they now serve."""

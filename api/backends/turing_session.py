@@ -72,6 +72,11 @@ class Session:
         self.sw.record(cypher, self.client.get_query_exec_time())
         return frame
 
+    def refresh_schema(self) -> None:
+        """Forget cached labels / property names (a write in this session may have created new ones)."""
+        self.__dict__.pop("labels", None)
+        self.__dict__.pop("property_types", None)
+
     @cached_property
     def labels(self) -> frozenset[str]:
         return frozenset(self.q("CALL db.labels()")["label"].astype(str))

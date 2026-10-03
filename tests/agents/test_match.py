@@ -36,9 +36,11 @@ class FakeBoard:
         return branch
 
     def options(self, side: str, head: str) -> dict:
-        step = ({"action": "strike_supplier", "args": {"supplier_id": "SUP001"}} if side == "red"
-                else {"action": "backup_all_affected_parts", "args": {}})
-        return {"names": {"SUP001": "Acme"}, "fallback": step}
+        if side == "red":
+            return {"names": {"SUP001": "Acme"}, "fallback": {"action": "strike_supplier",
+                                                               "args": {"supplier_id": "SUP001"}},
+                    "alternates": [{"action": "strike_plant", "args": {"gppd_idnr": "W1"}}]}
+        return {"names": {"SUP001": "Acme"}, "fallback": {"action": "backup_all_affected_parts", "args": {}}}
 
     def effects(self, side: str, parent: str, child: str, actions: list[dict]) -> dict:
         return {"targets": [{"id": "1", "name": "x", "kind": "supplier", "lat": 53.0, "lon": -2.0}], "arcs": []}
@@ -68,6 +70,9 @@ class FakeLLM:
         if queue:
             return queue.pop(0)
         if agent == "red":
+            if '"not_allowed_this_turn": "strike_supplier"' in messages[-1]["content"]:  # red must vary its moves
+                return json.dumps({"thought": "hit the plant instead", "action": "strike_plant",
+                                   "args": {"gppd_idnr": "W1"}})
             return json.dumps({"thought": "hit the top supplier", "action": "strike_supplier",
                                "args": {"supplier_id": "SUP001"}})
         return json.dumps({"thought": "close every gap", "action": "backup_all_affected_parts", "args": {}})
@@ -310,3 +315,66 @@ def test_describe_action_in_plain_words():
     assert describe_action("restore_power", {"site_id": "SITE04"}) == "Restore power to SITE04"
     assert describe_action("cut_route", {"supplier": "SUP2"}) == "Cut logistics routes of SUP2"
     assert describe_action("strike_supplier", {}) == "Strike supplier"
+
+
+# ---------------------------------------------------------------------- no loops: red varies its moves
+
+
+def test_red_may_not_repeat_its_last_kind_of_move(board, tmp_path):
+    match = _match(board, tmp_path, rounds=3)
+    match.run()
+    reds = [m.action for m in match.moves if m.side == "red"]
+    assert reds == ["strike_supplier", "strike_plant", "strike_supplier"]
+    assert all(a != b for a, b in zip(reds, reds[1:]))
+
+
+def test_insisting_on_a_banned_move_falls_back_to_an_allowed_one(board, tmp_path):
+    same = json.dumps({"action": "strike_supplier", "args": {"supplier_id": "SUP001"}})
+    llm = FakeLLM({"red": [same, same, same, same]})  # round 2: three refusals, then the fallback
+    match = _match(board, tmp_path, rounds=2, llm=llm)
+    match.run()
+    red2 = [m for m in match.moves if m.side == "red"][1]
+    assert red2.fallback and red2.action == "strike_plant"
+    refusal = [msgs for agent, msgs in llm.calls if agent == "red"][2][-1]["content"]
+    assert "not a red action" in refusal
+
+
+def test_fallback_tries_alternates_when_the_default_is_refused(board, tmp_path):
+    class Refusing(FakeBoard):
+        def stack(self, side, label, parent, actions):
+            if actions[0]["action"] == "strike_supplier":
+                raise MoveRejected("supplier is hardened")
+            return super().stack(side, label, parent, actions)
+
+    b = Refusing()
+    match = Match(b, "main", 1, llm=FakeLLM({"red": ["x", "y", "z"]}), injector=fake_injector(b), directory=tmp_path)
+    assert match.run()["status"] == "done"
+    assert match.moves[0].action == "strike_plant" and match.moves[0].fallback
+
+
+def test_prompt_keeps_every_candidate_kind_without_truncating_json():
+    from agents.match_prompts import task_prompt
+
+    candidates = [{"action": kind, "args": {"id": str(i)}, "target": "long target " * 40,
+                   "est_gain_pct": 20 - i}
+                  for kind in ("close_port", "block_chokepoint", "facility_outage", "export_controls")
+                  for i in range(4)]
+    prompt = task_prompt("red", 1, 4, [], {"abs_loss_pct": 0, "loss_pct": 0},
+                         {"deep_candidates": candidates, "alternates": candidates, "names": {}})
+    encoded = prompt.split("OPTIONS (current state):\n", 1)[1].split("\n\nReply", 1)[0]
+    shown = json.loads(encoded)
+    assert len(shown["deep_candidates"]) == 8
+    assert {c["action"] for c in shown["deep_candidates"]} == {c["action"] for c in candidates}
+    assert "alternates" not in shown
+
+
+def test_cli_module_retries_board_rejections(board, tmp_path):
+    import runpy
+    from agents.config import ROOT
+
+    cli = runpy.run_path(str(ROOT / "agents" / "match.py"), run_name="match_cli_test")
+    bad = json.dumps({"action": "strike_supplier", "args": {"supplier_id": "BAD"}})
+    match = cli["Match"](board, "main", 1, llm=FakeLLM({"red": [bad]}), directory=tmp_path)
+    assert match.run()["status"] == "done"
+    assert len(match.moves) == 2
+    assert match.moves[0].args["supplier_id"] != "BAD"

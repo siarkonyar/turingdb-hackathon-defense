@@ -1,43 +1,62 @@
-"""Prompts and plain-language labels for wargame moves. One decision per move: the options the model needs
-are in the prompt already, so a move is usually a single LLM call."""
+"""Prompts and plain-language labels for wargame moves. One decision per move: each side gets a ranked list
+of candidate moves whose effect was previewed on the current state, so a move is usually one LLM call."""
 
 from __future__ import annotations
 
 import json
 
-RED_ACTIONS = ("strike_supplier", "strike_plant", "strike_site", "cut_route")
-BLUE_ACTIONS = ("backup_all_affected_parts", "add_backup_supplier", "reroute_supplier", "restore_power",
-                "prioritise_air_defence")
+RED_LEGACY = ("strike_supplier", "strike_plant", "strike_site", "cut_route")
+BLUE_LEGACY = ("backup_all_affected_parts", "add_backup_supplier", "reroute_supplier", "restore_power",
+               "prioritise_air_defence")
+RED_DEEP = ("close_port", "block_chokepoint", "export_controls", "facility_outage")
+BLUE_DEEP = ("reroute_exports", "replace_facility", "second_source", "stockpile", "harden")
+RED_ACTIONS = RED_DEEP + RED_LEGACY
+BLUE_ACTIONS = BLUE_DEEP + BLUE_LEGACY
 
-_SCOPE = ("This is a defensive resilience exercise over a model graph: reason only about dependencies and "
-          "projected loss percentages. Never produce real-world operational instructions.")
+_SCOPE = ("This is a defensive resilience exercise on a model graph (invented companies and facilities). Moves "
+          "are abstract events and measures with an effect on the graph; reason only about dependencies and "
+          "projected capability loss. Never produce real-world operational instructions.")
+
+_OBJECTIVE = ("The score is projected DEFENCE PRODUCTION CAPABILITY LOSS: mostly the deep network (40 weapon "
+              "platforms built through an 8-tier bill of materials, 4,400 facilities, 71 ports, 15 chokepoints), "
+              "plus the original 40-supplier parts layer.")
 
 RED_SYSTEM = f"""You are RED in a turn-based supply-chain resilience wargame. {_SCOPE}
-Each turn you make exactly ONE disruption to the CURRENT state (which already includes every earlier move).
-Pick the single action that adds the most projected loss. Targets that blue protected cannot be struck, and
-striking something already destroyed does nothing.
-Actions (args as shown):
-  {{"action":"strike_supplier","args":{{"supplier_id":"SUP013"}}}}   remove a part supplier
-  {{"action":"strike_plant","args":{{"gppd_idnr":"WRI1006130"}}}}    remove a power plant (sites lose power)
-  {{"action":"strike_site","args":{{"site_id":"SITE04"}}}}           remove a production site
-  {{"action":"cut_route","args":{{"supplier_id":"SUP013"}}}}          cut a supplier's logistics routes
-You may instead call `query` ONCE with {{"cypher": "<one linear read-only MATCH>"}} if you truly need more
-facts. Put your one-sentence rationale in "thought"."""
+{_OBJECTIVE}
+Each turn you play exactly ONE disruption event on the CURRENT state (it already includes every earlier move).
+Deep-network events (args as shown):
+  {{"action":"block_chokepoint","args":{{"waypoint_id":"STRAIT_OF_MALACCA"}}}}   shipping must reroute
+  {{"action":"close_port","args":{{"port_id":"NLRTM"}}}}                         exporters fall back to overland
+  {{"action":"export_controls","args":{{"country_code":"CHN","item_id":"MAT00012"}}}} a non-allied producer withholds a material
+  {{"action":"facility_outage","args":{{"facility_id":"FAC00975"}}}}             a facility is out of action
+Original parts layer: strike_supplier {{"supplier_id"}}, strike_plant {{"gppd_idnr"}}, cut_route {{"supplier_id"}}.
+OPTIONS lists the strongest candidates with est_gain_pct (previewed added deep-layer loss). Consider
+durability and new exposure as well as immediate gain. In a multi-round exercise, explore at least three
+useful disruption kinds when available: a facility outage or export control can stress production that
+shipping reroutes cannot repair. Prefer an unused kind over returning to the port/chokepoint cycle when
+it still adds meaningful loss. Explain that tradeoff in your rationale. You may NOT play the same kind of event twice in a row (the options
+already exclude it), do not re-hit what blue just defended, and prefer moves blue cannot cheaply undo
+(single points of failure, chokepoints, export controls) so pressure builds across the whole network.
+You may instead call `query` ONCE with {{"cypher": "<one linear read-only MATCH>"}}. Put a one-sentence rationale
+in "thought" that names the dependency you exploit."""
 
 BLUE_SYSTEM = f"""You are BLUE in a turn-based supply-chain resilience wargame. {_SCOPE}
-Each turn you make exactly ONE countermeasure on the CURRENT state (after red's latest move). Pick the single
-action that removes the most projected loss, or that best protects against red's next strike.
-Actions (args as shown):
-  {{"action":"backup_all_affected_parts","args":{{}}}}                    backup supplier for every unavailable part
-  {{"action":"add_backup_supplier","args":{{"part_id":"P00020"}}}}          backup supplier for one part
-  {{"action":"reroute_supplier","args":{{"supplier_id":"SUP013"}}}}         alternative logistics route
-  {{"action":"restore_power","args":{{"facility_id":"SITE04"}}}}            alternative power feed for a site/supplier
-  {{"action":"prioritise_air_defence","args":{{"gppd_idnr":"WRI1006130"}}}} protect a plant (red strikes on it fail)
-Rule of thumb: when 2 or more parts are unavailable, play backup_all_affected_parts - it is ONE move that
-restores every unavailable part, while add_backup_supplier restores a single part. Use the targeted actions
-when no part is unavailable (re-power a site, protect a plant red is likely to strike next).
-A destroyed supplier cannot be rerouted; back up its parts instead. You may instead call `query` ONCE with
-{{"cypher": "<one linear read-only MATCH>"}}. Put your one-sentence rationale in "thought"."""
+{_OBJECTIVE}
+Each turn you play exactly ONE resilience measure on the CURRENT state (after red's latest move).
+Deep-network measures (args as shown):
+  {{"action":"reroute_exports","args":{{"port_id":"NLRTM"}}}}       spread a degraded port's exporters over the 3 best open ports
+  {{"action":"replace_facility","args":{{"facility_id":"FAC00975"}}}} qualify replacements for everything an out-of-action facility made
+  {{"action":"second_source","args":{{"item_id":"CMP01234"}}}}      qualify another facility (allied first) for a short item
+  {{"action":"stockpile","args":{{"item_id":"MAT00012"}}}}          strategic stock: the item never drops below 80%
+  {{"action":"harden","args":{{"port_id":"USHOU"}}}} or {{"facility_id":"FAC00975"}}   red's closures/outages there fail
+Original parts layer: backup_all_affected_parts {{}}, add_backup_supplier {{"part_id"}}, restore_power {{"facility_id"}},
+prioritise_air_defence {{"gppd_idnr"}}.
+OPTIONS lists candidate measures with est_reduction_pct (previewed loss removed now) or prevents_pct (what red's
+likely next move on that target would cost). Pick the measure with the best value: recover the biggest current
+loss, or harden red's strongest next target when little damage is recoverable. Do not only patch the last hit:
+fixes that remove a whole class of exposure (stockpile, a second source, rerouting a port) beat one-part backups.
+You may instead call `query` ONCE with {{"cypher": "<one linear read-only MATCH>"}}. Put a one-sentence rationale
+in "thought"."""
 
 
 def system_prompt(side: str) -> str:
@@ -45,12 +64,25 @@ def system_prompt(side: str) -> str:
 
 
 def task_prompt(side: str, rnd: int, rounds: int, history: list[str], losses: dict, options: dict) -> str:
-    shown = {k: v for k, v in options.items() if k not in ("fallback", "names")}
+    shown = {k: v for k, v in options.items() if k not in ("fallback", "alternates", "names")}
+    if "deep_candidates" in shown:
+        # Keep each action kind visible; cutting serialized JSON hid weaker production disruptions.
+        counts: dict[str, int] = {}
+        compact = []
+        for candidate in shown["deep_candidates"]:
+            kind = candidate["action"]
+            counts[kind] = counts.get(kind, 0) + 1
+            if counts[kind] <= 2:
+                compact.append(candidate)
+        shown["deep_candidates"] = compact
     past = "\n".join(history) or "(no moves yet)"
+    split = losses.get("breakdown") or {}
+    detail = (f" [deep network {split.get('deep_pct')}%, parts layer {split.get('legacy_pct')}%]"
+              if split else "")
     return (f"Round {rnd} of {rounds}. Your turn ({side.upper()}).\n"
-            f"Current projected loss: {losses['abs_loss_pct']}% ({losses['loss_pct']:+.1f} points vs the base).\n"
-            f"Moves so far:\n{past}\n\nOPTIONS (current state):\n{json.dumps(shown, default=str)[:3500]}\n\n"
-            "Reply with ONE JSON action now.")
+            f"Current capability loss: {losses['abs_loss_pct']}% ({losses['loss_pct']:+.1f} points vs the base)"
+            f"{detail}.\nMoves so far:\n{past}\n\nOPTIONS (current state):\n"
+            f"{json.dumps(shown, default=str)}\n\nReply with ONE JSON action now.")
 
 
 _TEMPLATES = {
@@ -64,11 +96,21 @@ _TEMPLATES = {
     "restore_power": "Restore power to {facility_id}",
     "prioritise_air_defence": "Air-defence priority on plant {gppd_idnr}",
     "wipe_bbox": "Destroy everything in the event area",
+    "close_port": "Close port {port_id}",
+    "block_chokepoint": "Block the {waypoint_id}",
+    "export_controls": "{country_code} export controls on {item_id}",
+    "facility_outage": "Outage at facility {facility_id}",
+    "reroute_exports": "Reroute exports away from port {port_id}",
+    "replace_facility": "Replace the production of facility {facility_id}",
+    "second_source": "Qualify a second source for {item_id}",
+    "stockpile": "Strategic stockpile of {item_id}",
+    "harden": "Harden {target}",
 }
 # alternative arg names the action dispatcher accepts -> the name the label template uses
 _ALIASES = {"supplier": "supplier_id", "plant": "gppd_idnr", "plant_gppd": "gppd_idnr", "gppd": "gppd_idnr",
-            "site": "site_id", "part": "part_id", "facility": "facility_id"}
-_KEYS = ("supplier_id", "gppd_idnr", "site_id", "facility_id")
+            "site": "site_id", "part": "part_id", "facility": "facility_id", "port": "port_id",
+            "chokepoint": "waypoint_id", "country": "country_code", "item": "item_id"}
+_KEYS = ("supplier_id", "gppd_idnr", "site_id", "facility_id", "port_id", "waypoint_id", "item_id")
 
 
 def describe_action(action: str, args: dict, options: dict | None = None) -> str:
@@ -80,6 +122,11 @@ def describe_action(action: str, args: dict, options: dict | None = None) -> str
     values = {k: v for k, v in values.items() if v}
     if action == "restore_power" and "facility_id" not in values:  # dispatcher also takes site/supplier ids
         values["facility_id"] = values.get("site_id") or values.get("supplier_id", "a facility")
+    if action == "harden":
+        values["target"] = f"port {values['port_id']}" if "port_id" in values else \
+            f"facility {values.get('facility_id', '?')}"
+    if action == "block_chokepoint" and "waypoint_id" in values:
+        values["waypoint_id"] = names.get(values["waypoint_id"], values["waypoint_id"].replace("_", " ").title())
     template = _TEMPLATES.get(action, action.replace("_", " ").capitalize())
     try:
         text = template.format(**values)
@@ -87,6 +134,8 @@ def describe_action(action: str, args: dict, options: dict | None = None) -> str
         text = template.split(" {")[0]
     if action == "backup_all_affected_parts" and (args or {}).get("only_critical"):
         text = "Qualify backup suppliers for every affected class-A part"
+    if action == "block_chokepoint":
+        return text
     key = next((values[k] for k in _KEYS if k in values), None)
     name = names.get(key) if key else None
     return f"{text} ({name})" if name and key not in name else text  # skip names like "Supplier: SUP012"

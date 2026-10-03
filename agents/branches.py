@@ -182,11 +182,13 @@ class BranchLab:
         s.q(f"MATCH (n) WHERE n = {node_id} SET n.protected = true, n.protection = {string_literal(how)}")
         s.q("COMMIT")
 
-    def add_edge(self, s: Session, src: int, dst: int, rel: str, props: dict | None = None) -> None:
-        extra = {"synthetic": "true", "agent_added": "true", **{k: str(v) for k, v in (props or {}).items()}}
-        body = ", ".join(f"{k}: {string_literal(v) if not v in ('true', 'false') else v}" for k, v in extra.items())
+    def add_edge(self, s: Session, src: int, dst: int, rel: str, props: dict | None = None,
+                 commit: bool = True) -> None:
+        extra = {"synthetic": "true", "agent_added": "true", **(props or {})}
+        body = ", ".join(f"{k}: {_literal(v)}" for k, v in extra.items())
         s.q(f"MATCH (a), (b) WHERE a = {src} AND b = {dst} CREATE (a)-[:{rel} {{{body}}}]->(b)")
-        s.q("COMMIT")
+        if commit:
+            s.q("COMMIT")
 
     def is_protected(self, s: Session, node_id: int) -> bool:
         if "protected" not in s.property_types:
@@ -244,6 +246,16 @@ class BranchLab:
                     replay_branch(self, rec)
                 except Exception as exc:
                     log.error("could not replay branch %s (%s): %s", rec.change_id, rec.label, exc)
+
+
+def _literal(value) -> str:
+    """A Cypher literal: numbers stay numeric (TuringDB 3.0 rejects a String where the property is a Double),
+    'true'/'false' and bools are booleans, everything else a quoted string."""
+    if isinstance(value, bool) or value in ("true", "false"):
+        return "true" if value in (True, "true") else "false"
+    if isinstance(value, (int, float)):
+        return repr(float(value))
+    return string_literal(str(value))
 
 
 def parse_marker_spec(stored: str) -> dict:

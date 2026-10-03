@@ -218,6 +218,7 @@ def scenario_propagate(lab: BranchLab, s: Session) -> str:
         no_power |= (fac & fed_main) - fed_now
         links = main.q("MATCH (a:Facility)-[:SUPPLIES]->(b:Facility) RETURN a, b")
         at_risk |= {str(b) for a, b in links.itertuples(index=False) if str(a) not in fac and str(b) in fac}
+        at_risk |= _deep_disrupted(lab, s)
     at_risk = sorted(at_risk - no_power)
     no_power = sorted(no_power)
     for status, ids in (("no_power", no_power), ("at_risk", at_risk)):
@@ -227,6 +228,20 @@ def scenario_propagate(lab: BranchLab, s: Session) -> str:
     unavailable = len(parts - available)
     return (f"propagated downstream impact: {len(no_power)} without power, {len(at_risk) - unavailable} "
             f"suppliers at risk, {unavailable} parts unavailable")
+
+
+def _deep_disrupted(lab: BranchLab, s: Session) -> set[str]:
+    """Deep-layer nodes a wargame disruption degraded (facilities below full output, closed ports)."""
+    from agents import deep_impact as D
+    from agents.deep_actions import deep_static
+
+    static = deep_static(lab)
+    if static is None:
+        return set()
+    state = D.load_state(s)
+    ok = D.evaluate(static, state).facility_ok
+    ports = {p for p in static.ports if p in state.ports and D.port_factor(static, state, p) < 1.0}
+    return {f for f, v in ok.items() if v < 1.0 and f in state.facilities} | ports
 
 
 # ---------------------------------------------------------------------- dispatch + replay
@@ -264,7 +279,26 @@ ACTIONS: dict[str, ActionFn] = {
     "wipe_bbox": scenario_wipe_bbox,
     "wipe_node": scenario_wipe_node,
     "propagate": lambda lab, s, **k: scenario_propagate(lab, s),
+    # deep supply network (agents/deep_actions.py): red disruption events, blue resilience measures
+    "close_port": lambda lab, s, **k: _deep("close_port")(lab, s, port_id=_pick(k, "port_id", "port")),
+    "block_chokepoint": lambda lab, s, **k: _deep("block_chokepoint")(
+        lab, s, waypoint_id=_pick(k, "waypoint_id", "chokepoint_id", "chokepoint")),
+    "export_controls": lambda lab, s, **k: _deep("export_controls")(
+        lab, s, country_code=_pick(k, "country_code", "country"), item_id=_pick(k, "item_id", "item", "material")),
+    "facility_outage": lambda lab, s, **k: _deep("facility_outage")(lab, s, facility_id=_pick(k, "facility_id")),
+    "reroute_exports": lambda lab, s, **k: _deep("reroute_exports")(lab, s, port_id=_pick(k, "port_id", "port")),
+    "second_source": lambda lab, s, **k: _deep("second_source")(lab, s, item_id=_pick(k, "item_id", "item")),
+    "replace_facility": lambda lab, s, **k: _deep("replace_facility")(lab, s, facility_id=_pick(k, "facility_id")),
+    "stockpile": lambda lab, s, **k: _deep("stockpile")(lab, s, item_id=_pick(k, "item_id", "item")),
+    "harden": lambda lab, s, **k: _deep("harden")(
+        lab, s, facility_id=_pick(k, "facility_id", required=False), port_id=_pick(k, "port_id", required=False)),
 }
+
+
+def _deep(name: str) -> ActionFn:
+    from agents.deep_actions import DEEP_ACTIONS  # late import: deep_actions imports this package's lab
+
+    return DEEP_ACTIONS[name]
 
 
 def apply_action(lab: BranchLab, s: Session, name: str, args: dict) -> str:
