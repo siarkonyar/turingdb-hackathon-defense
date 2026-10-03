@@ -18,6 +18,7 @@ KIND_BY_LABEL: dict[str, Kind] = {
     "Part": "part",
     "Facility": "facility",  # supply_chain_deep
     "Port": "port",
+    "Chokepoint": "chokepoint",
 }
 LABEL_BY_KIND: dict[str, str] = {kind: label for label, kind in KIND_BY_LABEL.items()}
 
@@ -25,7 +26,7 @@ STATUSES = frozenset({"at_risk", "lost", "no_power"})
 MAX_PLANT_MW = 4000.0  # plants at or above this capacity get full importance
 FIXED_IMPORTANCE: dict[str, float] = {
     "site": 1.0, "supplier": 0.7, "drone": 0.35, "crime": 0.25, "part": 0.3, "facility": 0.45, "port": 0.6,
-    "other": 0.2,
+    "chokepoint": 0.9, "other": 0.2,
 }
 
 
