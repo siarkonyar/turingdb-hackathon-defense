@@ -5,6 +5,7 @@ import { create } from "zustand";
 import type {
   AgentStatus,
   Branch,
+  DeepSupply,
   DiffResponse,
   Engine,
   GraphNode,
@@ -18,9 +19,9 @@ import type {
 import { DEFAULT_BASEMAP, type BasemapKind } from "../map/basemap";
 import { EMPTY_OVERLAY, type Overlay } from "../lib/overlay";
 
-export type LayerKey = "plant" | "site" | "supplier" | "drone" | "crime" | "cyber" | "report";
-export const LAYER_KEYS: LayerKey[] = ["plant", "site", "supplier", "drone", "crime", "cyber", "report"];
-export type BaseKind = "plant" | "site" | "supplier" | "drone" | "crime";
+export type LayerKey = "plant" | "site" | "supplier" | "facility" | "port" | "drone" | "crime" | "cyber" | "report";
+export const LAYER_KEYS: LayerKey[] = ["plant", "site", "supplier", "facility", "port", "drone", "crime", "cyber", "report"];
+export type BaseKind = "plant" | "site" | "supplier" | "facility" | "port" | "drone" | "crime";
 
 export interface LatencyStat {
   op: string;
@@ -79,6 +80,7 @@ export interface ScenarioState {
   explanation: string | null;
   steps: string[];
   impact: ImpactDiff | null;
+  deep: DeepSupply | null;
   status: AgentStatus | null;
 }
 
@@ -114,13 +116,31 @@ export interface OpsState {
   flyTo: FlyTarget | null;
 }
 
-const EMPTY_BASE: Record<BaseKind, GraphNode[]> = { plant: [], site: [], supplier: [], drone: [], crime: [] };
+const EMPTY_BASE: Record<BaseKind, GraphNode[]> = {
+  plant: [],
+  site: [],
+  supplier: [],
+  facility: [],
+  port: [],
+  drone: [],
+  crime: [],
+};
 
 export const initialState: OpsState = {
   phase: "loading",
   error: null,
   meta: null,
-  layers: { plant: true, site: true, supplier: true, drone: true, crime: false, cyber: false, report: true },
+  layers: {
+    plant: true,
+    site: true,
+    supplier: true,
+    facility: true,
+    port: true,
+    drone: true,
+    crime: false,
+    cyber: false,
+    report: true,
+  },
   basemap: DEFAULT_BASEMAP,
   basemapFallback: false,
   base: EMPTY_BASE,
@@ -141,6 +161,7 @@ export const initialState: OpsState = {
     explanation: null,
     steps: [],
     impact: null,
+    deep: null,
     status: null,
   },
   branchMenuOpen: false,

@@ -150,6 +150,8 @@ def run_scenario_question(lab: Lab, question: str, steps: int = 18) -> dict:
     if branch and lab.branches.record(str(branch)):
         out["impact_diff"] = lab.branches.diff_impacts("main", str(branch))
         out["branch"] = str(branch)
+        from agents.scenario import deep_supply
+        out["deep_supply"] = deep_supply(lab.branches, str(branch))
     return out
 
 
@@ -174,7 +176,8 @@ def main() -> None:
         print("\n=== SCENARIO ===")
         print(out["result"].get("explanation") or out["result"].get("headline") or out["result"])
         if "impact_diff" in out:
-            print("supply-chain loss on scenario branch:", out["impact_diff"]["loss_b_pct"], "%")
+            print("original-layer supply loss on scenario branch:", out["impact_diff"]["loss_b_pct"], "%")
+            print("deep supply network:", out.get("deep_supply"))
         payload = out
     else:
         res = run_red_blue(lab, args.threat_steps, args.defence_steps)

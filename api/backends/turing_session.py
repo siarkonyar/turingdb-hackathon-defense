@@ -15,7 +15,8 @@ from api.nodes import make_node
 from api.refs import Ref
 from api.support import ApiError, BackendUnavailable, NotFound, Stopwatch
 
-ID_CHUNK = 400  # ids per `WHERE n = a OR n = b ...` clause
+ID_CHUNK = 200  # ids per `WHERE n = a OR n = b ...` clause (3.0 rejects expressions nested > 256 deep;
+#                 OR chains are id lookups, far faster than `n IN [...]`, which scans)
 _NODE_ID = re.compile(r"^\d{1,12}$")
 _HEAD = re.compile(r"\(HEAD\)$")
 

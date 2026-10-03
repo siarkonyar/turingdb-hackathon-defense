@@ -1,6 +1,16 @@
 // Mirrors api/models.py (the contract in docs/api.md). Null fields may be omitted by the server.
 
-export type Kind = "plant" | "site" | "supplier" | "drone" | "crime" | "report" | "part" | "other";
+export type Kind =
+  | "plant"
+  | "site"
+  | "supplier"
+  | "drone"
+  | "crime"
+  | "report"
+  | "part"
+  | "facility"
+  | "port"
+  | "other";
 export type Status = "at_risk" | "lost" | "no_power";
 export type BranchKind = "main" | "hypothesis" | "strike" | "change" | "threat" | "defence" | "scenario";
 export type Engine = "turingdb" | "fixtures";
@@ -175,11 +185,20 @@ export interface AgentStatus {
   reason?: string;
 }
 
+export interface DeepSupply {
+  facilities_destroyed: number;
+  facilities_flagged: number;
+  facilities_downstream: number;
+  platforms_built_at_hit_facility: string[];
+  platforms_downstream_count: number;
+}
+
 export interface ScenarioResponse {
   branch: string | null;
   explanation?: string | null;
   headline?: Record<string, unknown> | null;
   impact_diff?: ImpactDiff | null;
+  deep_supply?: DeepSupply | null;
   steps: string[];
   model?: string | null;
 }

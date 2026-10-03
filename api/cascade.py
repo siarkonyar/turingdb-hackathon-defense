@@ -23,8 +23,9 @@ RULES: dict[str, tuple[str, ...]] = {
     "Supplier": ("SUPPLIED_BY", "SOURCES_FROM"),
     "Part": ("DELIVERED_TO",),
     "Site": ("PATROLS",),
+    "Facility": ("SUPPLIES",),  # supply_chain_deep: a lost facility puts its buyers at risk
 }
-POWERED_LABELS = ("Site", "Supplier")
+POWERED_LABELS = ("Site", "Supplier", "Facility")
 MAX_HOPS = 6
 
 

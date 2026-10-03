@@ -80,3 +80,19 @@ def test_scenario_wipe_marks_impact(lab):
     graph = lab.diff_graph("main", rec.change_id)
     assert graph["removed"]  # destroyed located nodes show up in the diff the map renders
     lab.discard(rec.change_id)
+
+
+def test_scenario_reaches_the_deep_supply_network(lab):
+    from agents.scenario import deep_supply
+    box = {"west": 28.85, "south": 40.92, "east": 29.15, "north": 41.12}  # Istanbul: deep facilities only
+    spec = {"actions": [{"action": "wipe_bbox", "args": box}, {"action": "propagate", "args": {}}]}
+    s, rec = lab.open_branch("scenario", "Istanbul", spec)
+    for step in spec["actions"]:
+        apply_action(lab, s, step["action"], step.get("args", {}))
+    deep = deep_supply(lab, rec.change_id)
+    assert deep["facilities_destroyed"] > 0
+    assert deep["facilities_flagged"] > 0  # buyers that lost a supplier are marked at_risk
+    assert deep["facilities_downstream"] >= deep["facilities_flagged"]
+    graph = lab.diff_graph("main", rec.change_id)
+    assert graph["removed"] and graph["changed"]  # both drive the map overlay
+    lab.discard(rec.change_id)

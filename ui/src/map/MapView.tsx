@@ -74,7 +74,7 @@ export function MapView() {
     strike && settledStrike !== strike.sim ? withoutStrike(overlay, strike.sim) : overlay;
 
   // ---------------------------------------------------------------- static layers
-  const facilities = useMemo(() => [...base.site, ...base.supplier], [base]);
+  const facilities = useMemo(() => [...base.site, ...base.supplier, ...base.facility, ...base.port], [base]);
   const visibleReports = useMemo(
     () =>
       [...reports]

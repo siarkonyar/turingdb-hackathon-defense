@@ -46,7 +46,7 @@ Both backends return identical shapes, so a client cannot tell them apart except
  "fuel": "Solar", "capacity_mw": 20.0, "exposure": null, "confidence": null}
 ```
 
-`kind` is one of `plant | site | supplier | drone | crime | report | part | other`. `importance` (0..1)
+`kind` is one of `plant | site | supplier | drone | crime | report | part | facility | port | other` (`facility` and `port` come from the supply_chain_deep layer). `importance` (0..1)
 drives glyph size: plants scale by `capacity_mw` (log). `exposure` (sites and suppliers) counts the attack
 scenarios that target the systems the asset `RUNS`.
 
@@ -59,7 +59,7 @@ Located nodes for the map.
 | Param | Example | Notes |
 |---|---|---|
 | `bbox` | `-10,35,30,60` | `west,south,east,north` (MapLibre `getBounds()` order). Crossing the antimeridian is allowed. Omit for the whole world. |
-| `types` | `plant,site` | Comma list of kinds (`plant, site, supplier, drone, crime, report, part`). Omit for all. |
+| `types` | `plant,site` | Comma list of kinds (`plant, site, supplier, drone, crime, report, part, facility, port`). Omit for all. |
 | `branch` | `main` | Ref. Nodes carry their `status` on that branch. |
 
 Returns `{branch, nodes: Node[], ...timing}`. All 34,942 plants plus sites come back in about 250 ms of
