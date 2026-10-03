@@ -415,6 +415,17 @@ def replay(data: dict, board: Board, emit: Emit, speed: float = 1.0, stop: threa
     return {"status": "done", "branches": mapping}
 
 
+def _fresh_effects(board: Board, move: dict, parent: str, built: str) -> dict:
+    """Recompute the map payload on the rebuilt branches (recordings made before an effects fix replay
+    with the current map choreography). Falls back to what was recorded."""
+    try:
+        fx = board.effects(move["side"], parent, built, move["actions"])
+    except Exception as exc:  # the map payload must never stop a replay
+        log.warning("replay: keeping recorded map effects for %s (%s)", move.get("label"), exc)
+        return {}
+    return {"targets": fx.get("targets", []), "arcs": fx.get("arcs", [])}
+
+
 def _remap(kind: str, data: dict, board: Board, mapping: dict[str, str]) -> dict:
     if kind == "match_started":
         return {**data, "base_branch": mapping.get(str(data.get("base_branch")), data.get("base_branch"))}
@@ -423,7 +434,7 @@ def _remap(kind: str, data: dict, board: Board, mapping: dict[str, str]) -> dict
         parent = mapping.get(str(move["parent_id"]), str(move["parent_id"]))
         built = board.stack(move["side"], move["label"], parent, move["actions"])
         mapping[str(move["branch_id"])] = built
-        new_move = {**move, "branch_id": built, "parent_id": parent}
+        new_move = {**move, "branch_id": built, "parent_id": parent, **_fresh_effects(board, move, parent, built)}
         return new_move if kind == "move" else {**data, "branch": built, "move": new_move}
     if kind == "match_done":
         summary = data.get("summary", {})

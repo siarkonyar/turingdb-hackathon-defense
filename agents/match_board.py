@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from api.backends.turing_session import first_label
+from api.backends.turing_session import first_label, id_clauses
 from api.models import Node
 from api.refs import Ref
 
@@ -141,21 +141,71 @@ class LabBoard:
             fallback = {"action": "prioritise_air_defence", "args": {"gppd_idnr": plants[0]["gppd_idnr"]}}
         else:
             fallback = None
-        return {"damage": damage, "unprotected_site_feeding_plants": plants, "protected_plants": sorted(protected),
+        unavailable = damage["parts_unavailable"]
+        coverage = {"backup_all_affected_parts": f"restores all {unavailable} unavailable parts in one move",
+                    "add_backup_supplier": "restores 1 part"}
+        suggested = fallback["action"] if fallback else None
+        return {"suggested": suggested, "coverage": coverage, "damage": damage,
+                "unprotected_site_feeding_plants": plants, "protected_plants": sorted(protected),
                 "names": self._names(s) | {p["gppd_idnr"]: p["name"] for p in plants}, "fallback": fallback}
 
     # ------------------------------------------------------------------ map payload
 
     def effects(self, side: str, parent: str, child: str, actions: list[dict]) -> dict:
+        """What the map draws for a move. Red: destroyed nodes, with arcs to the located nodes that lost status
+        and to the sites ordering parts that became unavailable. Blue: the providers of the edges this move
+        added (backup supplier, power plant, logistics partner), with arcs to what they now serve."""
         diff = self.lab.graph.backend.diff(_ref(parent), _ref(child))
         if side == "blue":
-            restored = [c.node for c in diff.changed if _located(c.node) and _severity_moved(c, up=False)]
-            focus = self._focus(child, actions)
-            return {"targets": focus + [_point(n) for n in restored[:TARGET_CAP]],
-                    "arcs": _arcs(focus, restored[:AFFECTED_CAP], "RESTORED")}
+            return self._blue_effects(parent, child, actions, diff)
         hit = [_point(n) for n in diff.removed if _located(n)][:TARGET_CAP] or self._focus(parent, actions)
-        affected = [c.node for c in diff.changed if _located(c.node) and _severity_moved(c, up=True)]
-        return {"targets": hit, "arcs": _arcs(hit, affected[:AFFECTED_CAP], "DEPENDS_ON")}
+        affected = [_point(c.node) for c in diff.changed if _located(c.node) and _severity_moved(c, up=True)]
+        lost_parts = [c.node.id for c in diff.changed if c.node.label == "Part" and _severity_moved(c, up=True)]
+        sites = self._sites_for_parts(child, lost_parts)
+        return {"targets": hit, "arcs": _arcs(hit, _dedupe(affected + sites)[:AFFECTED_CAP], "DEPENDS_ON")}
+
+    def _blue_effects(self, parent: str, child: str, actions: list[dict], diff) -> dict:
+        added = self._added_edges(child) - self._added_edges(parent)
+        s = self.lab.graph.session(str(child))
+        providers: list[dict] = []
+        arcs: list[dict] = []
+        for rel, a, b in sorted(added)[:AFFECTED_CAP]:
+            source = self._located_node(s, int(b))
+            providers += source
+            if not source:
+                continue
+            served = self._sites_for_parts(child, [a]) if rel == "SUPPLIED_BY" else self._located_node(s, int(a))
+            arcs += _arcs(source, served, "RESTORED")
+        restored = [_point(c.node) for c in diff.changed if _located(c.node) and _severity_moved(c, up=False)]
+        targets = _dedupe(self._focus(child, actions) + providers + restored)[:TARGET_CAP]
+        return {"targets": targets, "arcs": _dedupe_arcs(arcs)[:AFFECTED_CAP]}
+
+    def _added_edges(self, branch: str) -> set[tuple[str, str, str]]:
+        """(rel, from, to) of every edge a countermeasure added on this branch (edges carry agent_added)."""
+        if str(branch) == "main":
+            return set()
+        s = self.lab.graph.session(str(branch))
+        if "agent_added" not in s.property_types:
+            return set()
+        out: set[tuple[str, str, str]] = set()
+        for rel in ("SUPPLIED_BY", "SOURCES_FROM", "POWERED_BY"):
+            frame = s.q(f"MATCH (a)-[e:{rel}]->(b) WHERE e.agent_added = true RETURN a, b")
+            out |= {(rel, str(a), str(b)) for a, b in frame.itertuples(index=False)}
+        return out
+
+    def _sites_for_parts(self, branch: str, part_ids: list[str]) -> list[dict]:
+        """Located sites that order these parts (linear path: part <- purchase order -> site)."""
+        if not part_ids:
+            return []
+        s = self.lab.graph.session(str(branch))
+        out: dict[str, dict] = {}
+        for clause in id_clauses("p", part_ids[:AFFECTED_CAP]):
+            frame = s.q(f"MATCH (p:Part)<-[:FOR_PART]-(po:PurchaseOrder)-[:DELIVERED_TO]->(st:Site) WHERE {clause} "
+                        "RETURN st, st.name AS name, st.latitude AS lat, st.longitude AS lon")
+            for sid, name, lat, lon in frame.dropna(subset=["lat", "lon"]).itertuples(index=False):
+                out[str(sid)] = {"id": str(sid), "name": str(name), "kind": "site", "lat": float(lat),
+                                 "lon": float(lon), "status": None}
+        return list(out.values())
 
     def _focus(self, branch: str, actions: list[dict]) -> list[dict]:
         """The located node(s) an action names (the plant protected, the site re-powered, ...)."""
@@ -191,15 +241,23 @@ class LabBoard:
                  "lat": float(row["lat"]), "lon": float(row["lon"]), "status": None}]
 
 
-def _arcs(sources: list[dict], nodes: list[Node], rel: str) -> list[dict]:
-    """One arc per node, from the nearest source (a struck target, or the protected/re-powered asset)."""
+def _arcs(sources: list[dict], nodes: list[dict], rel: str) -> list[dict]:
+    """One arc per node, from the nearest source (a struck target, or the asset that restored it)."""
     arcs = []
     for n in nodes if sources else []:
-        src = min(sources, key=lambda p: (p["lat"] - n.lat) ** 2 + (p["lon"] - n.lon) ** 2)
-        if src["id"] != n.id:
-            arcs.append({"source": [src["lon"], src["lat"]], "target": [n.lon, n.lat], "source_id": src["id"],
-                         "target_id": n.id, "hop": 1, "rel": rel})
+        src = min(sources, key=lambda p: (p["lat"] - n["lat"]) ** 2 + (p["lon"] - n["lon"]) ** 2)
+        if src["id"] != n["id"]:
+            arcs.append({"source": [src["lon"], src["lat"]], "target": [n["lon"], n["lat"]],
+                         "source_id": src["id"], "target_id": n["id"], "hop": 1, "rel": rel})
     return arcs
+
+
+def _dedupe(points: list[dict]) -> list[dict]:
+    return list({p["id"]: p for p in points}.values())
+
+
+def _dedupe_arcs(arcs: list[dict]) -> list[dict]:
+    return list({(a["source_id"], a["target_id"]): a for a in arcs}.values())
 
 
 def scenario_injector(lab: Any):

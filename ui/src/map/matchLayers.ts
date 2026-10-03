@@ -12,9 +12,9 @@ import { arcTrips, type ArcTrip } from "../lib/arcs";
 import type { MatchFx } from "../state/store";
 import { AMBER, BLUE, RED, withAlpha, type RGBA } from "./colors";
 
-export const MATCH_FX_MS = 3600;
+export const MATCH_FX_MS = 5200; // long enough to read the label; arcs stay until the fade
 const RING_MS = 1200;
-const RINGS = 3;
+const RINGS = 4;
 const RING_GAP_MS = 380;
 const RING_MAX_PX = 54;
 const LABEL_FONT = "Inter Variable, Inter, system-ui, sans-serif";

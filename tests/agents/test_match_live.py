@@ -43,6 +43,9 @@ def test_live_match_stacks_on_a_scenario_base_and_replays(board, tmp_path):
     assert blue.abs_loss_pct <= red.abs_loss_pct
     assert [a["action"] for a in board.lineage(blue.branch_id)] == ["wipe_bbox", red.action, blue.action]
     assert red.targets, "a red strike should name something to flash on the map"
+    assert red.arcs, "a supplier strike should draw arcs to the sites that lose its parts"
+    assert blue.targets, "a blue move should give the map the backup supplier / restored asset to pulse"
+    assert blue.arcs and all(a["rel"] == "RESTORED" for a in blue.arcs)
     assert red.db_ms < 30_000, f"a move should take seconds, took {red.db_ms} ms of DB time"
 
     out: list[tuple[str, dict]] = []
@@ -51,3 +54,22 @@ def test_live_match_stacks_on_a_scenario_base_and_replays(board, tmp_path):
     assert [m["side"] for m in moves] == ["red", "blue"]
     assert moves[-1]["branch_id"] != blue.branch_id
     assert board.loss(moves[-1]["branch_id"]) == pytest.approx(board.loss(blue.branch_id))
+
+
+def test_single_part_backup_shows_its_supplier_on_the_map(board):
+    """add_backup_supplier only adds an edge (no node changes): the map still gets the backup supplier."""
+    red = board.stack("red", "live fx red", "main", [{"action": "strike_supplier", "args": {"supplier_id": "SUP012"}}])
+    lost = [c.node for c in board.lab.graph.backend.diff(*(_refs("main", red))).changed if c.node.label == "Part"]
+    assert lost, "striking SUP012 should leave parts unavailable"
+    part = board.lab.graph.session(red).q(f"MATCH (p) WHERE p = {int(lost[0].id)} RETURN p.part_id AS k")["k"][0]
+    step = {"action": "add_backup_supplier", "args": {"part_id": str(part)}}
+    blue = board.stack("blue", "live fx blue", red, [step])
+    fx = board.effects("blue", red, blue, [step])
+    assert any(t["kind"] == "supplier" for t in fx["targets"])
+    assert fx["arcs"] and fx["arcs"][0]["rel"] == "RESTORED"
+
+
+def _refs(a: str, b: str):
+    from api.refs import Ref
+
+    return (Ref("main") if a == "main" else Ref(a)), (Ref("main") if b == "main" else Ref(b))

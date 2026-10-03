@@ -33,6 +33,9 @@ Actions (args as shown):
   {{"action":"reroute_supplier","args":{{"supplier_id":"SUP013"}}}}         alternative logistics route
   {{"action":"restore_power","args":{{"facility_id":"SITE04"}}}}            alternative power feed for a site/supplier
   {{"action":"prioritise_air_defence","args":{{"gppd_idnr":"WRI1006130"}}}} protect a plant (red strikes on it fail)
+Rule of thumb: when 2 or more parts are unavailable, play backup_all_affected_parts - it is ONE move that
+restores every unavailable part, while add_backup_supplier restores a single part. Use the targeted actions
+when no part is unavailable (re-power a site, protect a plant red is likely to strike next).
 A destroyed supplier cannot be rerouted; back up its parts instead. You may instead call `query` ONCE with
 {{"cypher": "<one linear read-only MATCH>"}}. Put your one-sentence rationale in "thought"."""
 

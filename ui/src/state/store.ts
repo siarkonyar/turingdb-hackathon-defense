@@ -247,3 +247,5 @@ export function activeOverlay(s: OpsState): Overlay {
 export function activeBranchInfo(s: OpsState): Branch | undefined {
   return s.branches.find((b) => b.id === s.activeBranch);
 }
+
+if (import.meta.env.DEV) Object.assign(window, { __opsStore: useOps }); // debugging, like window.__opsmap

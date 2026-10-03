@@ -107,11 +107,13 @@ async function onMatchEvent(matchId: string, ev: MatchEvent): Promise<void> {
   }
 }
 
-/** Map follows the head: load the move's branch overlay, then flash / pulse its targets. */
+/** Map follows the head: the move's flash / pulse and fly-to start at once (its targets come with the
+ *  event); the branch overlay (statuses, KPIs) and the branch list load in parallel. */
 async function showMove(move: Move): Promise<void> {
-  await refreshBranches();
-  if (!useOps.getState().wargame.follow) return;
-  await showBranch(move.branch_id);
+  if (!useOps.getState().wargame.follow) {
+    await refreshBranches();
+    return;
+  }
   setOps({ matchFx: { side: move.side, targets: move.targets, arcs: move.arcs, startedAt: performance.now() } });
   const pts = move.targets.filter((t) => Number.isFinite(t.lat) && Number.isFinite(t.lon));
   if (pts.length) {
@@ -119,10 +121,11 @@ async function showMove(move: Move): Promise<void> {
     const lat = pts.reduce((a, t) => a + t.lat, 0) / pts.length;
     setOps({ flyTo: { lon, lat, zoom: FOLLOW_ZOOM, nonce: ++flySeq } });
   }
+  await Promise.all([refreshBranches(), showBranch(move.branch_id, true)]);
 }
 
 /** Switch the map to a branch without the busy pill (moves arrive every few seconds). */
-async function showBranch(branchId: string): Promise<void> {
+async function showBranch(branchId: string, onlyIfHead = false): Promise<void> {
   if (branchId === "main" || useOps.getState().overlays[branchId]) {
     setOps({ activeBranch: branchId, strike: null });
     return;
@@ -130,7 +133,12 @@ async function showBranch(branchId: string): Promise<void> {
   try {
     const diff = await api.diff("main", branchId);
     recordLatency(`diff main→${branchId}`, diff);
-    setOps((s) => ({ overlays: { ...s.overlays, [branchId]: overlayFromDiff(diff) }, activeBranch: branchId, strike: null }));
+    // a slow load for an older move must not pull the map back from a newer head
+    const stale = onlyIfHead && headOf(useOps.getState().wargame.view) !== branchId;
+    setOps((s) => ({
+      overlays: { ...s.overlays, [branchId]: overlayFromDiff(diff) },
+      ...(stale ? {} : { activeBranch: branchId, strike: null }),
+    }));
   } catch (err) {
     toast(`Could not load branch ${branchId}: ${message(err)}`, "error");
   }
