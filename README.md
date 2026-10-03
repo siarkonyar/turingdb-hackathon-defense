@@ -60,7 +60,7 @@ which is exactly what this repo ships.
 | `power_plants` | Global power infrastructure (plants, fuels, owners, countries, plants within 10 km) | 45,262 | 149,218 | [docs/power_plants.md](docs/power_plants.md) |
 | `poledb` | POLE crime investigation (people, associates, crimes, officers, vehicles, phone calls, locations) | 61,521 | 105,840 | [docs/poledb.md](docs/poledb.md) |
 | `attack_scenarios` | Cyber attack knowledge base (scenarios → MITRE ATT&CK techniques, tools, categories) | 18,354 | 60,014 | [docs/attack_scenarios.md](docs/attack_scenarios.md) |
-| `theatre` | All six fused into one operating picture, with synthetic sites, bridges and intel `Report` nodes | 294,200 | 845,561 | [docs/theatre.md](docs/theatre.md) |
+| `theatre` | All seven fused into one operating picture (incl. `supply_chain_deep`), with synthetic sites, bridges and intel `Report` nodes. Generated: `uv run python fusion/build_theatre.py` | 426,969 | 1,621,798 | [docs/theatre.md](docs/theatre.md) |
 
 ---
 
@@ -203,7 +203,8 @@ Then start a Claude Code session and type `/turingdb` followed by what you want 
 diff, competing intel hypotheses and time replay, with TuringDB query latency on screen.
 
 ```bash
-uv run turingdb start -turing-dir "$(pwd)" -demon -in-memory -load theatre -start-timeout 20000
+uv run python fusion/build_theatre.py && uv run turingdb stop -turing-dir "$(pwd)"   # once (~2 min)
+uv run turingdb start -turing-dir "$(pwd)" -demon -in-memory -load theatre -start-timeout 60000
 OPSMAP_BACKEND=turingdb uv run python -m api.seed_hypotheses
 OPSMAP_BACKEND=turingdb uv run uvicorn api.main:app --port 8000
 npm --prefix ui install && npm --prefix ui run dev     # http://localhost:5173

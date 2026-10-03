@@ -5,12 +5,15 @@ session does not have to re-explore. Deeper references are linked; only open the
 
 ## What this repo is
 
-EDTH x TuringDB hackathon pack. Three layers, built in this order:
+EDTH x TuringDB hackathon pack (fork of `turing-db/turingdb-hackathon-defense`, remote `upstream`). Layers:
 
-1. **Datasets** - six prebuilt TuringDB graphs under `graphs/` (supply_chain, logistics_risk, drone_swarm,
-   power_plants, poledb, attack_scenarios). Per-dataset docs in `docs/<name>.md`.
-2. **`theatre`** - all six fused into one graph (294,200 nodes / 845,561 edges) by `fusion/`, plus synthetic
-   bridges and 21 intel `Report` nodes. Schema, example queries and 1.37 caveats: `docs/theatre.md`.
+1. **Datasets** - seven prebuilt TuringDB 3.0 graphs under `graphs/` (supply_chain, supply_chain_deep,
+   logistics_risk, drone_swarm, power_plants, poledb, attack_scenarios). Docs in `docs/<name>.md`;
+   `scripts/generate_supply_chain_deep.py` is upstream's generator for the deep graph.
+2. **`theatre`** - all seven fused into one graph by `fusion/` (426,969 nodes / 1.62M edges after the report
+   commits), plus synthetic bridges and 21 intel `Report` nodes. **Generated, not in git** (its 3.0 store has
+   a 106 MB file, over GitHub's limit): `uv run python fusion/build_theatre.py` (~2 min), or let the agents'
+   supervisor build it on first use. Schema/queries: `docs/theatre.md` (deep layer: see below).
 3. **OpsMap** - FastAPI backend (`api/`) + React/MapLibre/deck.gl map (`ui/`) over `theatre`: strike
    simulation, branch diff, hypotheses, time replay. Contract: `docs/api.md`.
 4. **LLM agents** (added on branch `claude/supply-chain-threat-defence-3gi0qk`, commit `77fc806`) - threat,
@@ -34,6 +37,8 @@ skills/        bundled TuringDB Claude Code skills (Cypher dialect notes: skills
 
 ```bash
 uv sync && npm --prefix ui install
+uv run python fusion/build_theatre.py        # once: builds graphs/theatre (~2 min), leaves a server running
+uv run turingdb stop -turing-dir "$(pwd)"    # then restart in-memory so branches never touch disk:
 uv run turingdb start -turing-dir "$(pwd)" -demon -in-memory -load theatre -start-timeout 20000   # :6666
 OPSMAP_BACKEND=turingdb uv run uvicorn api.main:app --port 8000      # live API (+ /agent/* routes)
 npm --prefix ui run dev                                              # http://localhost:5173
@@ -54,29 +59,51 @@ uv run pytest tests/agents/test_agents_live.py -q                      # real Fe
 npm --prefix ui run typecheck && npm --prefix ui test && npm --prefix ui run build
 ```
 
-Last known state: all of the above green (77 passed for agents-offline + branch-lab + api; 4/4 live agent
-tests; UI 16 tests, typecheck and build OK). Live tests skip themselves when the server or key is missing.
+Last known state (turingdb 3.0, theatre with the deep layer): 135 passed for api + fusion + agents-offline +
+branch-lab. The live agent tests and UI checks last passed before the 3.0 move (4/4; UI 16 tests, typecheck,
+build) and were not re-run after it. Live tests skip themselves when the server or key is missing.
 
-## TuringDB 1.37 - things that will bite you
+## TuringDB 3.0 - things that will bite you
 
-Pinned to `turingdb==1.37`; 3.0 cannot load the bundled graphs ("File outdated"). Do not upgrade.
+Pinned to `turingdb==3.0`; upstream converted all bundled graphs to the 3.0 on-disk format.
+3.0 lifted most 1.37 limits: `DISTINCT`, `WITH`, `collect`/`sum`/`avg`, grouped aggregates, `IN`,
+`CONTAINS`, `OPTIONAL MATCH`, comma joins, variable-length paths (`-[:R]->+`, `-[:R]->{2,6}`), `|` edge
+unions and `shortestPath` all work. What still bites:
 
-- **Comma-joined patterns sharing a variable return wrong rows or hang the server forever.** Use single
-  linear paths: `(a)-[:R]->(b)<-[:S]-(c)`. Exception that works: `MATCH (a), (b) WHERE a = 1 AND b = 2
-  CREATE (a)-[:R]->(b)` (two id-bound nodes, used to add edges).
-- **No query cancel / timeout**, and `turingdb stop` waits for a runaway query -> `kill -9`.
-- Not supported: `OPTIONAL MATCH`, `WITH`, `UNWIND`, `DISTINCT`, `collect`, `sum`/`max`, grouped aggregates,
-  `IN`, `CONTAINS`/`STARTS WITH`, string `<`/`>`, `|` in edge types, `CALL db.procedures()`. Aggregate in pandas.
-- `type` and `new` are reserved: write ``n.`type` ``.
-- Naming a label/property that does not exist is an **error**, not 0 rows (check `CALL db.labels()` /
-  `CALL db.propertyTypes()` first; `Session.labels` / `.property_types` cache these).
-- Writes need a change: `client.new_change()` -> checkout -> queries -> `COMMIT` (needed between node and
-  edge creates, and after `DELETE` before the change's own reads see it). `DELETE n` removes incident edges.
-- **A client checked out on a change cannot `new_change()`** ("Cannot create a new change while working on
-  one"), and there is **no change-on-change**: every branch is cut from main.
-- Changes are not persisted with `-in-memory`; they vanish on server restart (by design here).
-- Node ids are internal integers, stable across main and changes (diffs compare by id).
-- Time filters use `ts_epoch` (int), not ISO strings.
+- **Deleting a node with edges needs `DETACH DELETE`** (plain `DELETE n` errors).
+- `edgeType(e)` is gone: use `type(e)`. **`labels(n)` returns a list** (`api/backends/turing_session.first_label`).
+- Writes need a change: `client.new_change()` -> checkout -> queries -> `COMMIT`.
+- **A client checked out on a change cannot `new_change()`**, and there is **no change-on-change**: every
+  branch is cut from main (verified on 3.0).
+- Naming a label/property that does not exist is an error, not 0 rows (`Session.labels` / `.property_types`).
+- The importer added an `id` String property to every node of the source graphs (original node id).
+- Changes are not persisted with `-in-memory` (by design here). A persistent server (what
+  `fusion/build_theatre.py` starts) would write branches to disk - restart in-memory before running agents.
+- `db.history()` `nodeCount`/`edgeCount` are per-commit deltas.
+- No documented query cancel; the agents keep their watchdog (`runtime.guarded_query`).
+- `agents/guard.py` still enforces the stricter 1.37-era rules (single linear MATCH, no DISTINCT/WITH/var-length).
+  Safe but conservative; relax it deliberately if agents need deeper queries.
+- Shell gotcha: never `pkill -f "turingdb start"` from a Bash tool call - the pattern matches the tool's own
+  shell and kills it. Use `turingdb stop -turing-dir "$(pwd)"`.
+
+## supply_chain_deep inside theatre
+
+Fused by `fusion/assemble.py` + `fusion/links.py::add_deep_powered_by`:
+- labels kept (Platform, System, Subsystem, Assembly, Subassembly, Component, Material, Mineral, Facility,
+  Company, Port, Chokepoint, SeaArea, Disruption) except **`Shipment` -> `Consignment`** (avoids mixing with
+  logistics_risk Shipments). Edge types kept (CONTAINS, PRODUCED_AT, SUPPLIES, OPERATED_BY, SUBSIDIARY_OF,
+  SHIPS_VIA, SEA_LANE, SHIPPED_FROM/TO, CARRIES, TRANSITED, IMPACTED_BY, AFFECTS, PRODUCTION_SHARE, ...).
+- `Country` merged by ISO3 into theatre's Country (adds region, nato_member, eu_member, eu_sanctions_target);
+  HKG and VGB are new -> 170 Country nodes.
+- Port/Chokepoint/SeaArea `lat`/`lon` renamed to `latitude`/`longitude` (`geo_method: reference_coordinates`).
+- Facilities had only a city: placed from `fusion/deep_geo.py` (177 city centroids) + 6 km seeded jitter
+  (`geo_method: city_centroid_jitter`, `geo_synthetic: true`). No Manchester facility exists in the deep data.
+- `Facility -[:POWERED_BY {synthetic, distance_km}]-> PowerPlant`: 3 nearest within 50 km (12,406 edges;
+  102 remote facilities have none).
+- Fusion runs without the deep source too (unit-test fixtures).
+- **Not yet used by the agents or the map**: the agents' impact model and actions still run on the original
+  synthetic supply_chain layer (Sites / Parts / Suppliers), and the OpsMap API has no `facility`/`port` kind.
+  Retargeting the *threat* agent onto the deep network (real chokepoints/countries) was deliberately not done.
 
 ## The agents system (`agents/`)
 
@@ -88,7 +115,7 @@ run with no operator intervention.
 | `config.py` | env settings; `MODEL_PREFERENCE` (default `Qwen/Qwen2.5-72B-Instruct`) |
 | `llm.py` | Featherless OpenAI-compatible client; JSON action parser (`parse_action`); gated-model fallback |
 | `engine.py` | model-agnostic ReAct loop: one JSON action per turn `{"thought","action","args"}`, tools return JSON |
-| `guard.py` | read-only Cypher guard: single MATCH linear path, no writes, auto `LIMIT`, rejects 1.37-unsupported syntax |
+| `guard.py` | read-only Cypher guard: single MATCH linear path, no writes, auto `LIMIT` (1.37-era strictness) |
 | `runtime.py` | `Supervisor` (auto start / kill+restart server), `Graph` (sessions, `guarded_query` watchdog) |
 | `impact.py` | **the objective**: projected supply-chain loss from graph state |
 | `branches.py` | `BranchLab`: open / evaluate / keep / discard branches, ledger + replay after restart, diffs |
@@ -150,8 +177,8 @@ result: ~27 located nodes destroyed (6 plants, 20 drones, SITE01), 13.8% supply 
   gated (403) for this account; `llm.py` falls through to the next model automatically.
 - Background processes: shell `&`/`nohup` do not survive between tool calls here; use the Bash tool's
   `run_in_background`. Background jobs are killed at their timeout (the uvicorn server was killed that way).
-- Starting the DB reliably from a script: `Supervisor(...).ensure_running()` (clears stale `turingdb.lock` /
-  `.sock` on restart). Clear leftover changes: checkout each id from `CHANGE LIST` and run `CHANGE DELETE`.
+- Starting the DB reliably from a script: `Supervisor(...).ensure_running()` (builds `graphs/theatre` if
+  missing, starts in-memory, clears stale `turingdb.lock` / `.sock` on restart). Clear leftover changes: checkout each id from `CHANGE LIST` and run `CHANGE DELETE`.
 - Scratchpad for temp files: the session scratchpad dir, not `/tmp`.
 
 ## Traps already hit (do not repeat)
@@ -174,9 +201,15 @@ result: ~27 located nodes destroyed (6 plants, 20 drones, SITE01), 13.8% supply 
 - Agent-written Cypher always goes through `guard.check_read_query`; writes only through `actions.py`.
 - Keep `main` of the graph untouched: never `CHANGE SUBMIT` from agent code.
 - Git: work on `claude/supply-chain-threat-defence-3gi0qk`; it is pushed, no PR opened yet (user is testing
-  locally first). Do not commit runtime dirs (`data/`, `logs/`, `*.lock`, `*.sock` are gitignored).
+  locally first). `upstream` = turing-db/turingdb-hackathon-defense (merged up to `a87d58b`). Do not commit
+  runtime dirs or `graphs/theatre/` (all gitignored; `uv.lock` IS tracked).
 
 ## Open items / ideas
+
+- Re-run `tests/agents/test_agents_live.py` and the UI checks on 3.0.
+- Show deep facilities / ports on the map (needs a `facility`/`port` Kind in api/models.py, nodes.py,
+  KIND_QUERIES, SNAPSHOT_KINDS and the UI glyph/colour/layer maps).
+- Optionally let the scenario agent's disaster wipe include deep `Facility`/`Port` nodes.
 
 - UI Scenario panel not yet eyeballed in a browser (only typecheck/build/unit tests).
 - Agent endpoints are synchronous and can take minutes; a job queue + progress polling would improve UX.
